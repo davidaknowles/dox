@@ -1,0 +1,39 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+## Setup
+
+```{r}
+library("dplyr")
+library("tidyr")
+library("ggplot2")
+```
+
+
+```{r}
+total_counts <- read.delim("../data/total-counts.txt", stringsAsFactors = FALSE)
+str(total_counts)
+```
+
+## How many reads per lane?
+
+```{r}
+counts_per_lane <- total_counts %>%
+  group_by(stage, lane) %>%
+  summarize(counts = sum(counts))
+head(counts_per_lane)
+```
+
+```{r}
+ggplot(counts_per_lane, aes(x = stage, y = counts / 10^6, color = lane)) +
+  geom_point()
+```
+
+
+```{r}
+ggplot(total_counts, aes(x = stage, y = counts)) +
+  geom_boxplot()
+```
+
