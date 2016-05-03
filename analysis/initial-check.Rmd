@@ -1,0 +1,182 @@
+---
+title: "Initial check of first dox flow cell"
+date: 2016-05-03
+---
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r system("git log -1 --format='%H'", intern = TRUE)`
+
+```{r chunk-options}
+library("knitr")
+opts_chunk$set(cache = TRUE)
+```
+
+
+The first dox flow cell, C6TJGACXX, was sequenced in house.
+The path on PPS is /rawdata/Illumina_Runs/150619_SN_0795_0433_BC6TJGACXX/Demultiplexed/Project_N.
+The analysis below performs an intial check of the data using the gene counts.
+
+## Setup
+
+```{r packages, message=FALSE}
+library("dplyr")
+library("tidyr")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+library("edgeR")
+```
+
+
+```{r}
+input <- read.delim("../data/gene-counts.txt")
+dim(input)
+str(input[, 1:10])
+```
+
+Split annotation and counts.
+
+```{r}
+anno <- input %>% select(individual, flow_cell, lane, index)
+counts_raw <- input %>% select(starts_with("ENSG")) 
+counts_raw <- t(counts_raw)
+```
+
+## Filter genes
+
+```{r}
+counts_raw_cpm <- cpm(counts_raw, log = TRUE)
+gene_medians <- apply(counts_raw_cpm, 1, median)
+hist(gene_medians)
+cutoff <- 0
+abline(v = cutoff, col = "red")
+```
+
+I remove genes with a median log2 cpm less than `r cutoff`.
+
+```{r}
+counts <- counts_raw[gene_medians < 0, ]
+dim(counts)
+```
+
+## PCA
+
+```{r}
+counts_cpm <- cpm(counts, log = TRUE)
+```
+
+```{r}
+pca <- prcomp(t(counts_cpm), scale. = TRUE)
+variances <- pca$sdev^2
+explained <- variances / sum(variances)
+plot(pca)
+```
+
+```{r}
+pca_data <- cbind(anno, pca$x[, 1:5])
+```
+
+Two outliers:
+
+```{r pc1-pc2-sample}
+ggplot(pca_data, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = individual)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+Replicates cluster:
+
+```{r pc2-pc3-sample}
+ggplot(pca_data, aes(x = PC2, y = PC3)) +
+  geom_text(aes(label = individual)) +
+    labs(x = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)),
+         y = sprintf("PC%d (%.2f%%)", 3, round(explained[3] * 100, 2)))
+```
+
+## Include dosage information
+
+The sample IDs are always in the following order:
+
+*  C
+*  0.625
+*  1.25
+*  2.5
+*  5
+
+Need to be sensitive that sample # 15 is missing.
+
+```{r}
+d_1 <- c("C", "0.625", "1.25", "2.5", "5")
+# The lanes are adjacent, therefore need to double
+d_2 <- rep(d_1, each = 2)
+# There are supposed to be 30 samples: 30 / 5 = 6
+d_3 <- rep(d_2, 6)
+# Need to remove sample #15, which should be a 5
+d_3[29:30]
+d_4 <- d_3[-29:-30]
+pca_data <- data.frame(pca_data, dosage = d_4)
+```
+
+The outliers are both dox treated:
+
+```{r pc1-pc2-dosage}
+ggplot(pca_data, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = dosage)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+The treatments cluster, but it's somewhat strange:
+
+```{r pc2-pc-3-dosage}
+ggplot(pca_data, aes(x = PC2, y = PC3)) +
+  geom_text(aes(label = dosage)) +
+    labs(x = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)),
+         y = sprintf("PC%d (%.2f%%)", 3, round(explained[3] * 100, 2)))
+```
+
+## Add individual information
+
+There are 30 samples, but only 6 individuals.
+I mistakenly have the column labeled "individual", when it should be "sample".
+I'll need to update this in my processing scripts.
+
+Need to be sensitive that sample # 15 is missing.
+
+```{r}
+ind_1 <- sprintf("ind%02d", 1:6)
+# Each individual has 5 samples
+ind_2 <- rep(ind_1, each = 5)
+# The lanes are adjacent, therefore need to double
+ind_3 <- rep(ind_2, each = 2)
+# Need to remove sample #15, which should be ind03
+ind_3[29:30]
+ind_4 <- ind_3[-29:-30]
+pca_data <- data.frame(pca_data, ind_id = ind_4)
+```
+
+The outliers are from two different individuals:
+
+```{r pc1-pc2-individual}
+ggplot(pca_data, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = substr(ind_id, 4 ,5))) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+The clustering in the bottom right corner are all the samples from ind01:
+
+```{r pc2-pc-3-individual}
+ggplot(pca_data, aes(x = PC2, y = PC3)) +
+  geom_text(aes(label = substr(ind_id, 4, 5))) +
+    labs(x = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)),
+         y = sprintf("PC%d (%.2f%%)", 3, round(explained[3] * 100, 2)))
+```
+
+## Session information
+
+```{r info}
+sessionInfo()
+```
+
