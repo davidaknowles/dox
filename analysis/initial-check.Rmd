@@ -1,6 +1,10 @@
 ---
 title: "Initial check of first dox flow cell"
 date: 2016-05-03
+output:
+  html_document:
+    toc: true
+    toc_float: true
 ---
 
 **Last updated:** `r Sys.Date()`
@@ -173,6 +177,18 @@ ggplot(pca_data, aes(x = PC2, y = PC3)) +
     labs(x = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)),
          y = sprintf("PC%d (%.2f%%)", 3, round(explained[3] * 100, 2)))
 ```
+
+## Heatmap
+
+The main split in the heatmap agrees with the PC2/3 separation.
+One group is the 0.625 and 1.25 dosages, and the other group is the control and the 2.5 and 5 dosages.
+
+```{r heatmap}
+d <- dist(t(counts_cpm))
+h <- hclust(d)
+plot(h, labels = paste(pca_data$ind_id, pca_data$dosage, sep = " - "))
+```
+
 
 ## Session information
 
