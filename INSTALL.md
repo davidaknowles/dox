@@ -4,6 +4,7 @@
 
 *  Python 3
 *  R > 3.0
+*  [sra-tools v2.6.2](https://github.com/ncbi/sra-tools/wiki)
 
 ## Python packages
 
