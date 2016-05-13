@@ -1,6 +1,7 @@
 # Snakefile
 
-# http://jdblischak.github.io/singleCellSeq/analysis/islam2014.html
+# To run on RCC Midway:
+# snakemake -j 100 -c "sbatch --nodes=1 --mem=1000"
 
 import os
 from snakemake.utils import R
@@ -14,7 +15,7 @@ code = "code/"
 # Burridge et al 2016
 rnaseq_dir = scratch + "burridge2016/"
 rnaseq_treatments = ["0um", "1um"]
-rnaseq_samples = ["con1", "con3", "con4", "ch1", "ch3", "ch4"]
+rnaseq_indivs = ["con1", "con3", "con4", "ch1", "ch3", "ch4"]
 
 for d in [scratch, rnaseq_dir]:
     if not os.path.isdir(d):
@@ -22,7 +23,10 @@ for d in [scratch, rnaseq_dir]:
 
 # Targets ----------------------------------------------------------------------
 
+localrules: process_burridge_2016
 
+rule process_burridge_2016:
+    input: expand(rnaseq_dir + "{indiv}-{treatment}.sra", indiv = rnaseq_indivs, treatment = rnaseq_treatments)
 
 # Rules ------------------------------------------------------------------------
 
@@ -36,9 +40,10 @@ rule download_sra_meta:
         """)
 
 rule download_burridge_rnaseq:
-    input: sra_db = scratch + "SRAmetadb.sqlite",
-           script = code + "download-burridge-2016.R"
-    output: expand(rnaseq_dir + "{sample}-{treatment}.sra", sample = rnaseq_samples, treatment = rnaseq_treatments)
-    params: outdir = rnaseq_dir
-    shell: "Rscript {input.script} {input.sra_db} {params.outdir}"
+    input: sra_db = scratch + "SRAmetadb.sqlite"
+    output: rnaseq_dir + "{indiv}-{treatment}.sra"
+    params: outdir = rnaseq_dir,
+            script = code + "download-burridge-2016.R",
+            sample = "{indiv}-{treatment}"
+    shell: "Rscript {params.script} {input.sra_db} {params.outdir} {params.sample}"
  
