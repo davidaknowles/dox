@@ -1,7 +1,7 @@
 # Snakefile
 
 # To run on RCC Midway:
-# snakemake -j 100 -c "sbatch --nodes=1 --mem=1000"
+# snakemake -j 100 --cluster-config config-rcc.json -c "sbatch --mem={cluster.mem} --nodes={cluster.n} --tasks-per-node={cluster.tasks}"
 
 import os
 from snakemake.utils import R
@@ -27,7 +27,7 @@ for d in [scratch, rnaseq_dir]:
 localrules: process_burridge_2016, prepare_kallisto
 
 rule process_burridge_2016:
-    input: expand(rnaseq_dir + "{indiv}-{treatment}_{mate}.fastq.gz", indiv = rnaseq_indivs, treatment = rnaseq_treatments, mate = [1, 2])
+    input: expand(rnaseq_dir + "{indiv}-{treatment}/abundance.tsv", indiv = rnaseq_indivs, treatment = rnaseq_treatments)
 
 rule prepare_kallisto:
     input: scratch + "transcriptome-ensembl-GRCh38.idx"
@@ -65,3 +65,9 @@ rule kallisto_index:
     output: scratch + "transcriptome-ensembl-GRCh38.idx"
     shell: "kallisto index -i {output} {input}"
 
+rule kallisto_quant:
+    input: read1 = "{sample}_1.fastq.gz", read2 = "{sample}_2.fastq.gz",
+           index = scratch + "transcriptome-ensembl-GRCh38.idx"
+    output: "{sample}/abundance.tsv"
+    params: outdir = "{sample}", threads = 8, bootstraps = 100
+    shell: "kallisto quant -i {input.index} -o {params.outdir} -t {params.threads} -b {params.bootstraps} {input.read1} {input.read2}"
