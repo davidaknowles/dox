@@ -9,7 +9,8 @@ from snakemake.utils import R
 # Configuration ----------------------------------------------------------------
 
 # Paths must end with forward slash
-scratch = "/home/jdblischak/scratch-midway/"
+scratch = "/scratch/midway/jdblischak/"
+
 code = "code/"
 
 # Burridge et al 2016
@@ -23,15 +24,18 @@ for d in [scratch, rnaseq_dir]:
 
 # Targets ----------------------------------------------------------------------
 
-localrules: process_burridge_2016
+localrules: process_burridge_2016, prepare_kallisto
 
 rule process_burridge_2016:
-    input: expand(rnaseq_dir + "{indiv}-{treatment}.sra", indiv = rnaseq_indivs, treatment = rnaseq_treatments)
+    input: expand(rnaseq_dir + "{indiv}-{treatment}_{mate}.fastq.gz", indiv = rnaseq_indivs, treatment = rnaseq_treatments, mate = [1, 2])
+
+rule prepare_kallisto:
+    input: scratch + "transcriptome-ensembl-GRCh38.idx"
 
 # Rules ------------------------------------------------------------------------
 
 rule download_sra_meta:
-    output: scratch + "SRAmetadb.sqlite"
+    output: temp(scratch + "SRAmetadb.sqlite")
     params: destdir = scratch
     run:
         R("""
@@ -41,9 +45,23 @@ rule download_sra_meta:
 
 rule download_burridge_rnaseq:
     input: sra_db = scratch + "SRAmetadb.sqlite"
-    output: rnaseq_dir + "{indiv}-{treatment}.sra"
+    output: temp(rnaseq_dir + "{indiv}-{treatment}.sra")
     params: outdir = rnaseq_dir,
             script = code + "download-burridge-2016.R",
             sample = "{indiv}-{treatment}"
     shell: "Rscript {params.script} {input.sra_db} {params.outdir} {params.sample}"
  
+rule convert_sra_to_fastq:
+    input: "{sample}.sra"
+    output: "{sample}_1.fastq.gz", "{sample}_2.fastq.gz"
+    shell: "fastq-dump --split-files --gzip --outdir `dirname {input}` {input}"
+
+rule download_transcriptome:
+    output: scratch + "transcriptome-ensembl-GRCh38.fa.gz"
+    shell: "wget -O {output} http://bio.math.berkeley.edu/kallisto/transcriptomes/Homo_sapiens.GRCh38.rel79.cdna.all.fa.gz"
+
+rule kallisto_index:
+    input:  scratch + "transcriptome-ensembl-GRCh38.fa.gz"
+    output: scratch + "transcriptome-ensembl-GRCh38.idx"
+    shell: "kallisto index -i {output} {input}"
+
