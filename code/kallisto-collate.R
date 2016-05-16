@@ -121,7 +121,7 @@ stopifnot(df_est_counts_gene$ensembl_gene_id == df_tpm_gene$ensembl_gene_id)
 # Only include protein_coding genes on main chromosomes
 df_est_counts_gene <- df_est_counts_gene %>% filter(gene_biotype == "protein_coding",
                                                     chromosome_name %in% c(1:22, "X", "Y", "MT"))
-df_tmp_gene <- df_tpm_gene %>% filter(gene_biotype == "protein_coding",
+df_tpm_gene <- df_tpm_gene %>% filter(gene_biotype == "protein_coding",
                                       chromosome_name %in% c(1:22, "X", "Y", "MT"))
 
 # Output -----------------------------------------------------------------------

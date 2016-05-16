@@ -25,9 +25,14 @@ for d in [scratch, rnaseq_dir]:
 
 # Targets ----------------------------------------------------------------------
 
-localrules: process_burridge_2016, prepare_kallisto
+localrules: process_burridge_2016, process_burridge_2016_intermediate, prepare_kallisto
 
 rule process_burridge_2016:
+    input: data + "burridge-2016-eff-counts.txt",
+           data + "burridge-2016-tpm.txt"
+
+
+rule process_burridge_2016_intermediate:
     input: expand(rnaseq_dir + "{indiv}-{treatment}/abundance.tsv", \
                   indiv = rnaseq_indivs, treatment = rnaseq_treatments)
 
