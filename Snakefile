@@ -12,6 +12,7 @@ from snakemake.utils import R
 scratch = "/scratch/midway/jdblischak/"
 
 code = "code/"
+data = "data/"
 
 # Burridge et al 2016
 rnaseq_dir = scratch + "burridge2016/"
@@ -27,7 +28,8 @@ for d in [scratch, rnaseq_dir]:
 localrules: process_burridge_2016, prepare_kallisto
 
 rule process_burridge_2016:
-    input: expand(rnaseq_dir + "{indiv}-{treatment}/abundance.tsv", indiv = rnaseq_indivs, treatment = rnaseq_treatments)
+    input: expand(rnaseq_dir + "{indiv}-{treatment}/abundance.tsv", \
+                  indiv = rnaseq_indivs, treatment = rnaseq_treatments)
 
 rule prepare_kallisto:
     input: scratch + "transcriptome-ensembl-GRCh38.idx"
@@ -71,3 +73,11 @@ rule kallisto_quant:
     output: "{sample}/abundance.tsv"
     params: outdir = "{sample}", threads = 8, bootstraps = 100
     shell: "kallisto quant -i {input.index} -o {params.outdir} -t {params.threads} -b {params.bootstraps} {input.read1} {input.read2}"
+
+rule kallisto_collate:
+    input: expand(rnaseq_dir + "{indiv}-{treatment}/abundance.tsv", \
+                  indiv = rnaseq_indivs, treatment = rnaseq_treatments)
+    output: eff_counts = data + "burridge-2016-eff-counts.txt",
+            tpm =  data + "burridge-2016-tpm.txt",
+    params: script = code + "kallisto-collate.R"
+    shell: "Rscript {params.script} {output.eff_counts} {output.tpm} {input}"
