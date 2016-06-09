@@ -1,0 +1,22 @@
+---
+title: "star_output.Rmd"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ggplot2)
+require(reshape2)
+```
+
+Number of mapped/multimapped/unmapped for each sample: 
+
+```{r load-log-output}
+log_output=read.delim("../data/star_output.tsv", check.names = F, stringsAsFactors = F)
+log_output_real=log_output[ ! grepl( "undetermined" , log_output$Sample ), ]
+log_output_real$Unmapped=log_output_real[, 'Number of input reads'] - ( log_output_real[, 'Uniquely mapped reads number'] + log_output_real[, 'Number of reads mapped to multiple loci'] ) 
+
+melt_log=melt( log_output_real,  id.vars = "Sample", measure.vars = c('Uniquely mapped reads number', 'Number of reads mapped to multiple loci', 'Unmapped' ) )
+
+ggplot(melt_log, aes(Sample, value/1e6, fill=variable)) + geom_bar(stat="identity") + coord_flip()
+```
