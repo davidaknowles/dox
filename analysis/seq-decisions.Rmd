@@ -1,0 +1,354 @@
+---
+title: "Sequencing decisions"
+date: 2016-06-14
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r system("git log -1 --format='%H'", intern = TRUE)`
+
+```{r chunk-options}
+library("knitr")
+opts_chunk$set(fig.width = 8, fig.heigth = 8, cache = FALSE)
+```
+
+We have sequenced each library once.
+Now we need to determine:
+
+* Which samples require more sequencing?
+* Which master mixes need rebalanced?
+
+## Setup
+
+```{r packages, message=FALSE}
+library("DT")
+library("dplyr")
+library("ggplot2")
+library("cowplot")
+```
+
+Input annotation.
+
+```{r anno}
+anno <- read.delim("../data/annotation.txt", stringsAsFactors = FALSE)
+dim(anno)
+```
+
+Input mapping summary statistics.
+229 of the 230 samples have been mapped.
+
+```{r mapping}
+mapping <- read.delim("../data/star_output.tsv", check.names = FALSE,
+                      stringsAsFactors = FALSE)
+dim(mapping)
+```
+
+Split filename into id, flow cell, and lane.
+
+```{r split-filename}
+fname_parts <- strsplit(mapping$Sample, "-")
+fname_df <- t(as.data.frame(fname_parts))
+mapping <- mapping %>%
+  mutate(id = paste(fname_df[, 1], fname_df[, 2], fname_df[, 3], sep = "-"),
+         flow_cell = fname_df[, 4],
+         lane = fname_df[, 5])
+```
+
+Merge the two data sets.
+
+```{r merge}
+d <- merge(anno, mapping, by = "id")
+dim(d)
+datatable(d)
+```
+
+Rename the columns.
+The spaces were troublesome, even when using `ggplot::aes_string`.
+
+```{r rename-cols}
+colnames(d)[16:21] <- c("fname", "speed", "raw", "length", "unique",
+                        "unique_perc")
+colnames(d)
+```
+
+Scale the counts to millions.
+
+```{r millions}
+d <- d %>%
+  mutate(raw_mil = raw / 10^6,
+         unique_mil = unique / 10^6)
+```
+
+## How many reads per lane on the HiSeq 4000?
+
+```{r summarize-per-lane}
+d_lane <- d %>%
+  group_by(flow_cell, lane) %>%
+  summarize(raw_lane = sum(raw_mil),
+            unique_lane = sum(unique_mil))
+```
+
+The HiSeq 4000 generated a mean of `r round(mean(d_lane$raw_lane), digits = 0)` +/- `r round(sd(d_lane$raw_lane) / length(d_lane$raw_lane), digits = 1)` (SEM) million raw reads per lane, which converted to a mean of `r round(mean(d_lane$unique_lane), digits = 0)` +/- `r round(sd(d_lane$unique_lane) / length(d_lane$unique_lane), digits = 1)` (SEM) million uniquely mapping reads.
+
+```{r plot-per-lane}
+p_lane <- ggplot(d_lane, aes(x = raw_lane, y = unique_lane, color = flow_cell)) +
+  geom_point() +
+  scale_color_discrete(name = "Flow cell") +
+  labs(x = "Number of raw reads (millions)",
+       y = "Number of uniquely mapping reads (millions)",
+       title = "HiSeq 4000 output per lane")
+p_lane
+```
+
+The variation in the two metrics does not appear to segregate strongly by flow cell.
+
+## What is the variation in sequencing across samples?
+
+The differences in the number of raw sequences and the conversion to mapped reads is fairly consistent across the master mixes.
+
+```{r plot-per-sample}
+p_sample <- p_lane %+% d %+% aes(x = raw_mil, y = unique_mil) +
+  labs(title = "Sequencing per sample") +
+  facet_wrap(~master_mix)
+p_sample
+```
+
+Only `r sum(d$raw_mil > 45)` samples have greater than 45 million raw reads
+(range: `r round(min(d$raw_mil), digits = 2)` - `r round(max(d$raw_mil), digits = 2)` million).
+Only `r sum(d$unique_mil > 30)` samples have greater than 30 million uniquely mapping reads
+(range: `r round(min(d$unique_mil), digits = 2)` - `r round(max(d$unique_mil), digits = 2)` million).
+
+```{r range-per-sample}
+p_raw <- ggplot(d, aes(x = reorder(id, raw_mil), y = raw_mil)) +
+  geom_point() +
+  geom_hline(aes(yintercept = 45), color = "red") +
+  theme(axis.text.x = element_blank()) +
+  labs(x = "Sample",
+       y = "Raw reads (millions)",
+       title = "Raw reads")
+p_unique <- p_raw %+% aes(y = unique_mil) +
+  geom_hline(aes(yintercept = 30), color = "blue") +
+  labs(x = "Sample",
+       y = "Number of uniquely mapping reads (millions)",
+       title = "Uniquely mapping reads")
+plot_grid(p_raw, p_unique)
+```
+
+## What is relationship between library concentration estimates and sequencing?
+
+The goal is for each master mix to be an equal mix of its constituent libraries.
+This is difficult in practice due to the low concentrations and the transfer of small volumes.
+In the ideal situation, the concentration of each library would be equal, leading to each library generating an equal number of clusters, and thus an equal number of reads.
+
+As expected, the percentage of clusters from a lane that a library receives is strongly correlated with the number of sequences.
+
+```{r plot-perc}
+p_perc_raw <- ggplot(d, aes(x = lane_perc, y = raw_mil)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(x = "Percentage of lane",
+       y = "Number of raw reads (millions)",
+       title = "Raw")
+p_perc_unique <- p_perc_raw %+% aes(y = unique_mil) +
+  labs(y = "Number of uniquely mapping reads (millions)",
+       title = "Mapped")
+plot_grid(p_perc_raw, p_perc_unique)
+```
+
+Before combining the libraries into a master mix, they are diluted to the same concentration.
+The library quantification is done via a qPCR-based method specifically designed for sequencing libraries.
+These estimates are in the variable `qpcr`.
+We also measured the diluted libraries, which should all be close to equal.
+These are in the variable `qpcr_dilute`.
+
+The concentration of the diluted libraries are not all equal.
+Furthermore, they do not correlate well with the percentage of the lane they are sequenced on.
+On performing the dilutions, it appears that original libraries with a higher concentrations are systematically overdiluted.
+
+```{r plot-qpcr, warning=FALSE}
+p_perc_dilute <- p_perc_raw %+% aes(y = log10(qpcr_dilute)) +
+  labs(y = "Conc. of diluted libraries (log10)",
+       title = "")
+p_perc_qpcr <- p_perc_raw %+% aes(y = log10(qpcr)) +
+  labs(y = "Conc. of original libraries (log10)",
+       title = "")
+p_qpcr_dilute <- p_perc_qpcr %+% aes(x = log10(qpcr_dilute)) +
+  labs(x = "Conc. of original libraries (log10)",
+       y = "Conc. of diluted libraries (log10)",
+       title = "")
+plot_grid(p_perc_dilute, p_perc_qpcr, p_qpcr_dilute)
+```
+
+But it is not the absolute concentration that matters, but the relative concentrations within each master mix.
+This relative concentration should correlate better with the percentage of the lane.
+
+```{r relative-concentration}
+d <- d %>%
+  group_by(master_mix) %>%
+  mutate(qpcr_relative = qpcr_dilute / sum(qpcr_dilute, na.rm = TRUE) * 100)
+relative_totals <- tapply(d$qpcr_relative, d$master_mix, sum, na.rm = TRUE)
+stopifnot(relative_totals > 99, relative_totals < 101, !is.na(relative_totals))
+```
+
+This shows a much better correlation, but still far from perfect.
+
+```{r plot-relative, warning=FALSE}
+p_perc_rel <- p_perc_raw %+% d %+% aes(y = qpcr_relative) +
+  labs(y = "Relative concentration")
+p_perc_rel
+```
+
+## Which master mixes need resequenced and possibly rebalanced?
+
+```{r summarize-master-mix}
+d_mm <- d %>%
+  group_by(master_mix) %>%
+  summarize(raw_min = min(raw_mil),
+            raw_mean = mean(raw_mil),
+            raw_median = median(raw_mil),
+            raw_max = max(raw_mil),
+            perc_min = min(lane_perc),
+            perc_mean = mean(lane_perc),
+            perc_median = median(lane_perc),
+            perc_max = max(lane_perc))
+stopifnot(!is.na(d_mm))
+d_mm$master_mix <- reorder(d_mm$master_mix,
+                           as.numeric(sub("m", "", d_mm$master_mix)))
+```
+
+The average is below 45 million raw reads for each master mix, so they should all be sequenced again.
+
+```{r raw-per-master-mix}
+ggplot(d_mm, aes(x = master_mix)) +
+  geom_point(aes(y = raw_mean), color = "blue") +
+  geom_errorbar(aes(ymax = raw_max, ymin = raw_min)) +
+  geom_hline(yintercept = 45, col = "red") +
+  labs(x = "Master mix",
+       y = "Mean raw reads (millions)\nrange is min to max",
+       title = "Raw reads per master mix")
+```
+
+What is the distribution of lane percentages for each master mix?
+
+```{r lane-perc-master-mix}
+ggplot(d_mm, aes(x = master_mix)) +
+  geom_point(aes(y = perc_mean), color = "blue") +
+  geom_errorbar(aes(ymax = perc_max, ymin = perc_min)) +
+  geom_hline(yintercept = 25, col = "red") +
+  geom_hline(yintercept = 5, col = "blue") +
+  labs(x = "Master mix",
+       y = "Mean lane percentage\nrange is min to max",
+       title = "Lane percentage per master mix")
+```
+
+On the high end, master mixes 17 and 23 each have a sample that accounted for more than 25% of the sequencing.
+
+```{r too-high}
+d_mm %>% filter(perc_max > 25) 
+```
+
+The low end is more concerning, with 7 libraries with a minumum lane percentage lower than 1%.
+
+```{r too-low}
+d_mm %>% filter(perc_min < 1)
+```
+
+## Plan
+
+The core has been sequencing two master mixes to a lane.
+How many of these combined pools are ready for sequencing without rebalancing?
+
+```{r filter}
+d_mm <- d_mm %>%
+  mutate(mix_num = as.numeric(sub("m", "", master_mix))) %>%
+  arrange(mix_num) %>%
+  mutate(pool = rep(1:12, each = 2)[-nrow(d_mm)])
+d_mm %>%
+  filter(perc_min > 1 & perc_max < 25) %>%
+  select(master_mix, mix_num, pool)
+```
+
+The pools 9+10, 13+14, 15+16, and 19+20 are ready for sequencing now.
+I'll tell the core to sequence these four lanes, and I'll have Claudia rebalance the remaining 15 master mixes.
+
+Select the master mixes to be rebalanced.
+
+```{r rebalance}
+# master mixes to be rebalanced
+rebalance <- d_mm %>%
+  filter(!(pool %in% c(5, 7, 8, 10))) %>%
+  select(master_mix) %>%
+  unlist %>% as.character
+stopifnot(length(rebalance) == 23 - 8)
+```
+
+Calculate the relative lane percentage.
+Can't use exact number because two master mixes were sequenced per lane in most cases.
+For the few samples with 0% of the lane, change it so that they contributed 0.5%.
+
+```{r relative-lane-perc}
+d_out <- d %>%
+  mutate(lane_perc = ifelse(lane_perc > 0, lane_perc, 0.5)) %>%
+  group_by(master_mix) %>%
+  mutate(lane_relative = lane_perc / sum(lane_perc)) %>%
+  ungroup
+lane_relative_totals <- tapply(d_out$lane_relative, d_out$master_mix, sum)
+stopifnot(lane_relative_totals > .99, lane_relative_totals < 1.01,
+          !is.na(lane_relative_totals))
+```
+
+Need to calculate the volume of each diluted library to add for the new master mixes.
+In order to balance the number of molecules contributed by each library, a higher volume of the libraries with a low lane percentage will need to be added compared to those with a higher lane percentage.
+For example, if 1 uL of a library which had 30% of the lane was added, then a library which had 10% of the lane would need 3 uL added.
+To make it feasible to pipette, I'll make the volume of the library with the highest lane percentage be 1 uL.
+Since all the master mixes have different combinations of lane percentages, the final volume of each new master mix will be different.
+
+```{r calc-volume}
+calc_volume <- function(fraction, min_volume, digits = 2) {
+  # fraction - relative fraction of lane (must sum to 1)
+  # min_volume - volume (uL) of sample with largest fraction of lane
+  # digits - number of decimal places for rounding volume estimates
+  total_perc <- sum(fraction)
+  stopifnot(total_perc > .99, total_perc < 1.01)
+  max_index <- which.max(fraction)
+  volume <- fraction[max_index] / fraction * min_volume
+  volume <- round(volume, digits = digits)
+  return(volume)
+}
+# Test function
+test_fraction <- c(0.5, 0.25, 0.1, 0.1, 0.05)
+stopifnot(calc_volume(test_fraction, min_volume = 1) == c(1, 2, 5, 5, 10))
+```
+
+```{r calc-volume-per-mm}
+d_out <- d_out %>%
+  group_by(master_mix) %>%
+  mutate(volume = calc_volume(lane_relative, min_volume = 1)) %>%
+  ungroup
+```
+
+Format the output to correspond to the spreadsheet containing the experimental data.
+
+```{r format-output}
+out <- d_out %>%
+  filter(master_mix %in% rebalance) %>%
+  mutate(lib_num = as.numeric(sub("s", "", sample)),
+         mix_num = as.numeric(sub("m", "", master_mix)),
+         lane_relative = round(lane_relative, digits = 4)) %>%
+  arrange(lib_num) %>%
+  select(mix_num, lib_num, lane_relative, volume)
+out %>% filter(mix_num == 1)
+write.table(out, file = "../data/rebalancing.txt", quote = FALSE,
+            row.names = FALSE, sep = "\t",
+            col.names = c("MM", "lib sample #", "fraction", "volume (uL)"))
+```
+
+## Session information
+
+```{r info}
+sessionInfo()
+```
