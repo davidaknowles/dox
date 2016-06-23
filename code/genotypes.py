@@ -107,6 +107,16 @@ plink_cmd_filter = "plink --bfile %s --make-bed --keep %s --extract %s --out %s"
     plink_filtered_prefix)
 sp.call(plink_cmd_filter, shell = True)
 
+# Convert to VCF -----------------------------------------------------
+
+# Convert to VCF format using --recode.
+# # https://www.cog-genomics.org/plink2/data#recode
+# https://samtools.github.io/hts-specs/VCFv4.2.pdf
+vcf_fname = work_dir + "Hutterite_imputation/dox.vcf"
+plink_cmd_vcf = "plink --bfile %s --recode vcf-iid --out %s"%(\
+    plink_filtered_prefix, plink_filtered_prefix)
+sp.call(plink_cmd_vcf, shell = True)
+
 # To be run from directory with genotype files.
 
 #original=qc
