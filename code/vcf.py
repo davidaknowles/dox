@@ -2,6 +2,12 @@
 
 # Create VCF file of phased genotypes.
 
+# To do:
+#
+# * Filter by call rate
+# * Filter individuals
+# * What does a phasing value of 3 indicate?
+
 import glob
 import os
 import pandas as pd
@@ -30,7 +36,7 @@ class Variant():
         self.individual = ["ind" + str(i) for i in range(len(self.allele1))]
         self.qual = "."
         self.filter = "."
-        
+
     def format(self, original = False):
         variant_info = "%s\t"*8%(self.id, self.chr, self.start, self.end,
                                  self.type, self.ref, self.alt,
@@ -47,7 +53,7 @@ class Variant():
         # Change the final character from a tab to a newline
         result = result[:-1] + "\n"
         return result
-    
+
     def view_genotype(self, num):
         if self.allele1[num] == "0":
             a1 = self.ref
@@ -77,21 +83,55 @@ class Variant():
                                  info, format)
         result = variant_info
         for i in range(len(self.allele1)):
-            g = self.view_genotype(num = i)
+            if self.phase[i] == "1":
+                p = "|"
+            else:
+                p = "/"
+            if self.allele1[i] == "N":
+                a1 = "."
+            elif self.allele1[i] in ["0", "1"]:
+                a1 = self.allele1[i]
+            else:
+                exit("Invalid allele 1 of variant %s: %s"%(self.rsid,
+                                                           self.allele1[i]))
+            if self.allele2[i] == "N":
+                a2 = "."
+            elif self.allele2[i] in ["0", "1"]:
+                a2 = self.allele2[i]
+            else:
+                exit("Invalid allele 2 of variant %s: %s"%(self.rsid,
+                                                           self.allele2[i]))
+
+            g = a1 + p + a2
             result = result + g + "\t"
+
         # Change the final character from a tab to a newline
         result = result[:-1] + "\n"
         return result
+
+    def call_rate(self):
+        # How many individuals have gentoypes
+        total = len(self.allele1)
+        genotyped = 0
+        for i in range(total):
+            if self.allele1[i] != "N" and self.allele2[i] != "N":
+                genotyped = genotyped + 1
+        return genotyped / total
+
+    def filter_individuals(self):
+        pass
 
 def write_vcf_metainfo(handle, version, date, source, reference,
                      contig, phasing):
     handle.write("##fileformat=%s\n"%(version))
     handle.write("##fileDate=%s\n"%(date))
     handle.write("##source=%s\n"%(source))
-    handle.write("##reference=%s\n"%(reference))    
+    handle.write("##reference=%s\n"%(reference))
     handle.write("##contig=%s\n"%(contig))
     handle.write("##phasing=%s\n"%(phasing))
+    handle.write("##INFO=<ID=CR,Number=1,Type=Float,Description=\"Call Rate\">\n")
     handle.write("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n")
+
 
 def write_vcf_header(handle, individuals):
     handle.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT")
@@ -101,7 +141,7 @@ def write_vcf_header(handle, individuals):
 
 if __name__ == "__main__":
     if test:
-        test_line = "7228749\tchr10\t1924784\t1924785\tsnp\tC\tT\tdbsnp.119:rs9888007\t301\t100\t111\t100\t111\t110\t101\n"
+        test_line = "7228749\tchr10\t1924784\t1924785\tsnp\tC\tT\tdbsnp.119:rs9888007\t301\t100\t111\t100\t111\t110\t101\t1NN\n"
         x = Variant(test_line)
         assert x.format(original = True) == test_line, \
             "Formatting corrupted in object storage"
@@ -111,5 +151,5 @@ if __name__ == "__main__":
                            reference = "hg19", contig = "chr10",
                            phasing = "partial")
         write_vcf_header(handle = outfile, individuals = x.individual)
-        outfile.write(x.format_vcf(info = ".", format = "GT"))
+        outfile.write(x.format_vcf(info = "CR=%f"%(x.call_rate()), format = "GT"))
         outfile.close()
