@@ -37,6 +37,17 @@ class Variant():
         self.qual = "."
         self.filter = "."
 
+    def __repr__(self):
+        result = """\
+Contains the following SNP for %d individuals:
+    ID: %s
+    RSID: %s (%s)
+    Location: %s:%s-%s
+    Alleles (ref, alt): %s, %s
+"""%(len(self.individual), self.id, self.rsid, self.dbsnp,
+     self.chr, self.start, self.end, self.ref, self.alt)
+        return result
+
     def format(self, original = False):
         variant_info = "%s\t"*8%(self.id, self.chr, self.start, self.end,
                                  self.type, self.ref, self.alt,
@@ -145,6 +156,7 @@ if __name__ == "__main__":
         x = Variant(test_line)
         assert x.format(original = True) == test_line, \
             "Formatting corrupted in object storage"
+        print(x)
         outfile = open("test.vcf", "w")
         write_vcf_metainfo(handle = outfile, version = "VCFv4.2",
                            date = "20160627", source = "CGI",
