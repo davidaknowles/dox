@@ -13,7 +13,8 @@
 
 # Download human exons (grch37, hg19)
 library("biomaRt")
-ensembl <- useMart(host = "grch37.ensembl.org",
+#ensembl <- useMart(host = "grch37.ensembl.org",
+ensembl <- useMart(host = "dec2015.archive.ensembl.org",
                    biomart = "ENSEMBL_MART_ENSEMBL",
                    dataset = "hsapiens_gene_ensembl")
 # attributePages(ensembl)

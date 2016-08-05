@@ -16,7 +16,7 @@ else:
 # print(len(files))
 
 # Create header
-sys.stdout.write("individual\tflow_cell\tlane\tindex")
+sys.stdout.write("filename\tindividual\tflow_cell\tlane\tindex\tconc")
 # Get gene names from first file
 gene_list = []
 f = files[0]
@@ -35,13 +35,15 @@ sys.stdout.write("\n")
 for f in files:
     # Get meta data from filename
     dir, fname = f.split("/")
-    fname_parts = fname.split(".")[0].split("-")
-    individual, flow_cell, lane, index = fname_parts
+    stub=fname.strip(".genecounts.txt")
+    fname_parts = stub.split("-")
+    #print fname_parts
+    individual, flow_cell, conc, index, lane = fname_parts
     # Update variable names
     individual = "i" + individual
 
-    sys.stdout.write(individual + "\t" + flow_cell + "\t" + \
-                     lane + "\t" + index)
+    sys.stdout.write(stub + "\t" + individual + "\t" + flow_cell + "\t" + \
+                     lane + "\t" + index + "\t" + conc)
 
     # Get counts from f
     g = 0 # iterator for indexing gene names

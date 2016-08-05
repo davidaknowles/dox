@@ -33,7 +33,7 @@ library("edgeR")
 
 
 ```{r}
-input <- read.delim("../data/gene-counts.txt")
+input <- read.delim("../data/gene-counts.txt.gz")
 dim(input)
 str(input[, 1:10])
 ```
@@ -41,7 +41,8 @@ str(input[, 1:10])
 Split annotation and counts.
 
 ```{r}
-anno <- input %>% select(individual, flow_cell, lane, index)
+anno <- input %>% select(filename, individual, flow_cell, lane, index, conc)
+anno$filename=paste0("s",anno$filename)
 counts_raw <- input %>% select(starts_with("ENSG")) 
 counts_raw <- t(counts_raw)
 ```
@@ -59,7 +60,13 @@ abline(v = cutoff, col = "red")
 I remove genes with a median log2 cpm less than `r cutoff`.
 
 ```{r}
-counts <- counts_raw[gene_medians < 0, ]
+log_output=read.delim("../data/star_output.tsv", check.names = F, stringsAsFactors = F)
+log_output_real=log_output[ ! grepl( "undetermined" , log_output$Sample ), ]
+
+hist(log10(colSums(counts_raw)),30)
+to_keep=colSums(counts_raw)>1e7
+counts <- counts_raw[gene_medians < 0, to_keep ]
+anno=anno[to_keep,]
 dim(counts)
 ```
 
@@ -126,7 +133,7 @@ The outliers are both dox treated:
 
 ```{r pc1-pc2-dosage}
 ggplot(pca_data, aes(x = PC1, y = PC2)) +
-  geom_text(aes(label = dosage)) +
+  geom_text(aes(label = anno$conc)) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
        y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
 ```
