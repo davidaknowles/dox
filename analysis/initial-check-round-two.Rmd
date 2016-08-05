@@ -1,0 +1,123 @@
+---
+title: "Initial check of first dox flow cell"
+date: 2016-05-03
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r system("git log -1 --format='%H'", intern = TRUE)`
+
+```{r chunk-options}
+library("knitr")
+opts_chunk$set(cache = TRUE)
+```
+
+
+The first dox flow cell, C6TJGACXX, was sequenced in house.
+The path on PPS is /rawdata/Illumina_Runs/150619_SN_0795_0433_BC6TJGACXX/Demultiplexed/Project_N.
+The analysis below performs an intial check of the data using the gene counts.
+
+## Setup
+
+```{r packages, message=FALSE}
+library("dplyr")
+library("tidyr")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+library("edgeR")
+library(doMC)
+```
+
+
+```{r}
+input <- read.delim("../data/gene-counts-round-two.txt")
+dim(input)
+str(input[, 1:10])
+```
+
+Split annotation and counts.
+
+```{r}
+anno <- input %>% select(filename, individual, flow_cell, lane, index, conc)
+anno$filename=paste0("s",anno$filename)
+counts_raw <- input %>% select(starts_with("ENSG")) 
+counts_raw <- t(counts_raw)
+
+anno$sample=with(anno, paste(individual, conc, sep=":") )
+samples=unique(anno$sample)
+counts_combined=foreach(samp=samples, .combine=cbind) %do% {
+  rowSums(counts_raw[,anno$sample==samp,drop=F])
+}
+colnames(counts_combined)=samples
+new_anno=as.data.frame(do.call(rbind,strsplit(samples,":")))
+colnames(new_anno)=c("individual","conc")
+new_anno$sample=samples
+new_anno$runs=as.numeric( table(anno$sample)[new_anno$sample] )
+```
+
+## Filter genes
+
+```{r}
+counts_raw_cpm <- cpm(counts_combined, log = TRUE)
+gene_medians <- apply(counts_raw_cpm, 1, median)
+hist(gene_medians)
+cutoff <- 0
+abline(v = cutoff, col = "red")
+```
+
+I remove genes with a median log2 cpm less than `r cutoff`.
+
+```{r}
+log_output=read.delim("../data/star_output_round_two.tsv", check.names = F, stringsAsFactors = F)
+log_output_real=log_output[ ! grepl( "undetermined" , log_output$Sample ), ]
+
+hist(log10(colSums(counts_combined)),30)
+to_keep=colSums(counts_combined)>1e7
+counts <- counts_combined[gene_medians < 0, to_keep ]
+new_anno=new_anno[to_keep,]
+dim(counts)
+```
+
+## PCA
+
+```{r}
+counts_cpm <- cpm(counts, log = TRUE)
+```
+
+```{r}
+pca <- prcomp(t(counts_cpm), scale. = TRUE)
+variances <- pca$sdev^2
+explained <- variances / sum(variances)
+plot(pca)
+```
+
+```{r}
+pca_data <- cbind(new_anno, pca$x[, 1:5])
+```
+
+Two outliers:
+
+```{r pc1-pc2-sample}
+ggplot(pca_data, aes(x = PC1, y = PC2, color=as.factor( runs ))) +
+  geom_text(aes(label = individual)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+```{r pc1-pc2-sample}
+ggplot(pca_data, aes(x = PC1, y = PC2, color=conc)) +
+  geom_text(aes(label = individual)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+## Session information
+
+```{r info}
+sessionInfo()
+```
+
