@@ -1,6 +1,6 @@
 ---
-title: "Initial check of first dox flow cell"
-date: 2016-05-03
+title: "Initial check of first round of dox sequencing"
+date: 2016-06-23
 output:
   html_document:
     toc: true
@@ -17,13 +17,13 @@ opts_chunk$set(cache = TRUE)
 ```
 
 
-The first dox flow cell, C6TJGACXX, was sequenced in house.
-The path on PPS is /rawdata/Illumina_Runs/150619_SN_0795_0433_BC6TJGACXX/Demultiplexed/Project_N.
-The analysis below performs an intial check of the data using the gene counts.
+Each sample has been sequenced once in the first round of sequencing at the core.
+The reads were mapped to GRCh38 with STAR and assigned to protein-coding Ensembl genes with featureCounts.
 
 ## Setup
 
 ```{r packages, message=FALSE}
+library("data.table")
 library("dplyr")
 library("tidyr")
 library("ggplot2")
@@ -33,7 +33,7 @@ library("edgeR")
 
 
 ```{r}
-input <- read.delim("../data/gene-counts.txt.gz")
+input <- fread("zcat ../data/gene-counts.txt.gz", data.table = FALSE)
 dim(input)
 str(input[, 1:10])
 ```
@@ -87,7 +87,7 @@ plot(pca)
 pca_data <- cbind(anno, pca$x[, 1:5])
 ```
 
-Two outliers:
+There are some outliers:
 
 ```{r pc1-pc2-sample}
 ggplot(pca_data, aes(x = PC1, y = PC2)) +
@@ -96,6 +96,30 @@ ggplot(pca_data, aes(x = PC1, y = PC2)) +
        y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
 ```
 
+```{r pc1-pc2-concentration}
+ggplot(pca_data, aes(x = PC1, y = PC2)) +
+  geom_text(aes(label = conc)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+```{r pc2-pc3-concentration}
+ggplot(pca_data, aes(x = PC2, y = PC3)) +
+  geom_text(aes(label = conc)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 3, round(explained[3] * 100, 2)))
+```
+
+PC3 makes 3 separate groups, suggesting a threshold effect:
+
+*  0 (control)
+*  0.625 (lowest dox concentration)
+*  1.25, 2.5, 5
+
+```{r pc3-concentration}
+ggplot(pca_data, aes(x = conc, y = PC3)) +
+  geom_point()
+```
 
 ## Session information
 
