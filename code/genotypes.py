@@ -4,6 +4,7 @@ import glob
 import os
 import pandas as pd
 import subprocess as sp
+from pyliftover import LiftOver
 
 # Set working directory
 work_dir = "/mnt/gluster/home/jdblischak/ober/"
@@ -51,7 +52,7 @@ anno_fname = "/mnt/gluster/home/jdblischak/dox/data/annotation.txt"
 
 # Individuals are filtered with the plink flag --keep. It accepts a
 # tab-separated file with the family ID in the first column and the
-# inidividaul ID in the secondcolumn. There is no header row. The
+# inidividaul ID in the second column. There is no header row. The
 # family ID is HUTTERITES. Below the findiv IDs are pulled from the
 # annotation file to create the file for filtering individuals.
 # https://www.cog-genomics.org/plink2/filter#indiv
@@ -110,23 +111,42 @@ sp.call(plink_cmd_filter, shell = True)
 # Convert to VCF -----------------------------------------------------
 
 # Convert to VCF format using --recode.
-# # https://www.cog-genomics.org/plink2/data#recode
+# https://www.cog-genomics.org/plink2/data#recode
 # https://samtools.github.io/hts-specs/VCFv4.2.pdf
 vcf_fname = work_dir + "Hutterite_imputation/dox.vcf"
 plink_cmd_vcf = "plink --bfile %s --recode vcf-iid --out %s"%(\
     plink_filtered_prefix, plink_filtered_prefix)
 sp.call(plink_cmd_vcf, shell = True)
 
-# To be run from directory with genotype files.
+# Update coordinates to hg38 -----------------------------------------
 
-#original=qc
-#new=dox
-#samples=samples.txt
+# Using pyliftover to avoid having to convert to temporary BED file.
+# https://github.com/konstantint/pyliftover
 
-# Filter individuals
-# https://www.cog-genomics.org/plink2/filter#indiv
-#plink --bfile $original --make-bed --keep $samples --out $new
+lo = LiftOver('hg19', 'hg38')
+vcf_hg38_fname = work_dir + "Hutterite_imputation/dox-hg38.vcf"
 
-# Convert to VCF
-# https://www.cog-genomics.org/plink2/data#recode
-#plink --bfile $new --recode vcf-iid --out $new
+vcf_hg19_handle = open(vcf_fname, "r")
+vcf_hg38_handle = open(vcf_hg38_fname, "w")
+
+for line in vcf_hg19_handle:
+    if line[0] == "#":
+        vcf_hg38_handle.write(line)
+        continue
+    cols = line.strip().split("\t")
+    # VCF is 1-based, BED is 0-based with the first inclusive and
+    # second exclusive. Thus need to subtract one from the start
+    # coordinate.
+    chrom_hg19 = "chr" + cols[0]
+    pos_hg19 = int(cols[1]) - 1
+    lo = LiftOver("hg19", "hg38")
+    result = lo.convert_coordinate(chrom_hg19, pos_hg19)
+    chrom_hg38 = result[0][0]
+    pos_hg38 = result[0][1] + 1
+    assert chrom_hg19 == chrom_hg38, \
+           "hg19 and hg38 chromosomes should match."
+    line_hg38 = chrom_hg38 + "\t" + str(pos_hg38) + "\t" + "\t".join(cols[2:]) + "\n"
+    vcf_hg38_handle.write(line_hg38)
+
+vcf_hg19_handle.close()
+vcf_hg38_handle.close()
