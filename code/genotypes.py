@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
+import sys
 import glob
 import os
 import pandas as pd
 import subprocess as sp
-from pyliftover import LiftOver
+import urllib.request
 
 # Set working directory
 work_dir = "/mnt/gluster/home/jdblischak/ober/"
@@ -56,6 +57,7 @@ anno_fname = "/mnt/gluster/home/jdblischak/dox/data/annotation.txt"
 # family ID is HUTTERITES. Below the findiv IDs are pulled from the
 # annotation file to create the file for filtering individuals.
 # https://www.cog-genomics.org/plink2/filter#indiv
+sys.stdout.write("\n\n## Filtering individuals and genotypes...\n\n")
 keep_ind_fname = work_dir + "Hutterite_imputation/samples.txt"
 keep_ind_handle = open(keep_ind_fname, "w")
 anno_handle = open(anno_fname, "r")
@@ -113,6 +115,7 @@ sp.call(plink_cmd_filter, shell = True)
 # Convert to VCF format using --recode.
 # https://www.cog-genomics.org/plink2/data#recode
 # https://samtools.github.io/hts-specs/VCFv4.2.pdf
+sys.stdout.write("\n\n## Converting to VCF...\n\n")
 vcf_fname = work_dir + "Hutterite_imputation/dox.vcf"
 plink_cmd_vcf = "plink --bfile %s --recode vcf-iid --out %s"%(\
     plink_filtered_prefix, plink_filtered_prefix)
@@ -120,33 +123,82 @@ sp.call(plink_cmd_vcf, shell = True)
 
 # Update coordinates to hg38 -----------------------------------------
 
-# Using pyliftover to avoid having to convert to temporary BED file.
-# https://github.com/konstantint/pyliftover
+# Need to update coordinates from hg19 to hg38. Here is the strategy:
+#
+# 1. Download chain file from UCSC.
+# 2. Extract genotype coordinates and format as BED file.
+# 3. Run LiftOver.
+# 4. Combine new coordinates with genotype calls.
+sys.stdout.write("\n\n## Running LiftOver...\n\n")
 
-lo = LiftOver('hg19', 'hg38')
+# 1. Download chain file from UCSC.
+chain_file = work_dir + "Hutterite_imputation/hg19ToHg38.over.chain.gz"
+chain_url = "http://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz"
+if not os.path.exists(chain_file):
+    urllib.request.urlretrieve(chain_url, filename = chain_file)
+
+# 2. Extract genotype coordinates and format as BED file.
+bed_hg19_fname = work_dir + "Hutterite_imputation/dox-hg19.bed"
+awk_cmd = "cat %s | grep -v '#' | awk -v OFS='\t' '{print \"chr\"$1, $2 -1, $2, $3}' > %s"%(
+    vcf_fname, bed_hg19_fname)
+sp.call(awk_cmd, shell = True)
+
+# 3. Run LiftOver.
+bed_hg38_fname = work_dir + "Hutterite_imputation/dox-hg38.bed"
+bed_unmapped_fname = work_dir + "Hutterite_imputation/dox-unmapped.bed"
+# usage:
+#    liftOver oldFile map.chain newFile unMapped
+lo_cmd = "liftOver %s %s %s %s"%(bed_hg19_fname, chain_file,
+                                 bed_hg38_fname, bed_unmapped_fname)
+sp.call(lo_cmd, shell = True)
+
+# 4. Combine new coordinates with genotype calls.
+sys.stdout.write("\n\n## Combining hg38 coordinates and genotypes...\n\n")
 vcf_hg38_fname = work_dir + "Hutterite_imputation/dox-hg38.vcf"
 
 vcf_hg19_handle = open(vcf_fname, "r")
 vcf_hg38_handle = open(vcf_hg38_fname, "w")
+bed_hg38_handle = open(bed_hg38_fname, "r")
+
+def read_bed(line):
+    # Return empty strings if the end of the file has been reached
+    if line == "":
+        return "", "", "", ""
+    cols = line.strip().split()
+    assert len(cols) == 4, "Expect BED file with 4 columns."
+    chrom = cols[0]
+    start = int(cols[1])
+    end = int(cols[2])
+    id = cols[3]
+    return chrom, start, end, id
+
+curr_chrom, curr_start, curr_end, curr_id = read_bed(bed_hg38_handle.readline())
 
 for line in vcf_hg19_handle:
-    if line[0] == "#":
+    if line[:8] == "##contig":
+        continue
+    elif line[0] == "#":
         vcf_hg38_handle.write(line)
         continue
     cols = line.strip().split("\t")
-    # VCF is 1-based, BED is 0-based with the first inclusive and
-    # second exclusive. Thus need to subtract one from the start
-    # coordinate.
     chrom_hg19 = "chr" + cols[0]
-    pos_hg19 = int(cols[1]) - 1
-    lo = LiftOver("hg19", "hg38")
-    result = lo.convert_coordinate(chrom_hg19, pos_hg19)
-    chrom_hg38 = result[0][0]
-    pos_hg38 = result[0][1] + 1
-    assert chrom_hg19 == chrom_hg38, \
-           "hg19 and hg38 chromosomes should match."
-    line_hg38 = chrom_hg38 + "\t" + str(pos_hg38) + "\t" + "\t".join(cols[2:]) + "\n"
+    pos_hg19 = int(cols[1])
+    id = cols[2]
+    # Some SNPs will be missing b/c they could not be converted to hg38
+    if (id != curr_id):
+        continue
+    if chrom_hg19 != curr_chrom:
+        sys.stderr.write("SNP %s\t%s:%d-%d\t%s:%d-%d\n"%(id,
+                                    chrom_hg19, pos_hg19 -1, pos_hg19,
+                                    curr_chrom, curr_start, curr_end))
+    # VCF is 1-based, BED is 0-based with the first inclusive and
+    # second exclusive. Thus the VCF position is the BED end
+    # coordinate.
+    pos_hg38 = curr_end
+    line_hg38 = curr_chrom + "\t" + str(pos_hg38) + "\t" + "\t".join(cols[2:]) + "\n"
     vcf_hg38_handle.write(line_hg38)
+    curr_chrom, curr_start, curr_end, curr_id = read_bed(bed_hg38_handle.readline())
 
 vcf_hg19_handle.close()
 vcf_hg38_handle.close()
+bed_hg38_handle.close()
