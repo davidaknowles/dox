@@ -34,7 +34,7 @@ library(doMC)
 
 
 ```{r}
-input <- read.delim("../data/gene-counts-round-two.txt")
+input <- read.delim("../data/gene-counts-round-two.txt.gz")
 dim(input)
 str(input[, 1:10])
 ```
@@ -101,14 +101,14 @@ pca_data <- cbind(new_anno, pca$x[, 1:5])
 
 Two outliers:
 
-```{r pc1-pc2-sample}
+```{r pc1-pc2-num-runs}
 ggplot(pca_data, aes(x = PC1, y = PC2, color=as.factor( runs ))) +
   geom_text(aes(label = individual)) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
        y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
 ```
 
-```{r pc1-pc2-sample}
+```{r pc1-pc2-conc}
 ggplot(pca_data, aes(x = PC1, y = PC2, color=conc)) +
   geom_text(aes(label = individual)) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
