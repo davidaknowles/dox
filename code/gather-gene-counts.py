@@ -34,7 +34,7 @@ sys.stdout.write("\n")
 # Process each file
 for f in files:
     # Get meta data from filename
-    dir, fname = f.split("/")
+    fname = f.split("/")[-1]
     stub=fname.strip(".genecounts.txt")
     fname_parts = stub.split("-")
     #print fname_parts

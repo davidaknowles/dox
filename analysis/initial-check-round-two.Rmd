@@ -43,10 +43,19 @@ Split annotation and counts.
 
 ```{r}
 anno <- input %>% select(filename, individual, flow_cell, lane, index, conc)
+colnames(anno)[2]="sampleid"
+colnames(anno)[3]="individual"
 anno$filename=paste0("s",anno$filename)
 counts_raw <- input %>% select(starts_with("ENSG")) 
 counts_raw <- t(counts_raw)
 
+to_keep=! anno$filename %in% outliers$filename
+anno=anno[to_keep,]
+counts_raw=counts_raw[,to_keep]
+```
+
+Combine counts for the same sample
+```{r}
 anno$sample=with(anno, paste(individual, conc, sep=":") )
 samples=unique(anno$sample)
 counts_combined=foreach(samp=samples, .combine=cbind) %do% {
@@ -113,6 +122,47 @@ ggplot(pca_data, aes(x = PC1, y = PC2, color=conc)) +
   geom_text(aes(label = individual)) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
        y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+```{r pc1-pc2-ind}
+ggplot(pca_data, aes(x = PC1, y = PC2, group=individual, color=conc)) +
+  geom_text(aes(label = conc)) +
+  geom_path(aes(alpha=.3)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+### Without combining samples
+
+```{r}
+counts_raw_cpm <- cpm(counts_raw, log = TRUE)
+gene_medians <- apply(counts_raw_cpm, 1, median)
+to_keep=colSums(counts_raw)>5e6
+counts <- counts_raw[gene_medians < 0, to_keep ]
+anno_keep=anno[to_keep,]
+dim(counts)
+counts_cpm <- cpm(counts, log = TRUE)
+pca <- prcomp(t(counts_cpm), scale. = TRUE)
+variances <- pca$sdev^2
+explained <- variances / sum(variances)
+plot(pca)
+```
+
+```{r}
+pca_data <- cbind(anno_keep, pca$x[, 1:5])
+pca_data$laneid=interaction(pca_data$lane, pca_data$index)
+ggplot(pca_data, aes(x = PC1, y = PC2, color=laneid)) +
+  geom_text(aes(label = laneid)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+Outliers 
+```{r}
+outliers=pca_data[pca_data$PC2 > 100.0,]
+colnames(counts_raw)=anno$filename
+summary( colSums(counts_raw)[outliers$filename] ) # not particularly low
+summary( colSums(counts_raw)[setdiff(anno$filename,outliers$filename)] )
 ```
 
 ## Session information
