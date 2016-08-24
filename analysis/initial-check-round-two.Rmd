@@ -49,9 +49,9 @@ anno$filename=paste0("s",anno$filename)
 counts_raw <- input %>% select(starts_with("ENSG")) 
 counts_raw <- t(counts_raw)
 
-to_keep=! anno$filename %in% outliers$filename
-anno=anno[to_keep,]
-counts_raw=counts_raw[,to_keep]
+#to_keep=! anno$filename %in% outliers$filename
+#anno=anno[to_keep,]
+#counts_raw=counts_raw[,to_keep]
 ```
 
 Combine counts for the same sample

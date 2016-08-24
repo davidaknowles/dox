@@ -61,6 +61,7 @@ if outdir[-1] != "/":
 files = glob.glob(indir + "/*fastq.gz")[:]
 
 # Rename and move files
+undetermined_count=0
 for f in files:
     path = f.rstrip('fastq.gz').split('/')
     flow_cell = path[-3].split("_")[-1].split("-")[0][1:]
@@ -68,6 +69,7 @@ for f in files:
     lane = "l" + file_parts[2][-1]
     if file_parts[0] == "Undetermined":
         sample_name = file_parts[0].lower()
+        undetermined_count += 1
     else:
         name_parts = file_parts[0].split("-")
         sample_num = name_parts[3]
@@ -84,3 +86,5 @@ for f in files:
     new_name = outdir + sample_name + '-' + flow_cell + "-" + lane + '.fastq.gz'
     sys.stderr.write("Moving:\n%s\n%s\n\n"%(new_name, f))
     shutil.move(f, new_name)
+
+sys.stderr.write("Moved %i files (%i Undetermined)\n" % (len(files), undetermined_count) )

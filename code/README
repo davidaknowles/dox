@@ -1,0 +1,10 @@
+Basic pipeline is:
+download (see emails and download.sh)
+python ~/Dropbox/dox/code/arrange-fastq.py <downloaddir> fastq
+./submit_md5sum.sh
+./gather-md5.py
+./check-download.py [check ../data/missing-fastq.txt]
+./star_all.sh [wait for jobs to finish]
+./reorg_bams.sh
+./submit-feature-counts-dak.sh [wait for jobs to finish]
+./gather-gene-counts.sh
