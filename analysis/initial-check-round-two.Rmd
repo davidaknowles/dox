@@ -159,7 +159,7 @@ ggplot(pca_data, aes(x = PC1, y = PC2, color=laneid)) +
 
 Outliers 
 ```{r}
-outliers=pca_data[pca_data$PC2 > 100.0,]
+outliers=pca_data[pca_data$PC2 < -60,]
 colnames(counts_raw)=anno$filename
 summary( colSums(counts_raw)[outliers$filename] ) # not particularly low
 summary( colSums(counts_raw)[setdiff(anno$filename,outliers$filename)] )
