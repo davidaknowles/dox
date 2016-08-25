@@ -13,6 +13,6 @@ for f in ~/scailscratch/dox/bam/*.bam; do
   outfile=$OUTDIR/$BASE.genecounts.txt
 
   if [ ! -f $outfile ]; then
-      qsub -l nodes=1:ppn=16 -d . -q daglab -v FILE=$f,OUTFILE=$outfile -N $bn run-feature-counts-dak.sh
+      qsub -l nodes=1:ppn=16 -d . -q daglab -v FILE=$f,OUTFILE=$outfile -N $bn run-feature-counts.sh
   fi
 done
