@@ -1,9 +1,18 @@
 #!/bin/bash
 
-# Run from $dox
+OUTDIR=~/scailscratch/dox/counts
+mkdir -p $OUTDIR
 
-for BAM in `ls bam-processed/*bam`
-do
-  ID=`basename ${BAM%.bam}`
-  echo "run-feature-counts.sh $BAM" | qsub -N feature.counts.$ID -S /bin/bash -l walltime=1:00:00 -l nodes=1:ppn=4 -l mem=4gb -e $HOME -V -d . -j eo
+for f in ~/scailscratch/dox/bam/*.bam; do
+  s=${f%.*}
+  bn=$( basename $s )
+  echo $bn $f
+
+  BASE=`basename ${f%.bam}`
+  
+  outfile=$OUTDIR/$BASE.genecounts.txt
+
+  if [ ! -f $outfile ]; then
+      qsub -l nodes=1:ppn=16 -d . -q daglab -v FILE=$f,OUTFILE=$outfile -N $bn run-feature-counts.sh
+  fi
 done
