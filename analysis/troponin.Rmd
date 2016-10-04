@@ -1,0 +1,58 @@
+---
+title: "Cardiac troponin measurements"
+date: 2016-10-04
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r system("git log -1 --format='%H'", intern = TRUE)`
+
+```{r chunk-options}
+library("knitr")
+opts_chunk$set(fig.width = 8, fig.heigth = 8, cache = FALSE)
+```
+
+
+## Setup
+
+```{r packages, message=FALSE}
+library("dplyr")
+library("ggplot2")
+library("cowplot")
+```
+
+Input annotation.
+
+```{r anno}
+anno <- read.delim("../data/annotation.txt", stringsAsFactors = FALSE)
+```
+
+Input cardiac troponin measurements.
+
+```{r troponin}
+troponin <- read.delim("../data/troponin.txt", stringsAsFactors = FALSE)
+```
+
+Validate input.
+
+```{r validate}
+stopifnot(troponin$dosage[troponin$type == "unknown"] %in% anno$dosage)
+cell_line_input <- unique(troponin$cell_line[troponin$type == "unknown"])
+cell_line_input <- sort(cell_line_input)
+cell_line_valid <- cell_line_input %in% anno$cell_line
+names(cell_line_valid) <- cell_line_input
+length(cell_line_valid)
+sum(cell_line_valid)
+cell_line_valid
+sort(unique(anno$cell_line))
+```
+
+## Session information
+
+```{r info}
+sessionInfo()
+```
