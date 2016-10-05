@@ -16,6 +16,21 @@ library("knitr")
 opts_chunk$set(fig.width = 8, fig.heigth = 8, cache = FALSE)
 ```
 
+This analysis processes the cardiac troponin measurements.
+These are contained in the file `data/troponin.txt`.
+This file was created by `code/troponin-extract.R`.
+
+I take the following steps:
+
+1. Calculate the mean absorbance across the two wells per sample for each plate reading.
+2. Calculate the standard curve per plate reading using least squares regression.
+3. Convert the absorbance values to concentration (ng/mL) using the slope and intercept of the standard curve.
+4. Calculate the mean concentration across the two plate readings per sample.
+
+Both the intra-plate (difference between two wells in same reading) and inter-plate (difference between the same well across two plate readings) variabilities are ignored by this analsyis.
+I think it is possible to incorporate something like [propogation of uncertainty][uncertain] into this analysis, but I don't immediately remember how to do this, and I'm skeptical it will make much of a difference anyways.
+
+[uncertain]: https://en.wikipedia.org/wiki/Propagation_of_uncertainty#Example_formulas
 
 ## Setup
 
@@ -59,9 +74,7 @@ anno$dosage[anno$dosage == "C"] <- 0
 anno$dosage <- as.numeric(anno$dosage)
 troponin$dosage[troponin$dosage == "C"] <- 0
 troponin$dosage <- as.numeric(troponin$dosage)
-
 ```
-
 
 ## Calculate the intra-plate mean and sd
 
@@ -137,26 +150,72 @@ dim(d)
 length(unique(d$findiv))
 ```
 
+Which individuals do not have a troponin measurement?
+
+```{r}
+sort(setdiff(anno$cell_line, d$cell_line))
+```
+
+Which individuals have a troponin measurement for their replicate which differs from the replicate that was sequenced?
+
+```{r}
+sort(setdiff(tr_inter$cell_line, d$cell_line))
+```
+
+It appears that for each individual that does not have a troponin measurement, the measurement was performed on a different (or unspecified) replicate.
+I need to investigate 1) what is the difference between replicates (I think different differentations from iPSC to cardiomyocytes) and 2) if it is valid to compare the troponin and gene expression levels across replicates.
+
 ## Plots
+
+Focus on the unknown samples for the inidividuals.
+
+```{r}
+d_ind <- d[d$type == "unknown", ]
+```
 
 Increase in cardiac troponin with increasing concentrations of dox.
 
 ```{r}
-ggplot(d[d$type == "unknown", ], aes(x = as.factor(dosage), y = mean_inter)) +
-  geom_boxplot()
+tr_v_dox <- ggplot(d_ind,
+                   aes(x = as.factor(dosage), y = mean_inter)) +
+  geom_boxplot() +
+  labs(x = "Doxorubicin dosage",
+       y = "Cardiac troponin concentration (ng/mL)",
+       title = "Cardiac troponin levels increase with increasing doxorubicin dosage")
+```
+
+Classify individuals by how large their release of cardiac troponin is.
+
+```{r}
+tr_max <- tapply(d_ind$mean_inter, d_ind$findiv, max)
+tr_max_q <- quantile(tr_max, probs = c(0.25, 0.75))
+response <- tr_max
+response[tr_max <= tr_max_q[1]] <- "blue" # low
+response[tr_max >= tr_max_q[2]] <- "red" # high
+response[tr_max > tr_max_q[1] & tr_max < tr_max_q[2]] <- "black" # intermediate
+table(response)
 ```
 
 Variation between individuals.
 
 ```{r}
-ggplot(d[d$type == "unknown", ], aes(x = dosage, y = mean_inter)) +
-  geom_line(aes(color = as.factor(findiv))) +
+tr_var <- ggplot(d_ind, aes(x = dosage, y = mean_inter,
+                            color = as.factor(findiv))) +
+  geom_point() +
+  geom_line(linetype = "dashed") +
   theme(legend.position = "none") +
-  scale_color_grey()
-
+  # scale_color_grey() +
+  scale_color_manual(values = response) +
+  labs(x = "Doxorubicin dosage",
+       y = "Cardiac troponin concentration (ng/mL)",
+       title = "Cardiac troponin levels vary across individuals")
 ```
 
+Combined figure.
 
+```{r fig.width=14}
+plot_grid(tr_v_dox, tr_var, labels = LETTERS[1:2])
+```
 
 ## Session information
 
