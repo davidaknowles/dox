@@ -1,20 +1,20 @@
 experiment	row	column	absorbance	reading	name	type	cell_line	dosage	known_conc
-cTnI_ELISA_8-12-15.xlsx.sheet.1	A	1	1.075	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_8-12-15.xlsx.sheet.1	B	1	0.41799999999999998	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_8-12-15.xlsx.sheet.1	C	1	0.105	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_8-12-15.xlsx.sheet.1	D	1	6.5000000000000002E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_8-12-15.xlsx.sheet.1	E	1	5.8000000000000003E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_8-12-15.xlsx.sheet.1	F	1	5.0999999999999997E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	G	1	0.05	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	H	1	5.2999999999999999E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	A	2	0.98299999999999998	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_8-12-15.xlsx.sheet.1	B	2	0.41699999999999998	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_8-12-15.xlsx.sheet.1	C	2	9.8000000000000004E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_8-12-15.xlsx.sheet.1	D	2	6.9000000000000006E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_8-12-15.xlsx.sheet.1	E	2	5.3999999999999999E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_8-12-15.xlsx.sheet.1	F	2	0.05	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	G	2	0.05	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	H	2	5.1999999999999998E-2	1	water	control	cNA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	A	1	1.075	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_8-12-15.xlsx.sheet.1	B	1	0.41799999999999998	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_8-12-15.xlsx.sheet.1	C	1	0.105	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_8-12-15.xlsx.sheet.1	D	1	6.5000000000000002E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_8-12-15.xlsx.sheet.1	E	1	5.8000000000000003E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_8-12-15.xlsx.sheet.1	F	1	5.0999999999999997E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	G	1	0.05	1	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	H	1	5.2999999999999999E-2	1	water	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	A	2	0.98299999999999998	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_8-12-15.xlsx.sheet.1	B	2	0.41699999999999998	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_8-12-15.xlsx.sheet.1	C	2	9.8000000000000004E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_8-12-15.xlsx.sheet.1	D	2	6.9000000000000006E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_8-12-15.xlsx.sheet.1	E	2	5.3999999999999999E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_8-12-15.xlsx.sheet.1	F	2	0.05	1	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	G	2	0.05	1	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	H	2	5.1999999999999998E-2	1	water	control	NA	NA	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	A	3	5.7000000000000002E-2	1	21-1 control	unknown	c21.1	C	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	B	3	5.8000000000000003E-2	1	21-1 0.625	unknown	c21.1	0.625	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	C	3	6.8000000000000005E-2	1	21-1 1.25	unknown	c21.1	1.25	NA
@@ -95,22 +95,22 @@ cTnI_ELISA_8-12-15.xlsx.sheet.1	E	12	0.10199999999999999	1	19-1 5	unknown	c19.1	
 cTnI_ELISA_8-12-15.xlsx.sheet.1	F	12	6.5000000000000002E-2	1	41-1 5	unknown	c41.1	5	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	G	12	5.0999999999999997E-2	1	64-1 5	unknown	c64.1	5	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	H	12	8.3000000000000004E-2	1	39-1 5	unknown	c39.1	5	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	A	1	1.07	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_8-12-15.xlsx.sheet.1	B	1	0.41499999999999998	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_8-12-15.xlsx.sheet.1	C	1	0.10299999999999999	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_8-12-15.xlsx.sheet.1	D	1	6.4000000000000001E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_8-12-15.xlsx.sheet.1	E	1	5.8000000000000003E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_8-12-15.xlsx.sheet.1	F	1	5.0999999999999997E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	G	1	5.0999999999999997E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	H	1	5.2999999999999999E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	A	2	0.97699999999999998	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_8-12-15.xlsx.sheet.1	B	2	0.41499999999999998	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_8-12-15.xlsx.sheet.1	C	2	9.6000000000000002E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_8-12-15.xlsx.sheet.1	D	2	6.8000000000000005E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_8-12-15.xlsx.sheet.1	E	2	5.2999999999999999E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_8-12-15.xlsx.sheet.1	F	2	0.05	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	G	2	0.05	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.1	H	2	5.1999999999999998E-2	2	water	control	cNA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	A	1	1.07	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_8-12-15.xlsx.sheet.1	B	1	0.41499999999999998	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_8-12-15.xlsx.sheet.1	C	1	0.10299999999999999	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_8-12-15.xlsx.sheet.1	D	1	6.4000000000000001E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_8-12-15.xlsx.sheet.1	E	1	5.8000000000000003E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_8-12-15.xlsx.sheet.1	F	1	5.0999999999999997E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	G	1	5.0999999999999997E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	H	1	5.2999999999999999E-2	2	water	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	A	2	0.97699999999999998	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_8-12-15.xlsx.sheet.1	B	2	0.41499999999999998	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_8-12-15.xlsx.sheet.1	C	2	9.6000000000000002E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_8-12-15.xlsx.sheet.1	D	2	6.8000000000000005E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_8-12-15.xlsx.sheet.1	E	2	5.2999999999999999E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_8-12-15.xlsx.sheet.1	F	2	0.05	2	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	G	2	0.05	2	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.1	H	2	5.1999999999999998E-2	2	water	control	NA	NA	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	A	3	5.7000000000000002E-2	2	21-1 control	unknown	c21.1	C	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	B	3	5.7000000000000002E-2	2	21-1 0.625	unknown	c21.1	0.625	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	C	3	6.7000000000000004E-2	2	21-1 1.25	unknown	c21.1	1.25	NA
@@ -191,22 +191,22 @@ cTnI_ELISA_8-12-15.xlsx.sheet.1	E	12	0.10100000000000001	2	19-1 5	unknown	c19.1	
 cTnI_ELISA_8-12-15.xlsx.sheet.1	F	12	6.4000000000000001E-2	2	41-1 5	unknown	c41.1	5	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	G	12	5.0999999999999997E-2	2	64-1 5	unknown	c64.1	5	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.1	H	12	8.2000000000000003E-2	2	39-1 5	unknown	c39.1	5	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	A	1	0.46500000000000002	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_8-12-15.xlsx.sheet.2	B	1	0.219	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_8-12-15.xlsx.sheet.2	C	1	7.3999999999999996E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_8-12-15.xlsx.sheet.2	D	1	5.7000000000000002E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_8-12-15.xlsx.sheet.2	E	1	4.9000000000000002E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_8-12-15.xlsx.sheet.2	F	1	4.8000000000000001E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	G	1	4.4999999999999998E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	H	1	0.05	1	water	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	A	2	0.44500000000000001	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_8-12-15.xlsx.sheet.2	B	2	0.21099999999999999	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_8-12-15.xlsx.sheet.2	C	2	7.3999999999999996E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_8-12-15.xlsx.sheet.2	D	2	5.5E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_8-12-15.xlsx.sheet.2	E	2	4.9000000000000002E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_8-12-15.xlsx.sheet.2	F	2	4.8000000000000001E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	G	2	4.5999999999999999E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	H	2	5.0999999999999997E-2	1	water	control	cNA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	A	1	0.46500000000000002	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_8-12-15.xlsx.sheet.2	B	1	0.219	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_8-12-15.xlsx.sheet.2	C	1	7.3999999999999996E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_8-12-15.xlsx.sheet.2	D	1	5.7000000000000002E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_8-12-15.xlsx.sheet.2	E	1	4.9000000000000002E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_8-12-15.xlsx.sheet.2	F	1	4.8000000000000001E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	G	1	4.4999999999999998E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	H	1	0.05	1	water	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	A	2	0.44500000000000001	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_8-12-15.xlsx.sheet.2	B	2	0.21099999999999999	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_8-12-15.xlsx.sheet.2	C	2	7.3999999999999996E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_8-12-15.xlsx.sheet.2	D	2	5.5E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_8-12-15.xlsx.sheet.2	E	2	4.9000000000000002E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_8-12-15.xlsx.sheet.2	F	2	4.8000000000000001E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	G	2	4.5999999999999999E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	H	2	5.0999999999999997E-2	1	water	control	NA	NA	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	A	3	6.0999999999999999E-2	1	15-1 control	unknown	c15.1	C	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	B	3	6.2E-2	1	15-1 0.625	unknown	c15.1	0.625	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	C	3	5.2999999999999999E-2	1	15-1 1.25	unknown	c15.1	1.25	NA
@@ -287,22 +287,22 @@ cTnI_ELISA_8-12-15.xlsx.sheet.2	E	12	6.7000000000000004E-2	1	12-1 5	unknown	c12.
 cTnI_ELISA_8-12-15.xlsx.sheet.2	F	12	9.4E-2	1	25-1 5	unknown	c25.1	5	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	G	12	0.10199999999999999	1	26-1 5	unknown	c26.1	5	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	H	12	5.3999999999999999E-2	1	10-1 5	unknown	c10.1	5	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	A	1	0.46400000000000002	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_8-12-15.xlsx.sheet.2	B	1	0.218	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_8-12-15.xlsx.sheet.2	C	1	7.2999999999999995E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_8-12-15.xlsx.sheet.2	D	1	5.7000000000000002E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_8-12-15.xlsx.sheet.2	E	1	4.9000000000000002E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_8-12-15.xlsx.sheet.2	F	1	4.8000000000000001E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	G	1	4.4999999999999998E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	H	1	0.05	2	water	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	A	2	0.44500000000000001	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_8-12-15.xlsx.sheet.2	B	2	0.21	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_8-12-15.xlsx.sheet.2	C	2	7.2999999999999995E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_8-12-15.xlsx.sheet.2	D	2	5.5E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_8-12-15.xlsx.sheet.2	E	2	4.9000000000000002E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_8-12-15.xlsx.sheet.2	F	2	4.8000000000000001E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	G	2	4.5999999999999999E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_8-12-15.xlsx.sheet.2	H	2	5.0999999999999997E-2	2	water	control	cNA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	A	1	0.46400000000000002	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_8-12-15.xlsx.sheet.2	B	1	0.218	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_8-12-15.xlsx.sheet.2	C	1	7.2999999999999995E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_8-12-15.xlsx.sheet.2	D	1	5.7000000000000002E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_8-12-15.xlsx.sheet.2	E	1	4.9000000000000002E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_8-12-15.xlsx.sheet.2	F	1	4.8000000000000001E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	G	1	4.4999999999999998E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	H	1	0.05	2	water	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	A	2	0.44500000000000001	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_8-12-15.xlsx.sheet.2	B	2	0.21	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_8-12-15.xlsx.sheet.2	C	2	7.2999999999999995E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_8-12-15.xlsx.sheet.2	D	2	5.5E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_8-12-15.xlsx.sheet.2	E	2	4.9000000000000002E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_8-12-15.xlsx.sheet.2	F	2	4.8000000000000001E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	G	2	4.5999999999999999E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_8-12-15.xlsx.sheet.2	H	2	5.0999999999999997E-2	2	water	control	NA	NA	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	A	3	0.06	2	15-1 control	unknown	c15.1	C	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	B	3	6.0999999999999999E-2	2	15-1 0.625	unknown	c15.1	0.625	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	C	3	5.2999999999999999E-2	2	15-1 1.25	unknown	c15.1	1.25	NA
@@ -383,22 +383,22 @@ cTnI_ELISA_8-12-15.xlsx.sheet.2	E	12	6.7000000000000004E-2	2	12-1 5	unknown	c12.
 cTnI_ELISA_8-12-15.xlsx.sheet.2	F	12	9.4E-2	2	25-1 5	unknown	c25.1	5	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	G	12	0.1	2	26-1 5	unknown	c26.1	5	NA
 cTnI_ELISA_8-12-15.xlsx.sheet.2	H	12	5.3999999999999999E-2	2	10-1 5	unknown	c10.1	5	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	A	1	0.64200000000000002	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA-10-26-15.xlsx.sheet.1	B	1	0.26500000000000001	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA-10-26-15.xlsx.sheet.1	C	1	0.08	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA-10-26-15.xlsx.sheet.1	D	1	5.6000000000000001E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA-10-26-15.xlsx.sheet.1	E	1	0.05	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA-10-26-15.xlsx.sheet.1	F	1	4.7E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	G	1	5.0999999999999997E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	H	1	4.5999999999999999E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	A	2	0.55700000000000005	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA-10-26-15.xlsx.sheet.1	B	2	0.25	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA-10-26-15.xlsx.sheet.1	C	2	8.3000000000000004E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA-10-26-15.xlsx.sheet.1	D	2	5.5E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA-10-26-15.xlsx.sheet.1	E	2	4.9000000000000002E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA-10-26-15.xlsx.sheet.1	F	2	4.7E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	G	2	5.0999999999999997E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	H	2	4.7E-2	1	galactose	control	cNA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	A	1	0.64200000000000002	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA-10-26-15.xlsx.sheet.1	B	1	0.26500000000000001	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA-10-26-15.xlsx.sheet.1	C	1	0.08	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA-10-26-15.xlsx.sheet.1	D	1	5.6000000000000001E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA-10-26-15.xlsx.sheet.1	E	1	0.05	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA-10-26-15.xlsx.sheet.1	F	1	4.7E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	G	1	5.0999999999999997E-2	1	water	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	H	1	4.5999999999999999E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	A	2	0.55700000000000005	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA-10-26-15.xlsx.sheet.1	B	2	0.25	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA-10-26-15.xlsx.sheet.1	C	2	8.3000000000000004E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA-10-26-15.xlsx.sheet.1	D	2	5.5E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA-10-26-15.xlsx.sheet.1	E	2	4.9000000000000002E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA-10-26-15.xlsx.sheet.1	F	2	4.7E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	G	2	5.0999999999999997E-2	1	water	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	H	2	4.7E-2	1	galactose	control	NA	NA	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	A	3	5.5E-2	1	17-2 control	unknown	c17.2	C	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	B	3	5.5E-2	1	17-2 0.625	unknown	c17.2	0.625	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	C	3	5.8999999999999997E-2	1	17-2 1.25	unknown	c17.2	1.25	NA
@@ -479,22 +479,22 @@ cTnI_ELISA-10-26-15.xlsx.sheet.1	E	12	6.7000000000000004E-2	1	32 5	unknown	c32	5
 cTnI_ELISA-10-26-15.xlsx.sheet.1	F	12	5.5E-2	1	22 5	unknown	c22	5	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	G	12	5.8999999999999997E-2	1	62 5	unknown	c62	5	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	H	12	5.6000000000000001E-2	1	57 5	unknown	c57	5	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	A	1	0.63900000000000001	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA-10-26-15.xlsx.sheet.1	B	1	0.26300000000000001	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA-10-26-15.xlsx.sheet.1	C	1	7.9000000000000001E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA-10-26-15.xlsx.sheet.1	D	1	5.6000000000000001E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA-10-26-15.xlsx.sheet.1	E	1	4.9000000000000002E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA-10-26-15.xlsx.sheet.1	F	1	4.7E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	G	1	0.05	2	water	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	H	1	4.7E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	A	2	0.55300000000000005	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA-10-26-15.xlsx.sheet.1	B	2	0.248	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA-10-26-15.xlsx.sheet.1	C	2	8.2000000000000003E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA-10-26-15.xlsx.sheet.1	D	2	5.3999999999999999E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA-10-26-15.xlsx.sheet.1	E	2	4.9000000000000002E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA-10-26-15.xlsx.sheet.1	F	2	4.7E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	G	2	5.0999999999999997E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.1	H	2	4.7E-2	2	galactose	control	cNA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	A	1	0.63900000000000001	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA-10-26-15.xlsx.sheet.1	B	1	0.26300000000000001	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA-10-26-15.xlsx.sheet.1	C	1	7.9000000000000001E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA-10-26-15.xlsx.sheet.1	D	1	5.6000000000000001E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA-10-26-15.xlsx.sheet.1	E	1	4.9000000000000002E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA-10-26-15.xlsx.sheet.1	F	1	4.7E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	G	1	0.05	2	water	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	H	1	4.7E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	A	2	0.55300000000000005	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA-10-26-15.xlsx.sheet.1	B	2	0.248	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA-10-26-15.xlsx.sheet.1	C	2	8.2000000000000003E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA-10-26-15.xlsx.sheet.1	D	2	5.3999999999999999E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA-10-26-15.xlsx.sheet.1	E	2	4.9000000000000002E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA-10-26-15.xlsx.sheet.1	F	2	4.7E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	G	2	5.0999999999999997E-2	2	water	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.1	H	2	4.7E-2	2	galactose	control	NA	NA	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	A	3	5.3999999999999999E-2	2	17-2 control	unknown	c17.2	C	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	B	3	5.5E-2	2	17-2 0.625	unknown	c17.2	0.625	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	C	3	5.8999999999999997E-2	2	17-2 1.25	unknown	c17.2	1.25	NA
@@ -575,22 +575,22 @@ cTnI_ELISA-10-26-15.xlsx.sheet.1	E	12	6.7000000000000004E-2	2	32 5	unknown	c32	5
 cTnI_ELISA-10-26-15.xlsx.sheet.1	F	12	5.3999999999999999E-2	2	22 5	unknown	c22	5	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	G	12	5.8999999999999997E-2	2	62 5	unknown	c62	5	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.1	H	12	5.5E-2	2	57 5	unknown	c57	5	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	A	1	0.58199999999999996	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA-10-26-15.xlsx.sheet.2	B	1	0.21099999999999999	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA-10-26-15.xlsx.sheet.2	C	1	8.8999999999999996E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA-10-26-15.xlsx.sheet.2	D	1	5.2999999999999999E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA-10-26-15.xlsx.sheet.2	E	1	4.9000000000000002E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA-10-26-15.xlsx.sheet.2	F	1	4.7E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	G	1	5.6000000000000001E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	H	1	5.2999999999999999E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	A	2	0.52800000000000002	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA-10-26-15.xlsx.sheet.2	B	2	0.24099999999999999	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA-10-26-15.xlsx.sheet.2	C	2	7.5999999999999998E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA-10-26-15.xlsx.sheet.2	D	2	5.2999999999999999E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA-10-26-15.xlsx.sheet.2	E	2	4.9000000000000002E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA-10-26-15.xlsx.sheet.2	F	2	4.7E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	G	2	5.3999999999999999E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	H	2	5.5E-2	1	galactose	control	cNA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	A	1	0.58199999999999996	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA-10-26-15.xlsx.sheet.2	B	1	0.21099999999999999	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA-10-26-15.xlsx.sheet.2	C	1	8.8999999999999996E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA-10-26-15.xlsx.sheet.2	D	1	5.2999999999999999E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA-10-26-15.xlsx.sheet.2	E	1	4.9000000000000002E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA-10-26-15.xlsx.sheet.2	F	1	4.7E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	G	1	5.6000000000000001E-2	1	water	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	H	1	5.2999999999999999E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	A	2	0.52800000000000002	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA-10-26-15.xlsx.sheet.2	B	2	0.24099999999999999	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA-10-26-15.xlsx.sheet.2	C	2	7.5999999999999998E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA-10-26-15.xlsx.sheet.2	D	2	5.2999999999999999E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA-10-26-15.xlsx.sheet.2	E	2	4.9000000000000002E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA-10-26-15.xlsx.sheet.2	F	2	4.7E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	G	2	5.3999999999999999E-2	1	water	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	H	2	5.5E-2	1	galactose	control	NA	NA	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	A	3	5.7000000000000002E-2	1	56 control	unknown	c56	C	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	B	3	6.0999999999999999E-2	1	56 0.625	unknown	c56	0.625	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	C	3	6.4000000000000001E-2	1	56 1.25	unknown	c56	1.25	NA
@@ -671,22 +671,22 @@ cTnI_ELISA-10-26-15.xlsx.sheet.2	E	12	5.1999999999999998E-2	1	36 5	unknown	c36	5
 cTnI_ELISA-10-26-15.xlsx.sheet.2	F	12	7.8E-2	1	44 5	unknown	c44	5	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	G	12	0.14299999999999999	1	33-1 5	unknown	c33.1	5	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	H	12	5.8999999999999997E-2	1	30 5	unknown	c30	5	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	A	1	0.57899999999999996	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA-10-26-15.xlsx.sheet.2	B	1	0.21	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA-10-26-15.xlsx.sheet.2	C	1	8.7999999999999995E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA-10-26-15.xlsx.sheet.2	D	1	5.2999999999999999E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA-10-26-15.xlsx.sheet.2	E	1	4.9000000000000002E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA-10-26-15.xlsx.sheet.2	F	1	4.7E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	G	1	5.5E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	H	1	5.2999999999999999E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	A	2	0.52500000000000002	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA-10-26-15.xlsx.sheet.2	B	2	0.24	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA-10-26-15.xlsx.sheet.2	C	2	7.5999999999999998E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA-10-26-15.xlsx.sheet.2	D	2	5.2999999999999999E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA-10-26-15.xlsx.sheet.2	E	2	4.9000000000000002E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA-10-26-15.xlsx.sheet.2	F	2	4.7E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	G	2	5.2999999999999999E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA-10-26-15.xlsx.sheet.2	H	2	5.5E-2	2	galactose	control	cNA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	A	1	0.57899999999999996	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA-10-26-15.xlsx.sheet.2	B	1	0.21	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA-10-26-15.xlsx.sheet.2	C	1	8.7999999999999995E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA-10-26-15.xlsx.sheet.2	D	1	5.2999999999999999E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA-10-26-15.xlsx.sheet.2	E	1	4.9000000000000002E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA-10-26-15.xlsx.sheet.2	F	1	4.7E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	G	1	5.5E-2	2	water	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	H	1	5.2999999999999999E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	A	2	0.52500000000000002	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA-10-26-15.xlsx.sheet.2	B	2	0.24	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA-10-26-15.xlsx.sheet.2	C	2	7.5999999999999998E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA-10-26-15.xlsx.sheet.2	D	2	5.2999999999999999E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA-10-26-15.xlsx.sheet.2	E	2	4.9000000000000002E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA-10-26-15.xlsx.sheet.2	F	2	4.7E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	G	2	5.2999999999999999E-2	2	water	control	NA	NA	NA
+cTnI_ELISA-10-26-15.xlsx.sheet.2	H	2	5.5E-2	2	galactose	control	NA	NA	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	A	3	5.6000000000000001E-2	2	56 control	unknown	c56	C	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	B	3	0.06	2	56 0.625	unknown	c56	0.625	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	C	3	6.3E-2	2	56 1.25	unknown	c56	1.25	NA
@@ -767,22 +767,22 @@ cTnI_ELISA-10-26-15.xlsx.sheet.2	E	12	5.1999999999999998E-2	2	36 5	unknown	c36	5
 cTnI_ELISA-10-26-15.xlsx.sheet.2	F	12	7.6999999999999999E-2	2	44 5	unknown	c44	5	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	G	12	0.14099999999999999	2	33-1 5	unknown	c33.1	5	NA
 cTnI_ELISA-10-26-15.xlsx.sheet.2	H	12	5.8000000000000003E-2	2	30 5	unknown	c30	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	A	1	0.58199999999999996	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.1	B	1	0.20599999999999999	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.1	C	1	7.1999999999999995E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.1	D	1	5.0999999999999997E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.1	E	1	0.05	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.1	F	1	4.5999999999999999E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	G	1	4.9000000000000002E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	1	4.8000000000000001E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	A	2	0.52300000000000002	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.1	B	2	0.23599999999999999	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.1	C	2	7.5999999999999998E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.1	D	2	5.3999999999999999E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.1	E	2	4.9000000000000002E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.1	F	2	4.5999999999999999E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	G	2	0.05	1	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	2	4.7E-2	1	galactose	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	A	1	0.58199999999999996	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.1	B	1	0.20599999999999999	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.1	C	1	7.1999999999999995E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.1	D	1	5.0999999999999997E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.1	E	1	0.05	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.1	F	1	4.5999999999999999E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	G	1	4.9000000000000002E-2	1	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	1	4.8000000000000001E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	A	2	0.52300000000000002	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.1	B	2	0.23599999999999999	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.1	C	2	7.5999999999999998E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.1	D	2	5.3999999999999999E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.1	E	2	4.9000000000000002E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.1	F	2	4.5999999999999999E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	G	2	0.05	1	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	2	4.7E-2	1	galactose	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	3	6.2E-2	1	73-1 c	unknown	c73.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	3	6.0999999999999999E-2	1	73-1 0.625	unknown	c73.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	3	0.06	1	73-1 1.25	unknown	c73.1	1.25	NA
@@ -790,7 +790,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	3	7.5999999999999998E-2	1	73-1 2.5	unknown	c73
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	3	7.9000000000000001E-2	1	73-1 5	unknown	c73.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	3	5.7000000000000002E-2	1	29-1 c	unknown	c29.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	3	5.2999999999999999E-2	1	60-1 c	unknown	c60.1	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	3	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	3	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	4	6.3E-2	1	73-1 c	unknown	c73.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	4	6.3E-2	1	73-1 0.625	unknown	c73.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	4	6.2E-2	1	73-1 1.25	unknown	c73.1	1.25	NA
@@ -798,7 +798,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	4	0.08	1	73-1 2.5	unknown	c73.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	4	8.1000000000000003E-2	1	73-1 5	unknown	c73.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	4	5.6000000000000001E-2	1	29-1 c	unknown	c29.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	4	5.1999999999999998E-2	1	60-1 c	unknown	c60.1	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	4	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	4	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	5	6.6000000000000003E-2	1	51 c	unknown	c51	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	5	4.8000000000000001E-2	1	51 0.625	unknown	c51	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	5	5.5E-2	1	51 1.25	unknown	c51	1.25	NA
@@ -806,7 +806,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	5	4.8000000000000001E-2	1	51 2.5	unknown	c51	2
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	5	4.8000000000000001E-2	1	51 5	unknown	c51	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	5	5.1999999999999998E-2	1	29-1 0.625	unknown	c29.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	5	5.5E-2	1	60-1 0.625	unknown	c60.1	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	5	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	5	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	6	4.8000000000000001E-2	1	51 c	unknown	c51	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	6	4.8000000000000001E-2	1	51 0.625	unknown	c51	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	6	4.9000000000000002E-2	1	51 1.25	unknown	c51	1.25	NA
@@ -814,7 +814,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	6	0.05	1	51 2.5	unknown	c51	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	6	0.05	1	51 5	unknown	c51	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	6	5.6000000000000001E-2	1	29-1 0.625	unknown	c29.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	6	5.2999999999999999E-2	1	60-1 0.625	unknown	c60.1	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	6	5.1999999999999998E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	6	5.1999999999999998E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	7	0.06	1	18 c	unknown	c18	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	7	5.8000000000000003E-2	1	18 0.625	unknown	c18	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	7	6.4000000000000001E-2	1	18 1.25	unknown	c18	1.25	NA
@@ -822,7 +822,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	7	7.0999999999999994E-2	1	18 2.5	unknown	c18	2
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	7	6.9000000000000006E-2	1	18 5	unknown	c18	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	7	5.6000000000000001E-2	1	29-1 1.25	unknown	c29.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	7	5.8999999999999997E-2	1	60-1 1.25	unknown	c60.1	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	7	4.9000000000000002E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	7	4.9000000000000002E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	8	5.7000000000000002E-2	1	18 c	unknown	c18	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	8	5.8000000000000003E-2	1	18 0.625	unknown	c18	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	8	6.2E-2	1	18 1.25	unknown	c18	1.25	NA
@@ -830,7 +830,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	8	7.0999999999999994E-2	1	18 2.5	unknown	c18	2
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	8	6.6000000000000003E-2	1	18 5	unknown	c18	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	8	5.6000000000000001E-2	1	29-1 1.25	unknown	c29.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	8	5.5E-2	1	60-1 1.25	unknown	c60.1	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	8	0.05	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	8	0.05	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	9	5.8000000000000003E-2	1	55-1 c	unknown	c55.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	9	5.8000000000000003E-2	1	55-1 0.625	unknown	c55.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	9	6.3E-2	1	55-1 1.25	unknown	c55.1	1.25	NA
@@ -838,7 +838,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	9	6.6000000000000003E-2	1	55-1 2.5	unknown	c55
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	9	6.5000000000000002E-2	1	55-1 5	unknown	c55.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	9	6.0999999999999999E-2	1	29-1 2.5	unknown	c29.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	9	7.3999999999999996E-2	1	60-1 2.5	unknown	c60.1	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	9	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	9	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	10	5.8999999999999997E-2	1	55-1 c	unknown	c55.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	10	5.7000000000000002E-2	1	55-1 0.625	unknown	c55.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	10	5.8999999999999997E-2	1	55-1 1.25	unknown	c55.1	1.25	NA
@@ -846,7 +846,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	10	6.6000000000000003E-2	1	55-1 2.5	unknown	c5
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	10	6.4000000000000001E-2	1	55-1 5	unknown	c55.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	10	5.8000000000000003E-2	1	29-1 2.5	unknown	c29.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	10	7.0000000000000007E-2	1	60-1 2.5	unknown	c60.1	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	10	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	10	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	11	5.0999999999999997E-2	1	43-1 c	unknown	c43.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	11	5.0999999999999997E-2	1	43-1 0.625	unknown	c43.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	11	5.0999999999999997E-2	1	43-1 1.25	unknown	c43.1	1.25	NA
@@ -854,7 +854,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	11	5.1999999999999998E-2	1	43-1 2.5	unknown	c4
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	11	5.0999999999999997E-2	1	43-1 5	unknown	c43.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	11	5.8000000000000003E-2	1	29-1 5	unknown	c29.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	11	7.0000000000000007E-2	1	60-1 5	unknown	c60.1	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	11	0.05	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	11	0.05	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	12	4.9000000000000002E-2	1	43-1 c	unknown	c43.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	12	4.9000000000000002E-2	1	43-1 0.625	unknown	c43.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	12	0.05	1	43-1 1.25	unknown	c43.1	1.25	NA
@@ -862,23 +862,23 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	12	5.1999999999999998E-2	1	43-1 2.5	unknown	c4
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	12	5.0999999999999997E-2	1	43-1 5	unknown	c43.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	12	6.5000000000000002E-2	1	29-1 5	unknown	c29.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	12	0.06	1	60-1 5	unknown	c60.1	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	12	4.5999999999999999E-2	1	empty	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	A	1	0.57899999999999996	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.1	B	1	0.20499999999999999	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.1	C	1	7.0999999999999994E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.1	D	1	5.0999999999999997E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.1	E	1	0.05	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.1	F	1	4.5999999999999999E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	G	1	4.8000000000000001E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	1	4.8000000000000001E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	A	2	0.52200000000000002	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.1	B	2	0.23400000000000001	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.1	C	2	7.4999999999999997E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.1	D	2	5.3999999999999999E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.1	E	2	4.9000000000000002E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.1	F	2	4.5999999999999999E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	G	2	4.9000000000000002E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	2	4.7E-2	2	galactose	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	12	4.5999999999999999E-2	1	empty	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	A	1	0.57899999999999996	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.1	B	1	0.20499999999999999	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.1	C	1	7.0999999999999994E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.1	D	1	5.0999999999999997E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.1	E	1	0.05	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.1	F	1	4.5999999999999999E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	G	1	4.8000000000000001E-2	2	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	1	4.8000000000000001E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	A	2	0.52200000000000002	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.1	B	2	0.23400000000000001	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.1	C	2	7.4999999999999997E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.1	D	2	5.3999999999999999E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.1	E	2	4.9000000000000002E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.1	F	2	4.5999999999999999E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	G	2	4.9000000000000002E-2	2	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	2	4.7E-2	2	galactose	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	3	6.0999999999999999E-2	2	73-1 c	unknown	c73.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	3	0.06	2	73-1 0.625	unknown	c73.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	3	5.8999999999999997E-2	2	73-1 1.25	unknown	c73.1	1.25	NA
@@ -886,7 +886,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	3	7.4999999999999997E-2	2	73-1 2.5	unknown	c73
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	3	7.8E-2	2	73-1 5	unknown	c73.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	3	5.6000000000000001E-2	2	29-1 c	unknown	c29.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	3	5.2999999999999999E-2	2	60-1 c	unknown	c60.1	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	3	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	3	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	4	6.2E-2	2	73-1 c	unknown	c73.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	4	6.3E-2	2	73-1 0.625	unknown	c73.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	4	6.0999999999999999E-2	2	73-1 1.25	unknown	c73.1	1.25	NA
@@ -894,7 +894,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	4	7.9000000000000001E-2	2	73-1 2.5	unknown	c73
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	4	8.1000000000000003E-2	2	73-1 5	unknown	c73.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	4	5.6000000000000001E-2	2	29-1 c	unknown	c29.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	4	5.0999999999999997E-2	2	60-1 c	unknown	c60.1	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	4	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	4	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	5	6.5000000000000002E-2	2	51 c	unknown	c51	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	5	4.8000000000000001E-2	2	51 0.625	unknown	c51	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	5	5.5E-2	2	51 1.25	unknown	c51	1.25	NA
@@ -902,7 +902,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	5	4.8000000000000001E-2	2	51 2.5	unknown	c51	2
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	5	4.8000000000000001E-2	2	51 5	unknown	c51	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	5	5.1999999999999998E-2	2	29-1 0.625	unknown	c29.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	5	5.5E-2	2	60-1 0.625	unknown	c60.1	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	5	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	5	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	6	4.8000000000000001E-2	2	51 c	unknown	c51	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	6	4.7E-2	2	51 0.625	unknown	c51	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	6	4.8000000000000001E-2	2	51 1.25	unknown	c51	1.25	NA
@@ -910,7 +910,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	6	4.9000000000000002E-2	2	51 2.5	unknown	c51	2
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	6	0.05	2	51 5	unknown	c51	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	6	5.6000000000000001E-2	2	29-1 0.625	unknown	c29.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	6	5.1999999999999998E-2	2	60-1 0.625	unknown	c60.1	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	6	5.1999999999999998E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	6	5.1999999999999998E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	7	0.06	2	18 c	unknown	c18	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	7	5.7000000000000002E-2	2	18 0.625	unknown	c18	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	7	6.4000000000000001E-2	2	18 1.25	unknown	c18	1.25	NA
@@ -918,7 +918,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	7	7.0999999999999994E-2	2	18 2.5	unknown	c18	2
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	7	6.9000000000000006E-2	2	18 5	unknown	c18	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	7	5.6000000000000001E-2	2	29-1 1.25	unknown	c29.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	7	5.8000000000000003E-2	2	60-1 1.25	unknown	c60.1	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	7	4.9000000000000002E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	7	4.9000000000000002E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	8	5.7000000000000002E-2	2	18 c	unknown	c18	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	8	5.7000000000000002E-2	2	18 0.625	unknown	c18	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	8	6.3E-2	2	18 1.25	unknown	c18	1.25	NA
@@ -926,7 +926,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	8	7.0000000000000007E-2	2	18 2.5	unknown	c18	2
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	8	6.6000000000000003E-2	2	18 5	unknown	c18	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	8	5.6000000000000001E-2	2	29-1 1.25	unknown	c29.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	8	5.3999999999999999E-2	2	60-1 1.25	unknown	c60.1	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	8	0.05	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	8	0.05	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	9	5.8000000000000003E-2	2	55-1 c	unknown	c55.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	9	6.7000000000000004E-2	2	55-1 0.625	unknown	c55.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	9	0.06	2	55-1 1.25	unknown	c55.1	1.25	NA
@@ -934,7 +934,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	9	6.5000000000000002E-2	2	55-1 2.5	unknown	c55
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	9	6.5000000000000002E-2	2	55-1 5	unknown	c55.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	9	0.06	2	29-1 2.5	unknown	c29.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	9	7.2999999999999995E-2	2	60-1 2.5	unknown	c60.1	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	9	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	9	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	10	5.8000000000000003E-2	2	55-1 c	unknown	c55.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	10	5.7000000000000002E-2	2	55-1 0.625	unknown	c55.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	10	5.8999999999999997E-2	2	55-1 1.25	unknown	c55.1	1.25	NA
@@ -942,7 +942,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	10	6.7000000000000004E-2	2	55-1 2.5	unknown	c5
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	10	6.4000000000000001E-2	2	55-1 5	unknown	c55.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	10	5.7000000000000002E-2	2	29-1 2.5	unknown	c29.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	10	6.9000000000000006E-2	2	60-1 2.5	unknown	c60.1	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	10	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	10	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	11	5.0999999999999997E-2	2	43-1 c	unknown	c43.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	11	5.0999999999999997E-2	2	43-1 0.625	unknown	c43.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	11	5.0999999999999997E-2	2	43-1 1.25	unknown	c43.1	1.25	NA
@@ -950,7 +950,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	11	5.1999999999999998E-2	2	43-1 2.5	unknown	c4
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	11	5.0999999999999997E-2	2	43-1 5	unknown	c43.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	11	5.8000000000000003E-2	2	29-1 5	unknown	c29.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	11	6.9000000000000006E-2	2	60-1 5	unknown	c60.1	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	11	0.05	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	11	0.05	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	A	12	4.9000000000000002E-2	2	43-1 c	unknown	c43.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	B	12	4.9000000000000002E-2	2	43-1 0.625	unknown	c43.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	C	12	0.05	2	43-1 1.25	unknown	c43.1	1.25	NA
@@ -958,23 +958,23 @@ cTnI_ELISA_11-5-15.xlsx.sheet.1	D	12	5.1999999999999998E-2	2	43-1 2.5	unknown	c4
 cTnI_ELISA_11-5-15.xlsx.sheet.1	E	12	0.05	2	43-1 5	unknown	c43.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	F	12	6.0999999999999999E-2	2	29-1 5	unknown	c29.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.1	G	12	5.8999999999999997E-2	2	60-1 5	unknown	c60.1	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.1	H	12	4.5999999999999999E-2	2	empty	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	A	1	0.60199999999999998	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.2	B	1	0.23400000000000001	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.2	C	1	7.9000000000000001E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.2	D	1	5.6000000000000001E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.2	E	1	0.05	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.2	F	1	4.9000000000000002E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	G	1	5.6000000000000001E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	1	0.05	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	A	2	0.53900000000000003	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.2	B	2	0.23899999999999999	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.2	C	2	7.4999999999999997E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.2	D	2	5.6000000000000001E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.2	E	2	5.0999999999999997E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.2	F	2	4.7E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	G	2	0.05	1	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	2	5.0999999999999997E-2	1	galactose	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.1	H	12	4.5999999999999999E-2	2	empty	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	A	1	0.60199999999999998	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.2	B	1	0.23400000000000001	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.2	C	1	7.9000000000000001E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.2	D	1	5.6000000000000001E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.2	E	1	0.05	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.2	F	1	4.9000000000000002E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	G	1	5.6000000000000001E-2	1	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	1	0.05	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	A	2	0.53900000000000003	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.2	B	2	0.23899999999999999	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.2	C	2	7.4999999999999997E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.2	D	2	5.6000000000000001E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.2	E	2	5.0999999999999997E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.2	F	2	4.7E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	G	2	0.05	1	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	2	5.0999999999999997E-2	1	galactose	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	3	4.7E-2	1	14 c	unknown	c14	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	3	4.9000000000000002E-2	1	14 0.625	unknown	c14	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	3	0.05	1	14 1.25	unknown	c14	1.25	NA
@@ -982,7 +982,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	3	5.0999999999999997E-2	1	14 2.5	unknown	c14	2
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	3	4.9000000000000002E-2	1	14 5	unknown	c14	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	3	6.0999999999999999E-2	1	11-1 c	unknown	c11.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	3	4.9000000000000002E-2	1	42 c	unknown	c42	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	3	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	3	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	4	4.8000000000000001E-2	1	14 c	unknown	c14	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	4	4.8000000000000001E-2	1	14 0.625	unknown	c14	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	4	0.05	1	14 1.25	unknown	c14	1.25	NA
@@ -990,7 +990,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	4	0.05	1	14 2.5	unknown	c14	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	4	0.05	1	14 5	unknown	c14	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	4	6.0999999999999999E-2	1	11-1 c	unknown	c11.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	4	0.05	1	42 c	unknown	c42	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	4	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	4	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	5	5.8999999999999997E-2	1	35 c	unknown	c35	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	5	5.5E-2	1	35 0.625	unknown	c35	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	5	0.113	1	35 1.25	unknown	c35	1.25	NA
@@ -998,7 +998,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	5	9.9000000000000005E-2	1	35 2.5	unknown	c35	2
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	5	0.129	1	35 5	unknown	c35	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	5	6.6000000000000003E-2	1	11-1 0.625	unknown	c11.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	5	4.9000000000000002E-2	1	42 0.625	unknown	c42	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	5	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	5	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	6	5.6000000000000001E-2	1	35 c	unknown	c35	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	6	5.2999999999999999E-2	1	35 0.625	unknown	c35	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	6	9.6000000000000002E-2	1	35 1.25	unknown	c35	1.25	NA
@@ -1006,7 +1006,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	6	0.10199999999999999	1	35 2.5	unknown	c35	2.5
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	6	0.123	1	35 5	unknown	c35	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	6	7.0000000000000007E-2	1	11-1 0.625	unknown	c11.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	6	4.9000000000000002E-2	1	42 0.625	unknown	c42	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	6	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	6	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	7	0.05	1	16 c	unknown	c16	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	7	4.9000000000000002E-2	1	16 0.625	unknown	c16	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	7	5.6000000000000001E-2	1	16 1.25	unknown	c16	1.25	NA
@@ -1014,7 +1014,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	7	5.0999999999999997E-2	1	16 2.5	unknown	c16	2
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	7	5.0999999999999997E-2	1	16 5	unknown	c16	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	7	6.9000000000000006E-2	1	11-1 1.25	unknown	c11.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	7	5.0999999999999997E-2	1	42 1.25	unknown	c42	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	7	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	7	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	8	5.0999999999999997E-2	1	16 c	unknown	c16	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	8	5.2999999999999999E-2	1	16 0.625	unknown	c16	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	8	4.8000000000000001E-2	1	16 1.25	unknown	c16	1.25	NA
@@ -1022,7 +1022,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	8	0.05	1	16 2.5	unknown	c16	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	8	4.9000000000000002E-2	1	16 5	unknown	c16	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	8	7.2999999999999995E-2	1	11-1 1.25	unknown	c11.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	8	5.0999999999999997E-2	1	42 1.25	unknown	c42	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	8	0.05	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	8	0.05	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	9	5.8999999999999997E-2	1	54-1 c	unknown	c54.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	9	6.4000000000000001E-2	1	54-1 0.625	unknown	c54.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	9	7.2999999999999995E-2	1	54-1 1.25	unknown	c54.1	1.25	NA
@@ -1030,7 +1030,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	9	0.08	1	54-1 2.5	unknown	c54.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	9	0.1	1	54-1 5	unknown	c54.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	9	7.8E-2	1	11-1 2.5	unknown	c11.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	9	0.05	1	42 2.5	unknown	c42	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	9	5.8000000000000003E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	9	5.8000000000000003E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	10	5.8000000000000003E-2	1	54-1 c	unknown	c54.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	10	6.2E-2	1	54-1 0.625	unknown	c54.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	10	6.6000000000000003E-2	1	54-1 1.25	unknown	c54.1	1.25	NA
@@ -1038,7 +1038,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	10	7.8E-2	1	54-1 2.5	unknown	c54.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	10	9.9000000000000005E-2	1	54-1 5	unknown	c54.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	10	6.9000000000000006E-2	1	11-1 2.5	unknown	c11.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	10	4.9000000000000002E-2	1	42 2.5	unknown	c42	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	10	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	10	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	11	5.1999999999999998E-2	1	39-2 c	unknown	c39.2	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	11	5.7000000000000002E-2	1	39-2 0.625	unknown	c39.2	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	11	6.7000000000000004E-2	1	39-2 1.25	unknown	c39.2	1.25	NA
@@ -1046,7 +1046,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	11	7.6999999999999999E-2	1	39-2 2.5	unknown	c3
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	11	8.5000000000000006E-2	1	39-2 5	unknown	c39.2	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	11	8.6999999999999994E-2	1	11-1 5	unknown	c11.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	11	0.05	1	42-2 5	unknown	c42.2	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	11	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	11	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	12	5.2999999999999999E-2	1	39-2 c	unknown	c39.2	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	12	6.0999999999999999E-2	1	39-2 0.625	unknown	c39.2	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	12	6.0999999999999999E-2	1	39-2 1.25	unknown	c39.2	1.25	NA
@@ -1054,23 +1054,23 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	12	0.08	1	39-2 2.5	unknown	c39.2	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	12	8.3000000000000004E-2	1	39-2 5	unknown	c39.2	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	12	7.0000000000000007E-2	1	11-1 5	unknown	c11.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	12	4.9000000000000002E-2	1	42-2 5	unknown	c42.2	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	12	5.5E-2	1	empty	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	A	1	0.59899999999999998	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.2	B	1	0.23100000000000001	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.2	C	1	7.9000000000000001E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.2	D	1	5.6000000000000001E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.2	E	1	0.05	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.2	F	1	4.9000000000000002E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	G	1	5.6000000000000001E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	1	0.05	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	A	2	0.53700000000000003	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.2	B	2	0.23799999999999999	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.2	C	2	7.3999999999999996E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.2	D	2	5.6000000000000001E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.2	E	2	5.0999999999999997E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.2	F	2	4.7E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	G	2	0.05	2	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	2	4.9000000000000002E-2	2	galactose	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	12	5.5E-2	1	empty	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	A	1	0.59899999999999998	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.2	B	1	0.23100000000000001	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.2	C	1	7.9000000000000001E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.2	D	1	5.6000000000000001E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.2	E	1	0.05	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.2	F	1	4.9000000000000002E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	G	1	5.6000000000000001E-2	2	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	1	0.05	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	A	2	0.53700000000000003	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.2	B	2	0.23799999999999999	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.2	C	2	7.3999999999999996E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.2	D	2	5.6000000000000001E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.2	E	2	5.0999999999999997E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.2	F	2	4.7E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	G	2	0.05	2	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	2	4.9000000000000002E-2	2	galactose	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	3	4.7E-2	2	14 c	unknown	c14	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	3	4.9000000000000002E-2	2	14 0.625	unknown	c14	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	3	0.05	2	14 1.25	unknown	c14	1.25	NA
@@ -1078,7 +1078,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	3	5.0999999999999997E-2	2	14 2.5	unknown	c14	2
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	3	4.9000000000000002E-2	2	14 5	unknown	c14	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	3	0.06	2	11-1 c	unknown	c11.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	3	4.8000000000000001E-2	2	42 c	unknown	c42	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	3	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	3	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	4	4.8000000000000001E-2	2	14 c	unknown	c14	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	4	4.8000000000000001E-2	2	14 0.625	unknown	c14	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	4	0.05	2	14 1.25	unknown	c14	1.25	NA
@@ -1086,7 +1086,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	4	4.9000000000000002E-2	2	14 2.5	unknown	c14	2
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	4	0.05	2	14 5	unknown	c14	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	4	0.06	2	11-1 c	unknown	c11.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	4	0.05	2	42 c	unknown	c42	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	4	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	4	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	5	5.8999999999999997E-2	2	35 c	unknown	c35	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	5	5.5E-2	2	35 0.625	unknown	c35	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	5	0.112	2	35 1.25	unknown	c35	1.25	NA
@@ -1094,7 +1094,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	5	9.8000000000000004E-2	2	35 2.5	unknown	c35	2
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	5	0.128	2	35 5	unknown	c35	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	5	6.5000000000000002E-2	2	11-1 0.625	unknown	c11.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	5	4.9000000000000002E-2	2	42 0.625	unknown	c42	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	5	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	5	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	6	5.6000000000000001E-2	2	35 c	unknown	c35	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	6	5.2999999999999999E-2	2	35 0.625	unknown	c35	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	6	9.5000000000000001E-2	2	35 1.25	unknown	c35	1.25	NA
@@ -1102,7 +1102,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	6	0.10100000000000001	2	35 2.5	unknown	c35	2.5
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	6	0.122	2	35 5	unknown	c35	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	6	7.0000000000000007E-2	2	11-1 0.625	unknown	c11.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	6	4.9000000000000002E-2	2	42 0.625	unknown	c42	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	6	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	6	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	7	4.9000000000000002E-2	2	16 c	unknown	c16	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	7	4.9000000000000002E-2	2	16 0.625	unknown	c16	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	7	5.7000000000000002E-2	2	16 1.25	unknown	c16	1.25	NA
@@ -1110,7 +1110,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	7	5.0999999999999997E-2	2	16 2.5	unknown	c16	2
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	7	5.0999999999999997E-2	2	16 5	unknown	c16	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	7	6.9000000000000006E-2	2	11-1 1.25	unknown	c11.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	7	5.0999999999999997E-2	2	42 1.25	unknown	c42	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	7	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	7	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	8	4.8000000000000001E-2	2	16 c	unknown	c16	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	8	5.1999999999999998E-2	2	16 0.625	unknown	c16	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	8	4.8000000000000001E-2	2	16 1.25	unknown	c16	1.25	NA
@@ -1118,7 +1118,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	8	0.05	2	16 2.5	unknown	c16	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	8	4.9000000000000002E-2	2	16 5	unknown	c16	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	8	7.1999999999999995E-2	2	11-1 1.25	unknown	c11.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	8	5.0999999999999997E-2	2	42 1.25	unknown	c42	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	8	0.05	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	8	0.05	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	9	5.8000000000000003E-2	2	54-1 c	unknown	c54.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	9	6.4000000000000001E-2	2	54-1 0.625	unknown	c54.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	9	7.1999999999999995E-2	2	54-1 1.25	unknown	c54.1	1.25	NA
@@ -1126,7 +1126,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	9	7.9000000000000001E-2	2	54-1 2.5	unknown	c54
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	9	0.1	2	54-1 5	unknown	c54.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	9	7.6999999999999999E-2	2	11-1 2.5	unknown	c11.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	9	0.05	2	42 2.5	unknown	c42	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	9	5.8000000000000003E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	9	5.8000000000000003E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	10	5.8000000000000003E-2	2	54-1 c	unknown	c54.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	10	6.0999999999999999E-2	2	54-1 0.625	unknown	c54.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	10	6.6000000000000003E-2	2	54-1 1.25	unknown	c54.1	1.25	NA
@@ -1134,7 +1134,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	10	7.8E-2	2	54-1 2.5	unknown	c54.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	10	9.8000000000000004E-2	2	54-1 5	unknown	c54.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	10	6.8000000000000005E-2	2	11-1 2.5	unknown	c11.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	10	4.9000000000000002E-2	2	42 2.5	unknown	c42	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	10	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	10	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	11	5.1999999999999998E-2	2	39-2 c	unknown	c39.2	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	11	5.6000000000000001E-2	2	39-2 0.625	unknown	c39.2	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	11	6.8000000000000005E-2	2	39-2 1.25	unknown	c39.2	1.25	NA
@@ -1142,7 +1142,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	11	7.5999999999999998E-2	2	39-2 2.5	unknown	c3
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	11	8.4000000000000005E-2	2	39-2 5	unknown	c39.2	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	11	8.5999999999999993E-2	2	11-1 5	unknown	c11.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	11	0.05	2	42-2 5	unknown	c42.2	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	11	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	11	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	A	12	5.2999999999999999E-2	2	39-2 c	unknown	c39.2	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	B	12	6.0999999999999999E-2	2	39-2 0.625	unknown	c39.2	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	C	12	6.0999999999999999E-2	2	39-2 1.25	unknown	c39.2	1.25	NA
@@ -1150,23 +1150,23 @@ cTnI_ELISA_11-5-15.xlsx.sheet.2	D	12	7.9000000000000001E-2	2	39-2 2.5	unknown	c3
 cTnI_ELISA_11-5-15.xlsx.sheet.2	E	12	8.2000000000000003E-2	2	39-2 5	unknown	c39.2	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	F	12	7.0000000000000007E-2	2	11-1 5	unknown	c11.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.2	G	12	4.9000000000000002E-2	2	42-2 5	unknown	c42.2	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.2	H	12	5.3999999999999999E-2	2	empty	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	A	1	0.59599999999999997	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.3	B	1	0.26800000000000002	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.3	C	1	8.6999999999999994E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.3	D	1	0.06	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.3	E	1	0.05	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.3	F	1	4.7E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	G	1	5.0999999999999997E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	1	4.7E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	A	2	0.64500000000000002	1	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.3	B	2	0.26400000000000001	1	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.3	C	2	7.3999999999999996E-2	1	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.3	D	2	5.8000000000000003E-2	1	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.3	E	2	5.0999999999999997E-2	1	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.3	F	2	5.0999999999999997E-2	1	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	G	2	5.2999999999999999E-2	1	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	2	5.6000000000000001E-2	1	galactose	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.2	H	12	5.3999999999999999E-2	2	empty	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	A	1	0.59599999999999997	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.3	B	1	0.26800000000000002	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.3	C	1	8.6999999999999994E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.3	D	1	0.06	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.3	E	1	0.05	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.3	F	1	4.7E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	G	1	5.0999999999999997E-2	1	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	1	4.7E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	A	2	0.64500000000000002	1	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.3	B	2	0.26400000000000001	1	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.3	C	2	7.3999999999999996E-2	1	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.3	D	2	5.8000000000000003E-2	1	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.3	E	2	5.0999999999999997E-2	1	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.3	F	2	5.0999999999999997E-2	1	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	G	2	5.2999999999999999E-2	1	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	2	5.6000000000000001E-2	1	galactose	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	3	4.9000000000000002E-2	1	37 c	unknown	c37	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	3	4.9000000000000002E-2	1	37 0.625	unknown	c37	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	3	0.05	1	37 1.25	unknown	c37	1.25	NA
@@ -1174,7 +1174,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	3	4.9000000000000002E-2	1	37 2.5	unknown	c37	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	3	0.05	1	37 5	unknown	c37	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	3	5.1999999999999998E-2	1	7-1 c	unknown	c7.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	3	5.0999999999999997E-2	1	74 c	unknown	c74	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	3	0.05	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	3	0.05	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	4	4.9000000000000002E-2	1	37 c	unknown	c37	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	4	5.1999999999999998E-2	1	37 0.625	unknown	c37	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	4	4.9000000000000002E-2	1	37 1.25	unknown	c37	1.25	NA
@@ -1182,7 +1182,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	4	0.05	1	37 2.5	unknown	c37	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	4	4.9000000000000002E-2	1	37 5	unknown	c37	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	4	5.3999999999999999E-2	1	7-1 c	unknown	c7.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	4	5.1999999999999998E-2	1	74 c	unknown	c74	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	4	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	4	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	5	5.7000000000000002E-2	1	46-1 c	unknown	c46.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	5	5.5E-2	1	46-1 0.625	unknown	c46.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	5	5.7000000000000002E-2	1	46-1 1.25	unknown	c46.1	1.25	NA
@@ -1190,7 +1190,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	5	5.8999999999999997E-2	1	46-1 2.5	unknown	c46
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	5	0.06	1	46-1 5	unknown	c46.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	5	5.1999999999999998E-2	1	7-1 0.625	unknown	c7.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	5	5.3999999999999999E-2	1	74 0.625	unknown	c74	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	5	5.1999999999999998E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	5	5.1999999999999998E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	6	5.3999999999999999E-2	1	46-1 c	unknown	c46.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	6	5.5E-2	1	46-1 0.625	unknown	c46.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	6	5.7000000000000002E-2	1	46-1 1.25	unknown	c46.1	1.25	NA
@@ -1198,7 +1198,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	6	6.0999999999999999E-2	1	46-1 2.5	unknown	c46
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	6	0.06	1	46-1 5	unknown	c46.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	6	5.2999999999999999E-2	1	7-1 0.625	unknown	c7.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	6	5.3999999999999999E-2	1	74 0.625	unknown	c74	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	6	5.1999999999999998E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	6	5.1999999999999998E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	7	0.06	1	63 c	unknown	c63	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	7	0.06	1	63 0.625	unknown	c63	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	7	6.3E-2	1	63 1.25	unknown	c63	1.25	NA
@@ -1206,7 +1206,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	7	9.5000000000000001E-2	1	63 2.5	unknown	c63	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	7	8.1000000000000003E-2	1	63 5	unknown	c63	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	7	6.9000000000000006E-2	1	7-1 1.25	unknown	c7.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	7	6.4000000000000001E-2	1	74 1.25	unknown	c74	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	7	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	7	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	8	6.2E-2	1	63 c	unknown	c63	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	8	6.3E-2	1	63 0.625	unknown	c63	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	8	6.3E-2	1	63 1.25	unknown	c63	1.25	NA
@@ -1214,7 +1214,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	8	9.9000000000000005E-2	1	63 2.5	unknown	c63	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	8	8.5000000000000006E-2	1	63 5	unknown	c63	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	8	6.4000000000000001E-2	1	7-1 1.25	unknown	c7.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	8	5.3999999999999999E-2	1	74 1.25	unknown	c74	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	8	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	8	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	9	5.3999999999999999E-2	1	50 c	unknown	c50	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	9	0.06	1	50 0.625	unknown	c50	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	9	5.5E-2	1	50 1.25	unknown	c50	1.25	NA
@@ -1222,7 +1222,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	9	5.2999999999999999E-2	1	50 2.5	unknown	c50	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	9	5.1999999999999998E-2	1	50 5	unknown	c50	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	9	7.4999999999999997E-2	1	7-1 2.5	unknown	c7.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	9	5.7000000000000002E-2	1	74 2.5	unknown	c74	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	9	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	9	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	10	5.1999999999999998E-2	1	50 c	unknown	c50	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	10	5.1999999999999998E-2	1	50 0.625	unknown	c50	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	10	5.8999999999999997E-2	1	50 1.25	unknown	c50	1.25	NA
@@ -1230,7 +1230,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	10	5.2999999999999999E-2	1	50 2.5	unknown	c50	
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	10	5.3999999999999999E-2	1	50 5	unknown	c50	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	10	6.6000000000000003E-2	1	7-1 2.5	unknown	c7.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	10	5.2999999999999999E-2	1	74 2.5	unknown	c74	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	10	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	10	5.0999999999999997E-2	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	11	5.8999999999999997E-2	1	31-1 c	unknown	c31.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	11	5.6000000000000001E-2	1	31-1 0.625	unknown	c31.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	11	6.0999999999999999E-2	1	31-1 1.25	unknown	c31.1	1.25	NA
@@ -1238,7 +1238,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	11	5.3999999999999999E-2	1	31-1 2.5	unknown	c3
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	11	5.7000000000000002E-2	1	31-1 5	unknown	c31.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	11	7.4999999999999997E-2	1	7-1 5	unknown	c7.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	11	5.5E-2	1	74 5	unknown	c74	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	11	0.05	1	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	11	0.05	1	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	12	5.8999999999999997E-2	1	31-1 c	unknown	c31.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	12	5.5E-2	1	31-1 0.625	unknown	c31.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	12	5.7000000000000002E-2	1	31-1 1.25	unknown	c31.1	1.25	NA
@@ -1246,23 +1246,23 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	12	5.7000000000000002E-2	1	31-1 2.5	unknown	c3
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	12	6.0999999999999999E-2	1	31-1 5	unknown	c31.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	12	7.0999999999999994E-2	1	7-1 5	unknown	c7.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	12	7.0000000000000007E-2	1	74 5	unknown	c74	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	12	5.0999999999999997E-2	1	empty	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	A	1	0.59499999999999997	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.3	B	1	0.26600000000000001	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.3	C	1	8.5999999999999993E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.3	D	1	0.06	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.3	E	1	0.05	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.3	F	1	4.7E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	G	1	5.0999999999999997E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	1	4.7E-2	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	A	2	0.64500000000000002	2	75ng/mL	standard	cNA	NA	75
-cTnI_ELISA_11-5-15.xlsx.sheet.3	B	2	0.26300000000000001	2	30ng/mL	standard	cNA	NA	30
-cTnI_ELISA_11-5-15.xlsx.sheet.3	C	2	7.3999999999999996E-2	2	7.5ng/mL	standard	cNA	NA	7.5
-cTnI_ELISA_11-5-15.xlsx.sheet.3	D	2	5.7000000000000002E-2	2	2.0ng/mL	standard	cNA	NA	2.0
-cTnI_ELISA_11-5-15.xlsx.sheet.3	E	2	5.0999999999999997E-2	2	0ng/mL	standard	cNA	NA	0
-cTnI_ELISA_11-5-15.xlsx.sheet.3	F	2	0.05	2	galactose	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	G	2	5.2999999999999999E-2	2	water	control	cNA	NA	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	2	5.6000000000000001E-2	2	galactose	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	12	5.0999999999999997E-2	1	empty	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	A	1	0.59499999999999997	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.3	B	1	0.26600000000000001	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.3	C	1	8.5999999999999993E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.3	D	1	0.06	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.3	E	1	0.05	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.3	F	1	4.7E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	G	1	5.0999999999999997E-2	2	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	1	4.7E-2	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	A	2	0.64500000000000002	2	75ng/mL	standard	NA	NA	75
+cTnI_ELISA_11-5-15.xlsx.sheet.3	B	2	0.26300000000000001	2	30ng/mL	standard	NA	NA	30
+cTnI_ELISA_11-5-15.xlsx.sheet.3	C	2	7.3999999999999996E-2	2	7.5ng/mL	standard	NA	NA	7.5
+cTnI_ELISA_11-5-15.xlsx.sheet.3	D	2	5.7000000000000002E-2	2	2.0ng/mL	standard	NA	NA	2.0
+cTnI_ELISA_11-5-15.xlsx.sheet.3	E	2	5.0999999999999997E-2	2	0ng/mL	standard	NA	NA	0
+cTnI_ELISA_11-5-15.xlsx.sheet.3	F	2	0.05	2	galactose	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	G	2	5.2999999999999999E-2	2	water	control	NA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	2	5.6000000000000001E-2	2	galactose	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	3	4.9000000000000002E-2	2	37 c	unknown	c37	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	3	4.9000000000000002E-2	2	37 0.625	unknown	c37	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	3	0.05	2	37 1.25	unknown	c37	1.25	NA
@@ -1270,7 +1270,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	3	4.9000000000000002E-2	2	37 2.5	unknown	c37	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	3	0.05	2	37 5	unknown	c37	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	3	5.1999999999999998E-2	2	7-1 c	unknown	c7.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	3	5.0999999999999997E-2	2	74 c	unknown	c74	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	3	0.05	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	3	0.05	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	4	4.9000000000000002E-2	2	37 c	unknown	c37	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	4	5.1999999999999998E-2	2	37 0.625	unknown	c37	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	4	4.9000000000000002E-2	2	37 1.25	unknown	c37	1.25	NA
@@ -1278,7 +1278,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	4	4.9000000000000002E-2	2	37 2.5	unknown	c37	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	4	4.9000000000000002E-2	2	37 5	unknown	c37	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	4	5.2999999999999999E-2	2	7-1 c	unknown	c7.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	4	5.1999999999999998E-2	2	74 c	unknown	c74	C	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	4	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	4	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	5	5.7000000000000002E-2	2	46-1 c	unknown	c46.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	5	5.5E-2	2	46-1 0.625	unknown	c46.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	5	5.7000000000000002E-2	2	46-1 1.25	unknown	c46.1	1.25	NA
@@ -1286,7 +1286,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	5	5.8999999999999997E-2	2	46-1 2.5	unknown	c46
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	5	0.06	2	46-1 5	unknown	c46.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	5	5.1999999999999998E-2	2	7-1 0.625	unknown	c7.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	5	5.3999999999999999E-2	2	74 0.625	unknown	c74	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	5	5.1999999999999998E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	5	5.1999999999999998E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	6	5.2999999999999999E-2	2	46-1 c	unknown	c46.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	6	5.5E-2	2	46-1 0.625	unknown	c46.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	6	5.7000000000000002E-2	2	46-1 1.25	unknown	c46.1	1.25	NA
@@ -1294,7 +1294,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	6	6.0999999999999999E-2	2	46-1 2.5	unknown	c46
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	6	5.8999999999999997E-2	2	46-1 5	unknown	c46.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	6	5.2999999999999999E-2	2	7-1 0.625	unknown	c7.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	6	5.3999999999999999E-2	2	74 0.625	unknown	c74	0.625	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	6	5.1999999999999998E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	6	5.1999999999999998E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	7	0.06	2	63 c	unknown	c63	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	7	0.06	2	63 0.625	unknown	c63	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	7	6.2E-2	2	63 1.25	unknown	c63	1.25	NA
@@ -1302,7 +1302,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	7	9.5000000000000001E-2	2	63 2.5	unknown	c63	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	7	8.1000000000000003E-2	2	63 5	unknown	c63	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	7	6.8000000000000005E-2	2	7-1 1.25	unknown	c7.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	7	6.3E-2	2	74 1.25	unknown	c74	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	7	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	7	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	8	6.2E-2	2	63 c	unknown	c63	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	8	6.3E-2	2	63 0.625	unknown	c63	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	8	6.3E-2	2	63 1.25	unknown	c63	1.25	NA
@@ -1310,7 +1310,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	8	9.9000000000000005E-2	2	63 2.5	unknown	c63	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	8	8.4000000000000005E-2	2	63 5	unknown	c63	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	8	6.4000000000000001E-2	2	7-1 1.25	unknown	c7.1	1.25	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	8	5.3999999999999999E-2	2	74 1.25	unknown	c74	1.25	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	8	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	8	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	9	5.2999999999999999E-2	2	50 c	unknown	c50	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	9	0.06	2	50 0.625	unknown	c50	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	9	5.3999999999999999E-2	2	50 1.25	unknown	c50	1.25	NA
@@ -1318,7 +1318,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	9	5.1999999999999998E-2	2	50 2.5	unknown	c50	2
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	9	5.1999999999999998E-2	2	50 5	unknown	c50	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	9	7.3999999999999996E-2	2	7-1 2.5	unknown	c7.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	9	5.7000000000000002E-2	2	74 2.5	unknown	c74	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	9	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	9	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	10	5.0999999999999997E-2	2	50 c	unknown	c50	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	10	5.1999999999999998E-2	2	50 0.625	unknown	c50	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	10	5.8000000000000003E-2	2	50 1.25	unknown	c50	1.25	NA
@@ -1326,7 +1326,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	10	5.1999999999999998E-2	2	50 2.5	unknown	c50	
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	10	5.3999999999999999E-2	2	50 5	unknown	c50	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	10	6.5000000000000002E-2	2	7-1 2.5	unknown	c7.1	2.5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	10	5.2999999999999999E-2	2	74 2.5	unknown	c74	2.5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	10	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	10	5.0999999999999997E-2	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	11	5.8000000000000003E-2	2	31-1 c	unknown	c31.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	11	5.5E-2	2	31-1 0.625	unknown	c31.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	11	6.0999999999999999E-2	2	31-1 1.25	unknown	c31.1	1.25	NA
@@ -1334,7 +1334,7 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	11	5.3999999999999999E-2	2	31-1 2.5	unknown	c3
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	11	5.7000000000000002E-2	2	31-1 5	unknown	c31.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	11	7.3999999999999996E-2	2	7-1 5	unknown	c7.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	11	5.3999999999999999E-2	2	74 5	unknown	c74	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	11	0.05	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	11	0.05	2	empty	control	NA	NA	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	A	12	5.8999999999999997E-2	2	31-1 c	unknown	c31.1	C	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	B	12	5.5E-2	2	31-1 0.625	unknown	c31.1	0.625	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	C	12	5.6000000000000001E-2	2	31-1 1.25	unknown	c31.1	1.25	NA
@@ -1342,4 +1342,4 @@ cTnI_ELISA_11-5-15.xlsx.sheet.3	D	12	5.6000000000000001E-2	2	31-1 2.5	unknown	c3
 cTnI_ELISA_11-5-15.xlsx.sheet.3	E	12	6.0999999999999999E-2	2	31-1 5	unknown	c31.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	F	12	7.0999999999999994E-2	2	7-1 5	unknown	c7.1	5	NA
 cTnI_ELISA_11-5-15.xlsx.sheet.3	G	12	6.9000000000000006E-2	2	74 5	unknown	c74	5	NA
-cTnI_ELISA_11-5-15.xlsx.sheet.3	H	12	5.0999999999999997E-2	2	empty	control	cNA	NA	NA
+cTnI_ELISA_11-5-15.xlsx.sheet.3	H	12	5.0999999999999997E-2	2	empty	control	NA	NA	NA

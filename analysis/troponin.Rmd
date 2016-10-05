@@ -38,6 +38,7 @@ troponin <- read.delim("../data/troponin.txt", stringsAsFactors = FALSE)
 ```
 
 Validate input.
+Not all the samples have the correct replicate of the cell line. Need to investigate the difference between the replicates.
 
 ```{r validate}
 stopifnot(troponin$dosage[troponin$type == "unknown"] %in% anno$dosage)
@@ -50,6 +51,112 @@ sum(cell_line_valid)
 cell_line_valid
 sort(unique(anno$cell_line))
 ```
+
+Convert dosage of C to 0.
+
+```{r}
+anno$dosage[anno$dosage == "C"] <- 0
+anno$dosage <- as.numeric(anno$dosage)
+troponin$dosage[troponin$dosage == "C"] <- 0
+troponin$dosage <- as.numeric(troponin$dosage)
+
+```
+
+
+## Calculate the intra-plate mean and sd
+
+```{r}
+tr_intra <- troponin %>%
+  group_by(experiment, reading, name, type, cell_line, dosage, known_conc) %>%
+  summarize(mean_intra = mean(absorbance),
+            sd_intra = sd(absorbance),
+            cv_intra = sd_intra / mean_intra * 100) %>%
+  ungroup
+stopifnot(nrow(tr_intra) <= nrow(troponin) / 2)
+# There are fewer entries because the experiments on 11/5/15 had fewer samples.
+# table(tr_intra$experiment, tr_intra$reading)
+```
+
+```{r}
+ggplot(tr_intra, aes(x = mean_intra, y = cv_intra)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~type, scales = "free_x")
+```
+
+## Convert absorbance to concentration using the standard curve
+
+Calculate slope and intercept of standard curve.
+
+```{r curve}
+std_curve <- tr_intra %>%
+  group_by(experiment, reading) %>%
+  do(mod = lm(mean_intra ~ known_conc, data = .)) %>%
+  do(data.frame(experiment = .$experiment,
+                reading = .$reading,
+                intercept = coef(.$mod)[1],
+                slope = coef(.$mod)[2],
+                r2 = summary(.$mod)$r.squared))
+```
+
+Convert absorbance to concentration.
+
+```{r}
+tr_intra$conc <- NA
+for (i in 1:nrow(tr_intra)) {
+  std_curve_sub <- std_curve %>%
+    filter(experiment == tr_intra$experiment[i],
+           reading == tr_intra$reading[i])
+  # x = (y - b) / m
+  b <- std_curve_sub %>% select(intercept) %>% as.numeric
+  m <- std_curve_sub %>% select(slope) %>% as.numeric
+  tr_intra$conc[i] <- (tr_intra$mean_intra[i] - b) / m
+}
+```
+
+## Calculate the inter-plate mean and sd
+
+```{r}
+tr_inter <- tr_intra %>%
+  group_by(experiment, name, type, cell_line, dosage, known_conc) %>%
+  summarize(mean_inter = mean(conc),
+            sd_inter = sd(conc),
+            cv_inter = sd_inter / mean_inter * 100) %>%
+  ungroup
+stopifnot(nrow(tr_inter) == nrow(tr_intra) / 2)
+```
+
+## Merge
+
+Merge the annotation and troponin data.
+
+```{r merge}
+anno <- anno %>% select(id:dosage)
+d <- merge(anno, tr_inter)
+dim(d)
+length(unique(d$findiv))
+```
+
+## Plots
+
+Increase in cardiac troponin with increasing concentrations of dox.
+
+```{r}
+ggplot(d[d$type == "unknown", ], aes(x = as.factor(dosage), y = mean_inter)) +
+  geom_boxplot()
+```
+
+Variation between individuals.
+
+```{r}
+ggplot(d[d$type == "unknown", ], aes(x = dosage, y = mean_inter)) +
+  geom_line(aes(color = as.factor(findiv))) +
+  theme(legend.position = "none") +
+  scale_color_grey()
+
+```
+
+
 
 ## Session information
 

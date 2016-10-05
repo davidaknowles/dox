@@ -110,7 +110,8 @@ name_split <- str_split_fixed(final_df$name, pattern = " ", n = 2)
 name_split[final_df$type != "unknown", ] <- NA
 final_df$cell_line <- name_split[, 1]
 final_df$cell_line <- str_replace(final_df$cell_line, "-", ".")
-final_df$cell_line <- paste0("c", final_df$cell_line)
+final_df$cell_line[!is.na(final_df$cell_line)] <- paste0("c",
+                          final_df$cell_line[!is.na(final_df$cell_line)])
 final_df$dosage <- name_split[, 2]
 final_df$dosage[final_df$dosage == "control"] <- "C"
 # cTnI_ELISA_11-5-15.xlsx used "c" instead of "control"
