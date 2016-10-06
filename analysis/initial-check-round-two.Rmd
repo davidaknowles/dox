@@ -85,7 +85,7 @@ I remove genes with a median log2 cpm less than `r cutoff` and samples with fewe
 hist(log10(colSums(counts_combined)),30)
 abline(v = 7, col = "red", lwd = 2)
 to_keep=colSums(counts_combined)>1e7
-counts <- counts_combined[gene_medians < 0, to_keep ]
+counts <- counts_combined[gene_medians > 0, to_keep ]
 new_anno=new_anno[to_keep,]
 dim(counts)
 ```
@@ -117,36 +117,6 @@ pc1vpc2 <- ggplot(pca_data, aes(x = PC1, y = PC2, color=conc)) +
 pc1vpc2
 ```
 
-PC1 v. PC2 - trace individual
-
-```{r pc1-pc2-ind}
-pc1vpc2_trace <- ggplot(pca_data, aes(x = PC1, y = PC2, group=individual, color=conc)) +
-  geom_text(aes(label = conc)) +
-  geom_path(alpha=.3) +
-  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
-       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2))) +
-   xlim(-50, 50) + ylim(-50, 50)
-pc1vpc2_trace
-```
-
-PC1 v. PC2 - trace individual c51
-
-```{r pc1-pc2-c51}
-pc1vpc2_trace %+% pca_data[pca_data$individual == "c51", ]
-```
-
-PC1 v. PC2 - trace individual c14
-
-```{r pc1-pc2-c14}
-pc1vpc2_trace %+% pca_data[pca_data$individual == "c14", ]
-```
-
-PC1 v. PC2 - trace individual c37
-
-```{r pc1-pc2-c37}
-pc1vpc2_trace %+% pca_data[pca_data$individual == "c37", ]
-```
-
 PC1 v. PC3 - dox concentration
 
 ```{r pc1-pc3-conc}
@@ -167,39 +137,6 @@ heatmap.2(counts_cpm_cor, trace = "none",
           ColSideColors = as.character(conc_colors))
 clustered <- hclust(dist(cor(counts_cpm)))
 plot(clustered, labels = new_anno$conc, hang = -1, cex = 0.5)
-```
-
-## PCA without combining samples
-
-```{r}
-counts_raw_cpm <- cpm(counts_raw, log = TRUE)
-gene_medians <- apply(counts_raw_cpm, 1, median)
-to_keep=colSums(counts_raw)>5e6
-counts <- counts_raw[gene_medians < 0, to_keep ]
-anno_keep=anno[to_keep,]
-dim(counts)
-counts_cpm <- cpm(counts, log = TRUE)
-pca <- prcomp(t(counts_cpm), scale. = TRUE)
-variances <- pca$sdev^2
-explained <- variances / sum(variances)
-plot(pca)
-```
-
-```{r}
-pca_data <- cbind(anno_keep, pca$x[, 1:5])
-pca_data$laneid=interaction(pca_data$lane, pca_data$index)
-ggplot(pca_data, aes(x = PC1, y = PC2, color=laneid)) +
-  geom_text(aes(label = laneid)) +
-  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
-       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
-```
-
-Outliers 
-```{r}
-outliers=pca_data[pca_data$PC2 > 50,]
-colnames(counts_raw)=anno$filename
-summary( colSums(counts_raw)[outliers$filename] ) # not particularly low
-summary( colSums(counts_raw)[setdiff(anno$filename,outliers$filename)] )
 ```
 
 ## Session information
