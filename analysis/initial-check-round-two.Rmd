@@ -1,6 +1,6 @@
 ---
-title: "Initial check of first dox flow cell"
-date: 2016-05-03
+title: "Initial check after two rounds of dox sequencing"
+date: 2016-08-05
 output:
   html_document:
     toc: true
@@ -16,14 +16,14 @@ library("knitr")
 opts_chunk$set(cache = TRUE)
 ```
 
-
-The first dox flow cell, C6TJGACXX, was sequenced in house.
-The path on PPS is /rawdata/Illumina_Runs/150619_SN_0795_0433_BC6TJGACXX/Demultiplexed/Project_N.
-The analysis below performs an intial check of the data using the gene counts.
+Each sample has been sequenced twice at the core.
+The reads were mapped to GRCh38 with STAR and assigned to protein-coding Ensembl genes with featureCounts.
 
 ## Setup
 
 ```{r packages, message=FALSE}
+library("gplots")
+library("RColorBrewer")
 library("dplyr")
 library("tidyr")
 library("ggplot2")
@@ -66,6 +66,7 @@ new_anno=as.data.frame(do.call(rbind,strsplit(samples,":")))
 colnames(new_anno)=c("individual","conc")
 new_anno$sample=samples
 new_anno$runs=as.numeric( table(anno$sample)[new_anno$sample] )
+stopifnot(new_anno$runs == 2)
 ```
 
 ## Filter genes
@@ -78,13 +79,11 @@ cutoff <- 0
 abline(v = cutoff, col = "red")
 ```
 
-I remove genes with a median log2 cpm less than `r cutoff`.
+I remove genes with a median log2 cpm less than `r cutoff` and samples with fewer than 10 million mapped, exonic reads.
 
 ```{r}
-log_output=read.delim("../data/star_output_round_two.tsv", check.names = F, stringsAsFactors = F)
-log_output_real=log_output[ ! grepl( "undetermined" , log_output$Sample ), ]
-
 hist(log10(colSums(counts_combined)),30)
+abline(v = 7, col = "red", lwd = 2)
 to_keep=colSums(counts_combined)>1e7
 counts <- counts_combined[gene_medians < 0, to_keep ]
 new_anno=new_anno[to_keep,]
@@ -108,31 +107,69 @@ plot(pca)
 pca_data <- cbind(new_anno, pca$x[, 1:5])
 ```
 
-Two outliers:
-
-```{r pc1-pc2-num-runs}
-ggplot(pca_data, aes(x = PC1, y = PC2, color=as.factor( runs ))) +
-  geom_text(aes(label = individual)) +
-  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
-       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
-```
+PC1 v. PC2 - dox concentration
 
 ```{r pc1-pc2-conc}
-ggplot(pca_data, aes(x = PC1, y = PC2, color=conc)) +
+pc1vpc2 <- ggplot(pca_data, aes(x = PC1, y = PC2, color=conc)) +
   geom_text(aes(label = individual)) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
        y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+pc1vpc2
 ```
+
+PC1 v. PC2 - trace individual
 
 ```{r pc1-pc2-ind}
-ggplot(pca_data, aes(x = PC1, y = PC2, group=individual, color=conc)) +
+pc1vpc2_trace <- ggplot(pca_data, aes(x = PC1, y = PC2, group=individual, color=conc)) +
   geom_text(aes(label = conc)) +
-  geom_path(aes(alpha=.3)) +
+  geom_path(alpha=.3) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
-       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2))) +
+   xlim(-50, 50) + ylim(-50, 50)
+pc1vpc2_trace
 ```
 
-### Without combining samples
+PC1 v. PC2 - trace individual c51
+
+```{r pc1-pc2-c51}
+pc1vpc2_trace %+% pca_data[pca_data$individual == "c51", ]
+```
+
+PC1 v. PC2 - trace individual c14
+
+```{r pc1-pc2-c14}
+pc1vpc2_trace %+% pca_data[pca_data$individual == "c14", ]
+```
+
+PC1 v. PC2 - trace individual c37
+
+```{r pc1-pc2-c37}
+pc1vpc2_trace %+% pca_data[pca_data$individual == "c37", ]
+```
+
+PC1 v. PC3 - dox concentration
+
+```{r pc1-pc3-conc}
+ggplot(pca_data, aes(x = PC1, y = PC3, color=conc)) +
+  geom_text(aes(label = individual)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 3, round(explained[3] * 100, 2)))
+```
+
+## Hierachical clustering of correlation matrix
+
+```{r clustering, fig.width=10}
+counts_cpm_cor <- cor(counts_cpm)
+conc_colors <- factor(new_anno$conc,
+                      levels = levels(new_anno$conc),
+                      labels = brewer.pal(n = 5, name = "YlOrRd"))
+heatmap.2(counts_cpm_cor, trace = "none",
+          ColSideColors = as.character(conc_colors))
+clustered <- hclust(dist(cor(counts_cpm)))
+plot(clustered, labels = new_anno$conc, hang = -1, cex = 0.5)
+```
+
+## PCA without combining samples
 
 ```{r}
 counts_raw_cpm <- cpm(counts_raw, log = TRUE)
@@ -159,7 +196,7 @@ ggplot(pca_data, aes(x = PC1, y = PC2, color=laneid)) +
 
 Outliers 
 ```{r}
-outliers=pca_data[pca_data$PC2 < -60,]
+outliers=pca_data[pca_data$PC2 > 50,]
 colnames(counts_raw)=anno$filename
 summary( colSums(counts_raw)[outliers$filename] ) # not particularly low
 summary( colSums(counts_raw)[setdiff(anno$filename,outliers$filename)] )

@@ -57,13 +57,11 @@ cutoff <- 0
 abline(v = cutoff, col = "red")
 ```
 
-I remove genes with a median log2 cpm less than `r cutoff`.
+I remove genes with a median log2 cpm less than `r cutoff` and samples with fewer than 10 million mapped, exonic reads.
 
 ```{r}
-log_output=read.delim("../data/star_output.tsv", check.names = F, stringsAsFactors = F)
-log_output_real=log_output[ ! grepl( "undetermined" , log_output$Sample ), ]
-
 hist(log10(colSums(counts_raw)),30)
+abline(v = 7, col = "red", lwd = 2)
 to_keep=colSums(counts_raw)>1e7
 counts <- counts_raw[gene_medians < 0, to_keep ]
 anno=anno[to_keep,]
@@ -126,4 +124,3 @@ ggplot(pca_data, aes(x = conc, y = PC3)) +
 ```{r info}
 sessionInfo()
 ```
-
