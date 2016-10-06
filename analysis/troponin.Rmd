@@ -36,6 +36,7 @@ I think it is possible to incorporate something like [propogation of uncertainty
 
 ```{r packages, message=FALSE}
 library("dplyr")
+library("stringr")
 library("ggplot2")
 library("cowplot")
 ```
@@ -165,21 +166,73 @@ sort(setdiff(tr_inter$cell_line, d$cell_line))
 It appears that for each individual that does not have a troponin measurement, the measurement was performed on a different (or unspecified) replicate.
 I need to investigate 1) what is the difference between replicates (I think different differentations from iPSC to cardiomyocytes) and 2) if it is valid to compare the troponin and gene expression levels across replicates.
 
-## Plots
+**Update:**
 
-Focus on the unknown samples for the inidividuals.
+The unspecified replicates are not a problem.
+These actually only have one replicate, so this is just an annotation issue (i.e. the #1 for rep was added inconsistently).
+This solves the problem for c41, c63, and c64.
+
+For the remaining 5 individuals, I'll make a note that these measurments are affected not only by biological variation (i.e. genotype) but also technical variation.
 
 ```{r}
-d_ind <- d[d$type == "unknown", ]
+# record individuals with mismatched replicates
+rep_mismatch <- sort(setdiff(anno$cell_line, d$cell_line))
+# remove rep number if they have it
+rep_mismatch <- str_split_fixed(rep_mismatch, pattern = "\\.", n = 2)[, 1]
+# Remove c41, c63, and c64, since these do not have a replicate
+rep_mismatch <- rep_mismatch[!(rep_mismatch %in% c("c41", "c63", "c64"))]
+stopifnot(length(rep_mismatch) == 5)
 ```
+
+Create a new column for merging that is the cell line without replicate informatin.
+
+```{r column-no-rep}
+anno$cell_line_norep <- str_split_fixed(anno$cell_line, pattern = "\\.", n = 2)[, 1]
+tr_inter$cell_line_norep <- str_split_fixed(tr_inter$cell_line, pattern = "\\.", n = 2)[, 1]
+```
+
+Merge again.
+
+```{r merge-no-reps}
+d <- merge(anno, tr_inter, by = c("cell_line_norep", "dosage"))
+dim(d)
+length(unique(d$findiv))
+```
+
+Both replicates of c39 were measured for troponin even though only c39.1 was sequenced.
+First I check for repeatability across replicates, and second I remove c39.2.
+
+```{r}
+tr_39.1 <- d %>% filter(cell_line.y == "c39.1") %>% arrange(dosage) %>% select(mean_inter) %>% unlist
+tr_39.2 <- d %>% filter(cell_line.y == "c39.2") %>% arrange(dosage) %>% select(mean_inter) %>% unlist
+rep_lm <- lm(tr_39.2 ~ tr_39.1)
+summary(rep_lm)$r.squared
+lower_limit <- min(tr_39.1, tr_39.2)
+upper_limit <- max(tr_39.1, tr_39.2)
+plot(tr_39.1, tr_39.2,
+     xlim = c(lower_limit, upper_limit),
+     ylim = c(lower_limit, upper_limit))
+abline(rep_lm, col = "red")
+abline(0, 1, col = "blue", lty = "dashed")
+d <- d %>% filter(cell_line.y != "c39.2")
+stopifnot(table(d$findiv) == 5)
+```
+
+Add note that some individuals have mismatched replicates for the troponin measurement.
+
+```{r}
+d$mismatch <- ifelse(d$cell_line_norep %in% rep_mismatch, TRUE, FALSE)
+```
+
+## Plots
 
 Increase in cardiac troponin with increasing concentrations of dox.
 
 ```{r}
-tr_v_dox <- ggplot(d_ind,
+tr_v_dox <- ggplot(d,
                    aes(x = as.factor(dosage), y = mean_inter)) +
   geom_boxplot() +
-  labs(x = "Doxorubicin dosage",
+  labs(x = "Doxorubicin dosage (uM)",
        y = "Cardiac troponin concentration (ng/mL)",
        title = "Cardiac troponin levels increase with increasing doxorubicin dosage")
 ```
@@ -187,7 +240,7 @@ tr_v_dox <- ggplot(d_ind,
 Classify individuals by how large their release of cardiac troponin is.
 
 ```{r}
-tr_max <- tapply(d_ind$mean_inter, d_ind$findiv, max)
+tr_max <- tapply(d$mean_inter, d$findiv, max)
 tr_max_q <- quantile(tr_max, probs = c(0.25, 0.75))
 response <- tr_max
 response[tr_max <= tr_max_q[1]] <- "blue" # low
@@ -199,14 +252,14 @@ table(response)
 Variation between individuals.
 
 ```{r}
-tr_var <- ggplot(d_ind, aes(x = dosage, y = mean_inter,
+tr_var <- ggplot(d, aes(x = dosage, y = mean_inter,
                             color = as.factor(findiv))) +
   geom_point() +
   geom_line(linetype = "dashed") +
   theme(legend.position = "none") +
   # scale_color_grey() +
   scale_color_manual(values = response) +
-  labs(x = "Doxorubicin dosage",
+  labs(x = "Doxorubicin dosage (uM)",
        y = "Cardiac troponin concentration (ng/mL)",
        title = "Cardiac troponin levels vary across individuals")
 ```
@@ -215,6 +268,17 @@ Combined figure.
 
 ```{r fig.width=14}
 plot_grid(tr_v_dox, tr_var, labels = LETTERS[1:2])
+```
+
+## Save data
+
+```{r}
+d_save <- d %>% select(id, sample, cell_line.x, findiv, dosage, cell_line_norep,
+                       experiment, mean_inter, mismatch) %>%
+  rename(cell_line = cell_line.x, troponin = mean_inter) %>%
+  arrange(id)
+write.table(d_save, file = "../data/troponin-processed.txt",
+            quote = FALSE, sep = "\t", row.names = FALSE)
 ```
 
 ## Session information
