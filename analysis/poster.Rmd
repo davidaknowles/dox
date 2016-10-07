@@ -1,0 +1,205 @@
+---
+title: "Analysis for ASHG 2016 poster"
+date: 2016-10-06
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r system("git log -1 --format='%H'", intern = TRUE)`
+
+```{r chunk-options}
+library("knitr")
+opts_chunk$set(fig.width = 8, fig.heigth = 8, cache = FALSE)
+```
+
+This analysis processes the cardiac troponin measurements.
+These are contained in the file `data/troponin.txt`.
+This file was created by `code/troponin-extract.R`.
+
+## Setup
+
+```{r packages, message=FALSE}
+library("dplyr")
+library("stringr")
+library("doMC")
+library("limma")
+library("edgeR")
+library("caret")
+library("glmnet")
+library("ggplot2")
+library("cowplot")
+set.seed(12345)
+```
+
+## Prepare gene expression data
+
+```{r gene-expression, cache=TRUE}
+input <- read.delim("../data/gene-counts-round-two.txt.gz")
+# Split annotation and counts.
+anno <- input %>% select(filename, individual, flow_cell, lane, index, conc)
+colnames(anno)[2]="sampleid"
+colnames(anno)[3]="individual"
+anno$filename=paste0("s",anno$filename)
+counts_raw <- input %>% select(starts_with("ENSG")) 
+counts_raw <- t(counts_raw)
+# Combine counts for the same sample
+anno$sample=with(anno, paste(individual, conc, sep=":") )
+samples=unique(anno$sample)
+counts_combined=foreach(samp=samples, .combine=cbind) %do% {
+  rowSums(counts_raw[,anno$sample==samp,drop=F])
+}
+colnames(counts_combined)=samples
+new_anno=as.data.frame(do.call(rbind,strsplit(samples,":")))
+colnames(new_anno)=c("individual","conc")
+new_anno$sample=samples
+new_anno$runs=as.numeric( table(anno$sample)[new_anno$sample] )
+stopifnot(new_anno$runs == 2)
+# Filter genes and samples
+counts_cpm <- cpm(counts_combined, log = TRUE)
+gene_medians <- apply(counts_cpm, 1, median)
+cutoff <- 0
+to_keep=colSums(counts_combined)>1e7
+counts <- counts_combined[gene_medians > 0, to_keep ]
+new_anno=new_anno[to_keep,]
+dim(counts)
+counts_cpm <- cpm(counts, log = TRUE)
+plotDensities(counts_cpm)
+# library("lumi")
+# counts_cpm_q <- lumiN(counts_cpm, method = "quantile")
+# plotDensities(counts_cpm_q)
+```
+
+There is substantial heterogeneity in the distributions of gene expression, so I'll perform quantile normalization when computing the weights with limma+voom.
+
+## PCA
+
+```{r pca}
+pca <- prcomp(t(counts_cpm), scale. = TRUE)
+variances <- pca$sdev^2
+explained <- variances / sum(variances)
+plot(pca)
+pca_data <- cbind(new_anno, pca$x[, 1:5])
+# PC1 v. PC2 - dox concentration
+pc1vpc2 <- ggplot(pca_data, aes(x = PC1, y = PC2, color = conc)) +
+  geom_text(aes(label = conc)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)),
+       title = "Doxorubicin dosage is the main source of variation") +
+  theme(legend.position = "none")
+pc1vpc2
+```
+
+## Perform differential expression analysis
+
+The doxorubicin concentration is modeled as a discrete variable (from the PCA it is clear that there is not a linear relationship across the dox concentrations).
+The individual variation is modeled as a random effect implemented with `duplicateCorrelation`.
+Testing for effect of doxorubicin treatment.
+
+```{r limma}
+design <- model.matrix(~ conc, data = new_anno)
+colnames(design)[1] <- "Intercept"
+head(design)
+y <- DGEList(counts)
+y <- calcNormFactors(y)
+v1 <- voom(y, design, normalize.method = "quantile")
+corfit1 <- duplicateCorrelation(v1, design, block = new_anno$individual)
+# corfit1$consensus
+v2 <- voom(y, design, normalize.method = "quantile",
+           block = new_anno$individual, correlation = corfit1$consensus)
+corfit2 <- duplicateCorrelation(v2, design, block = new_anno$individual)
+# corfit2$consensus
+fit <- lmFit(v2, design, block = new_anno$individual,
+             correlation = corfit2$consensus)
+test <- eBayes(fit)
+result <- topTable(test, coef = "conc5", number = nrow(counts), sort.by = "none")
+# Make volcano plot
+result$highlight <- NA
+result$highlight[result$adj.P.Val > .05] <- "grey"
+result$highlight[result$adj.P.Val < .05 & abs(result$logFC) < 1] <- "black"
+result$highlight[result$adj.P.Val < .05 & abs(result$logFC) > 1] <- "red"
+table(result$highlight)
+volcano <- ggplot(result, aes(x = logFC, y = -log10(P.Value), color = highlight)) +
+  geom_point(shape = 1) +
+    labs(x = "Log fold change",
+         y = expression(-log[10] * " p-value")) +
+    scale_color_identity(drop = FALSE)
+volcano
+```
+
+## Troponin analysis
+
+```{r troponin}
+troponin <- read.delim("../data/troponin-processed.txt",
+                       stringsAsFactors = FALSE)
+# Classify individuals by how large their release of cardiac troponin is.
+tr_max <- tapply(troponin$troponin, troponin$findiv, max)
+tr_max_q <- quantile(tr_max, probs = c(0.25, 0.75))
+response <- tr_max
+response[tr_max <= tr_max_q[1]] <- "blue" # low
+response[tr_max >= tr_max_q[2]] <- "red" # high
+response[tr_max > tr_max_q[1] & tr_max < tr_max_q[2]] <- "black" # intermediate
+table(response)
+tr_var <- ggplot(troponin, aes(x = dosage, y = troponin,
+                            color = as.factor(findiv))) +
+  geom_point() +
+  geom_line(linetype = "dashed") +
+  theme(legend.position = "none") +
+  # scale_color_grey() +
+  scale_color_manual(values = response) +
+  labs(x = "Doxorubicin dosage (uM)",
+       y = "Cardiac troponin concentration (ng/mL)",
+       title = "Cardiac troponin levels vary across individuals")
+tr_var
+```
+
+## Prediction
+
+```{r prediction}
+# Select the top y genes with the highest variance in the gene expression matrix x
+select_var <- function(x, y) {x[order(apply(x, 1, var), decreasing = TRUE), ][1:y, ]}
+
+troponin_keep <- troponin[to_keep, ]
+stopifnot(troponin_keep$cell_line == new_anno$individual,
+          troponin_keep$dosage == new_anno$conc)
+
+observed <- numeric()
+predicted <- numeric()
+rmse <- numeric()
+dosage <- character()
+
+ctrl <- trainControl(method = "LOOCV", savePred = "final")
+for (tr_dose in levels(new_anno$conc)) {
+  print(tr_dose)
+  exp_sub <- v2$E[, new_anno$conc == tr_dose]
+  exp_sub_var <- select_var(exp_sub, 5000)
+  training <- t(exp_sub_var)
+  training <- as.data.frame(training)
+  training$troponin <- troponin_keep$troponin[new_anno$conc == tr_dose]
+  fit <- train(troponin ~ .,
+               data = training,
+               method = "glmnet",
+               trControl = ctrl)
+  observed <- c(observed, fit$pred[, "obs"])
+  predicted <- c(predicted, fit$pred[, "pred"])
+  rmse <- c(rmse, rep(min(fit$results$RMSE), nrow(fit$pred)))
+  dosage <- c(dosage, rep(tr_dose, nrow(fit$pred)))
+}
+prediction <- data.frame(dosage, observed, predicted, rmse)
+ggplot(prediction,#[prediction$dosage == 5, ],
+       aes(x = observed, y = predicted)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_abline(intercept = 0, slope = 1, col = "red") +
+  geom_text(aes(label = rmse), x = 10, y = 2) +
+  facet_wrap(~dosage)
+```
+
+## Session information
+
+```{r info}
+sessionInfo()
+```
