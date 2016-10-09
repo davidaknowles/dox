@@ -13,12 +13,9 @@ output:
 
 ```{r chunk-options}
 library("knitr")
-opts_chunk$set(fig.width = 8, fig.heigth = 8, cache = FALSE)
+opts_chunk$set(fig.width = 12, fig.height = 9, cache = FALSE,
+               fig.dev = "png", dpi = 150)
 ```
-
-This analysis processes the cardiac troponin measurements.
-These are contained in the file `data/troponin.txt`.
-This file was created by `code/troponin-extract.R`.
 
 ## Setup
 
@@ -32,6 +29,7 @@ library("caret")
 library("glmnet")
 library("ggplot2")
 library("cowplot")
+theme_set(theme_cowplot(font_size = 28, line_size = 2))
 set.seed(12345)
 ```
 
@@ -84,13 +82,22 @@ explained <- variances / sum(variances)
 plot(pca)
 pca_data <- cbind(new_anno, pca$x[, 1:5])
 # PC1 v. PC2 - dox concentration
+# title = "Doxorubicin dosage is the main source of variation"
 pc1vpc2 <- ggplot(pca_data, aes(x = PC1, y = PC2, color = conc)) +
-  geom_text(aes(label = conc)) +
+  geom_text(aes(label = conc), size = 8, alpha = 0.5) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
-       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)),
-       title = "Doxorubicin dosage is the main source of variation") +
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2))) +
   theme(legend.position = "none")
 pc1vpc2
+pc1vpc2_points <- ggplot(pca_data, aes(x = PC1, y = PC2, color = conc)) +
+  geom_point(size = rel(3)) +
+  scale_color_discrete(name = "Dox (uM)") +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2))) +
+  theme(legend.position = c(0.35, 0.8),
+        legend.background = element_rect(color = "black", size = 1,
+                                         linetype = 1))
+pc1vpc2_points
 ```
 
 ## Perform differential expression analysis
@@ -99,7 +106,7 @@ The doxorubicin concentration is modeled as a discrete variable (from the PCA it
 The individual variation is modeled as a random effect implemented with `duplicateCorrelation`.
 Testing for effect of doxorubicin treatment.
 
-```{r limma}
+```{r limma, cache = TRUE}
 design <- model.matrix(~ conc, data = new_anno)
 colnames(design)[1] <- "Intercept"
 head(design)
@@ -116,6 +123,9 @@ fit <- lmFit(v2, design, block = new_anno$individual,
              correlation = corfit2$consensus)
 test <- eBayes(fit)
 result <- topTable(test, coef = "conc5", number = nrow(counts), sort.by = "none")
+```
+
+```{r limma-plot}
 # Make volcano plot
 result$highlight <- NA
 result$highlight[result$adj.P.Val > .05] <- "grey"
@@ -130,6 +140,7 @@ volcano <- ggplot(result, aes(x = logFC, y = -log10(P.Value), color = highlight)
 volcano
 ```
 
+
 ## Troponin analysis
 
 ```{r troponin}
@@ -143,22 +154,24 @@ response[tr_max <= tr_max_q[1]] <- "blue" # low
 response[tr_max >= tr_max_q[2]] <- "red" # high
 response[tr_max > tr_max_q[1] & tr_max < tr_max_q[2]] <- "black" # intermediate
 table(response)
+# title = "Cardiac troponin levels vary across individuals"
 tr_var <- ggplot(troponin, aes(x = dosage, y = troponin,
                             color = as.factor(findiv))) +
-  geom_point() +
-  geom_line(linetype = "dashed") +
+  geom_point(size = rel(3)) +
+  geom_line(linetype = "dashed", size = rel(1), alpha = 0.5) +
   theme(legend.position = "none") +
   # scale_color_grey() +
   scale_color_manual(values = response) +
+  scale_x_continuous(breaks = c(0, 0.625, 1.25, 2.5, 5),
+                     labels = c("0", "0.625", "1.25", "2.5", "5")) +
   labs(x = "Doxorubicin dosage (uM)",
-       y = "Cardiac troponin concentration (ng/mL)",
-       title = "Cardiac troponin levels vary across individuals")
+       y = "Cardiac troponin (ng/mL)")
 tr_var
 ```
 
 ## Prediction
 
-```{r prediction}
+```{r prediction, cache=TRUE}
 # Select the top y genes with the highest variance in the gene expression matrix x
 select_var <- function(x, y) {x[order(apply(x, 1, var), decreasing = TRUE), ][1:y, ]}
 
@@ -189,6 +202,11 @@ for (tr_dose in levels(new_anno$conc)) {
   dosage <- c(dosage, rep(tr_dose, nrow(fit$pred)))
 }
 prediction <- data.frame(dosage, observed, predicted, rmse)
+tr_dose
+fit
+```
+
+```{r prediction-figure}
 ggplot(prediction,#[prediction$dosage == 5, ],
        aes(x = observed, y = predicted)) +
   geom_point() +
@@ -196,6 +214,18 @@ ggplot(prediction,#[prediction$dosage == 5, ],
   geom_abline(intercept = 0, slope = 1, col = "red") +
   geom_text(aes(label = rmse), x = 10, y = 2) +
   facet_wrap(~dosage)
+# Just focus on the highest dosage, where the most variation is observed
+# title = "Predicting cardiac troponin concentration\nusing a gene expression-based classifier"
+ggplot(prediction[prediction$dosage == 5, ],
+       aes(x = observed, y = predicted)) +
+  geom_point(size = rel(3)) +
+  geom_smooth(method = "lm", col = "red", size = rel(2)) +
+  # geom_abline(intercept = 0, slope = 1, col = "red", linetype = "dashed") +
+  geom_segment(x = -1, y = -1, xend = 19, yend = 19,
+               col = "blue", linetype = "dashed", size = rel(2)) +
+  labs(x = "Observed cardiac troponin (ng/ml)",
+       y = "Predicted cardiac troponin (ng/ml)") +
+  xlim(-1, 19) + ylim(-1, 19)
 ```
 
 ## Session information
