@@ -1,0 +1,56 @@
+---
+title: "MatrixEQTL analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+theme_set(theme_bw(base_size = 16))
+```
+
+## Collate and count MatrixEQTL results
+
+```{r cars}
+require(dplyr)
+require(doMC)
+require(ggplot2)
+anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
+
+NPCs=c(0,1,2,5,10,15,20)
+
+concs=sort(unique(anno$conc))
+
+basedir="~/scailscratch/dox/mEQTL_results/"
+
+nsig=foreach (conc=concs, .combine=cbind) %do% {
+   foreach(npc=NPCs,.combine = c) %do% {
+        suffix=paste0(conc,"_PC",npc,".txt.gz")
+        #print(suffix)
+        filename=paste0(basedir,"summary",suffix)
+        if (!file.exists(filename)) return(NA)
+        myq=read.table(filename,header=T)
+        sum(myq$q<.05,na.rm=T)
+    }
+}
+dimnames(nsig)=list(NPCs, concs)
+
+require(reshape2)
+melted=melt(nsig)
+colnames(melted)=c("NPC","conc","nsig")
+
+melted$NPC=as.factor(melted$NPC)
+ggplot(melted, aes(as.factor(conc),nsig,fill=NPC)) + geom_bar(stat="identity", position = "dodge") + xlab("Dox concentration") + ylab("Num sig at 5% FDR") 
+ggsave("../figures/matrixEQTL_nsig.pdf", width=7, height=6)
+```
+
+## Collate EigenMT results
+```{r}
+qtls=rbindlist( foreach(chrom=seq_len(22)) %do% {
+  eigenqtls=read.table(paste0("~/scailscratch/dox/eigenMT_results/eigenMT_chr",chrom,".txt.gz"),header=T, stringsAsFactors = F)
+} )
+setDF(qtls)
+hist(qtls$BF,100)
+qtls$q=p.adjust(qtls$BF, method="BH")
+sum(qtls$q < .05) # 80 compared to 75 earlier... :(
+```
+
