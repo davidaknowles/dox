@@ -74,7 +74,7 @@ samples <- paste(rep(ind, each = 2), treatment, sep = "-")
 # Download SRAmetadb.sqlite.gz to output directory
 sra_db <- file.path(outdir, "SRAmetadb.sqlite")
 if (!file.exists(sra_db)) {
-  getSRAdbFile(destdir = outdir, method = "wget")
+  getSRAdbFile(destdir = outdir, method = "curl")
 }
 stopifnot(file.exists(sra_db))
 
@@ -101,7 +101,7 @@ for (srx_index in 1:nrow(sra_info)) {
   srr <- sraConvert(sra_info$srx[srx_index], "run", sra_con)$run
   # They uploaded one run (i.e. fastq) per sample
   stopifnot(length(srr) == 1)
-  getSRAfile(srr, sra_con, destDir = outdir, method = "wget")
+  getSRAfile(srr, sra_con, destDir = outdir, method = "curl")
   original_name[srx_index] <- sprintf("%s/%s.sra", outdir, srr)
   new_name[srx_index] <- sprintf("%s/%s.sra", outdir, sra_info$id[srx_index])
   stopifnot(file.exists(original_name[srx_index]))

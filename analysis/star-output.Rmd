@@ -12,7 +12,7 @@ require(reshape2)
 Number of mapped/multimapped/unmapped for each sample: 
 
 ```{r load-log-output}
-log_output=read.delim("../data/star_output.tsv", check.names = F, stringsAsFactors = F)
+log_output=read.delim("../data/star_output_round_two.tsv", check.names = F, stringsAsFactors = F)
 log_output_real=log_output[ ! grepl( "undetermined" , log_output$Sample ), ]
 log_output_real$Unmapped=log_output_real[, 'Number of input reads'] - ( log_output_real[, 'Uniquely mapped reads number'] + log_output_real[, 'Number of reads mapped to multiple loci'] ) 
 
@@ -21,4 +21,5 @@ melt_log=melt( log_output_real,  id.vars = "Sample", measure.vars = c('Uniquely 
 melt_log$Sample=factor(melt_log$Sample, log_output_real$Sample[order(log_output_real$`Uniquely mapped reads number`,decreasing=F)]  )
 
 ggplot(melt_log, aes(Sample, value/1e6, fill=variable)) + geom_bar(stat="identity") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), legend.position="top") 
+ggsave("../figures/mapped.pdf",width=20,height=8)
 ```

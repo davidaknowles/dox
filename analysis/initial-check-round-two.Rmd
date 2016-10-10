@@ -42,11 +42,11 @@ str(input[, 1:10])
 Split annotation and counts.
 
 ```{r}
-anno <- input %>% select(filename, individual, flow_cell, lane, index, conc)
+anno <- input %>% dplyr::select(filename, individual, flow_cell, lane, index, conc)
 colnames(anno)[2]="sampleid"
 colnames(anno)[3]="individual"
 anno$filename=paste0("s",anno$filename)
-counts_raw <- input %>% select(starts_with("ENSG")) 
+counts_raw <- input %>% dplyr::select(starts_with("ENSG")) 
 counts_raw <- t(counts_raw)
 
 #to_keep=! anno$filename %in% outliers$filename
@@ -86,7 +86,7 @@ log_output_real=log_output[ ! grepl( "undetermined" , log_output$Sample ), ]
 
 hist(log10(colSums(counts_combined)),30)
 to_keep=colSums(counts_combined)>1e7
-counts <- counts_combined[gene_medians < 0, to_keep ]
+counts <- counts_combined[gene_medians > 0, to_keep ]
 new_anno=new_anno[to_keep,]
 dim(counts)
 ```
@@ -95,6 +95,12 @@ dim(counts)
 
 ```{r}
 counts_cpm <- cpm(counts, log = TRUE)
+
+gzf=gzfile("../data/counts_log_cpm.txt.gz","w")
+write.table(counts_cpm, gzf, sep="\t", quote=F)
+close(gzf)
+
+write.table(new_anno, "../data/sample_annotation.txt", sep="\t", quote=F, row.names = F)
 ```
 
 ```{r}
@@ -138,7 +144,7 @@ ggplot(pca_data, aes(x = PC1, y = PC2, group=individual, color=conc)) +
 counts_raw_cpm <- cpm(counts_raw, log = TRUE)
 gene_medians <- apply(counts_raw_cpm, 1, median)
 to_keep=colSums(counts_raw)>5e6
-counts <- counts_raw[gene_medians < 0, to_keep ]
+counts <- counts_raw[gene_medians > 0, to_keep ]
 anno_keep=anno[to_keep,]
 dim(counts)
 counts_cpm <- cpm(counts, log = TRUE)
@@ -159,7 +165,7 @@ ggplot(pca_data, aes(x = PC1, y = PC2, color=laneid)) +
 
 Outliers 
 ```{r}
-outliers=pca_data[pca_data$PC2 < -60,]
+outliers=pca_data[pca_data$PC2 > 100.0,]
 colnames(counts_raw)=anno$filename
 summary( colSums(counts_raw)[outliers$filename] ) # not particularly low
 summary( colSums(counts_raw)[setdiff(anno$filename,outliers$filename)] )
