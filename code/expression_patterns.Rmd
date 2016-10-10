@@ -10,6 +10,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 require(ggplot2)
 require(doMC)
+registerDoMC(detectCores()-1)
 ```
 
 ## Load expression data
@@ -50,35 +51,38 @@ pvalues=setNames( foreach(gene=genes, .errorhandling='pass', .combine = c) %dopa
 }, genes )
 qplot(pvalues, geom="blank") + geom_histogram() + theme_bw(base_size = 16) + xlab("p-value")
 ggsave("../figures/de_boring.pdf", width = 5, heigh=5)
-q=p.adjust(results,method="BH")
+q=p.adjust(pvalues,method="BH")
 mean(q<.05) # 98% DE! 
 ```
 
 ## Expression pattern analysis
 ```{r}
 require(rstan)
-sm=stan_model("mixlm.stan")
+mixlm_model=stan_model("mixlm_pred.stan")
 
 dim(input)
 y=t(scale(t(input)))
 x=model.matrix(~as.factor(conc)-1, data=anno)
 #x=x[,2:ncol(x)]
 data=list(y=y, N=ncol(y), D=nrow(y), x=x, P=ncol(x), K=20)
-o=optimizing(sm, data, verbose=T, iter=100,  as_vector=F) # takes a while... 
 
-ggplot( data.frame(n=1:20, p=sort(o$par$p, decreasing = T)), aes(n,p)) + geom_bar(stat="identity") + theme_bw(base_size = 16) + ylab("Mixture weight") + xlab("Mixture component")
+cached_fit_fn="../data/expression_patterns.RData"
+if (F) {
+  mixlm_fit=optimizing(mixlm_model, data, verbose=T, iter=100,  as_vector=F) # takes a while... 
+  save(file=cached_fit_fn, mixlm_fit)
+} else {
+  load(cached_fit_fn)
+}
+ggplot( data.frame(n=1:20, p=sort(mixlm_fit$par$p, decreasing = T)), aes(n,p)) + geom_bar(stat="identity") + theme_bw(base_size = 16) + ylab("Mixture weight") + xlab("Mixture component")
 ```
 
 Take top six clusters
 ```{r}
-to_use=order(o$par$p, decreasing = T)[1:6]
-mix_means=o$par$betas[to_use,]
+to_use=order(mixlm_fit$par$p, decreasing = T)[1:6]
+mix_means=mixlm_fit$par$betas[to_use,]
 
-sm=stan_model("mixlm_pred.stan")
-o_pred=optimizing(sm, data, init=o$par, verbose=T, iter=1,  as_vector=F)
-lp=o_pred$par$logprob
-assignments=apply(lp, 1, which.max)
-# save(file="../data/expression_patterns.RData", o, assignments)
+assignments=apply(mixlm_fit$par$logprob, 1, which.max)
+# save(file="../data/expression_patterns.RData", mixlm_fit, assignments)
 
 plot(table(assignments))
 ```
@@ -91,11 +95,12 @@ colnames(mix_means)=concs
 require(reshape2)
 m=melt(mix_means, value.name="mean")
 colnames(m)=c("mixture","conc","mean")
-weights=o$par$p[to_use]
+weights=mixlm_fit$par$p[to_use]
 m$pi=weights[m$mixture]
 m$mixture=as.factor(m$mixture)
 ggplot(m, aes(conc, mean, col=mixture, shape=mixture, size=pi)) + geom_line(alpha=.5) + geom_point() + scale_x_sqrt() + theme_bw(base_size = 16) + ylab("Relative expression") + xlab("Dox concentration")
 ```
+
 1. Down regulated
 2. Initial increase, then decrease
 3. Up regulated
