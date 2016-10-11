@@ -7,4 +7,4 @@ hostname
 
 echo $CHROM
 
-Rscript run_iqtl.R $CHROM
+Rscript run_iqtl_lrt.R $CHROM

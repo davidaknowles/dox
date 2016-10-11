@@ -80,9 +80,8 @@
 \begin{itemize}
 \item The Gilad lab transformed 76 Hutterite samples: 
 $$ \text{Blood draw} \Rightarrow \text{LCL} \Rightarrow \text{iPSC} \Rightarrow \text{Cardiomyocyte} $$
-\item iPSCs recover more donor specific expression \citep{Thomas2015} and have negligible precursor cell-type effects
+\item iPSCs recover more donor specific expression \citep{Thomas2015} and have negligible precursor cell-type effects \citep{Burrows2016}
 \item Appealing model system for querying the genetics of human disease
-\citep{Burrows2016}
 \end{itemize}
 \end{frame}
 
@@ -154,7 +153,7 @@ $$ \text{Blood draw} \Rightarrow \text{LCL} \Rightarrow \text{iPSC} \Rightarrow 
 \begin{align*}
 \pi &\sim \text{Dir}(1/K,\cdots,1/K) \\
 z_g | \pi &\sim \text{Discrete}(\pi) \\
-y_{ngc} | z_g, \theta &\sim N( \theta_{cz_g}, \sigma^2 )
+y_{ngc} | z_g, \theta &\sim N( \theta_{gcz_g}, \sigma^2 )
 \end{align*}
 \item Marginalize (sum) over $z_g$ and optimize wrt $\pi, \theta, \sigma$ using RStan. 
 \end{itemize}

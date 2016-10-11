@@ -5,7 +5,7 @@ library(data.table)
 source("utils.R")
 registerDoMC(16)
 
-genotype=fread(paste0(DATADIR,"genotype.txt"))
+genotype=fread(paste0("zcat < ",DATADIR,"genotype.txt.gz"))
 setDF(genotype)
 rownames(genotype)=genotype$V1
 genotype$V1=NULL
@@ -48,11 +48,13 @@ anno$findiv=as.character(findiv[anno$individual])
 
 require(rstan)
 lmm=stan_model("lmm.stan")
+lmm_with_fix=stan_model("lmm_with_fix.stan")
 
 genes=intersect(rownames(input),geneloc$geneid)
 rownames(geneloc)=geneloc$geneid
 cisdist=1e5
-results=setNames( foreach(gene=genes, .errorhandling='pass') %do% {
+errorhandling=if (interactive()) 'stop' else 'pass'
+results=setNames( foreach(gene=genes, .errorhandling=errorhandling) %do% {
   print(gene)
   y=input[gene,]
   cis_snps=snploc[ ((geneloc[gene,"left"]-cisdist) < snploc$pos) & ((geneloc[gene,"right"]+cisdist) > snploc$pos), "snpid" ]
@@ -66,7 +68,7 @@ results=setNames( foreach(gene=genes, .errorhandling='pass') %do% {
   data=list(N=N,x=x_no_geno,P=length(x_no_geno),y=y-mean(y))
 
   fit_no_geno=optimizing(lmm, data, as_vector=F)
-  setNames( foreach(cis_snp=cis_snps, .errorhandling='pass') %dopar% {
+  setNames( foreach(cis_snp=cis_snps, .errorhandling=errorhandling) %dopar% {
     geno=genotype[cis_snp,anno$findiv]
     #l=lm(y ~ geno + as.factor(anno$conc))
     #anno$geno=geno
@@ -80,19 +82,16 @@ results=setNames( foreach(gene=genes, .errorhandling='pass') %do% {
     
     interact=model.matrix(~geno:as.factor(conc),data=anno)
     interact=interact[,3:ncol(interact)]
-    x_interact=c( x_geno, list(interact %*% t(interact) ) )
-    data=list(N=N,x=x_interact,P=length(x_interact),y=y-mean(y))
+    data_interact=list(N=N,x=x_geno,P=length(x_geno),xfix=interact,Pfix=ncol(interact),y=y-mean(y))
     init=fit_geno$par
-    init$s=c(init$s,0.01)
-    fit_interact=optimizing(lmm, data, init=init, as_vector=F)
+    init$beta=numeric(data_interact$Pfix)
+    fit_interact=optimizing(lmm_with_fix, data_interact, init=init, as_vector=F)
     
-    V=foreach(p=seq_len(data$P-1), .combine = "+") %do% {fit_interact$par$s[p] * data$x[[p]]}
-    xvx=t(interact) %*% solve(V, interact)
-    beta_interact=solve( xvx, t(interact) %*% solve(V, y) )
-    se_interact=sqrt(diag(solve( xvx, diag(nrow(xvx)) )))
-    
-    list(cis_snp=cis_snp, beta_interact=beta_interact,se_interact=se_interact,lrt=fit_interact$value - fit_geno$value)
+    lrt=2.0*(fit_interact$value - fit_geno$value)
+    df=data_interact$Pfix
+
+    list(cis_snp=cis_snp, beta_interact=fit_interact$par$beta, lrt=lrt, df=df, p=pchisq(lrt, df, lower.tail = F))
   }, cis_snps )
 }, genes )
 
-save(results, file=paste0(DATADIR,"lmm_",chrom,".RData"))
+save(results, file=paste0(DATADIR,"lrt_",chrom,".RData"))
