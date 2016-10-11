@@ -104,5 +104,5 @@ ggplot(data.frame(y=y, geno=as.factor(geno), conc=anno$conc),
        y = "Normalized expression level for RPL9") +
   theme_cowplot(font_size = 28, line_size = 1.5) +
   theme(legend.position = "top")
-ggsave("eQTL.png", width = 12, height = 9)
+ggsave("eQTL.png", width = 12, height = 9, dpi = 150)
 ```
