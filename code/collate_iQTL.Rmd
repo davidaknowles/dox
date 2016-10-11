@@ -15,6 +15,7 @@ require(doMC)
 ## Load expression data
 ```{r}
 DATADIR="~/scailscratch/dox/"
+# DATADIR="/scratch/midway/jdblischak/dox-lmm/"
 library("dplyr")
 library(data.table)
 source("utils.R")
@@ -77,4 +78,31 @@ res=rbindlist( foreach(chrom=chroms) %do% {
   } )
 } )
 dev.off() 
+```
+
+For poster:
+
+```
+$ grep -w 3039070 dox-hg38.vcf | cut -f1-12
+chr4	39452110	3039070	C	G	.	.	PR	GT	0/1	0/0	0/1
+```
+
+```{r poster-figure, eval=FALSE}
+library("cowplot")
+library("RColorBrewer")
+cis_snp <- "3039070"
+# http://www.genome.ucsc.edu/cgi-bin/hgc?hgsid=542278761_AGpgQdStDO7R4as1Ps58awaGk8L3&c=chr4&l=39452109&r=39452110&o=39452109&t=39452110&g=snp147Common&i=rs2608828
+gene <- "ENSG00000163682"
+# http://www.genome.ucsc.edu/cgi-bin/hgGene?hgg_gene=uc003guc.4&hgg_prot=ENST00000295955.13&hgg_chrom=chr4&hgg_start=39454123&hgg_end=39458948&hgg_type=knownGene&db=hg38&hgsid=542278761_AGpgQdStDO7R4as1Ps58awaGk8L3
+y=input[gene,]
+geno=genotype[cis_snp,anno$findiv]
+ggplot(data.frame(y=y, geno=as.factor(geno), conc=anno$conc),
+       aes(as.factor(conc), y, fill=geno)) +
+  geom_boxplot() +
+  scale_fill_brewer(name = "rs2608828", labels = c("CC", "CG", "GG"), type = "qual", palette = "Dark2") +
+  labs(x = "Doxorubicin dosage (uM)",
+       y = "Normalized expression level for RPL9") +
+  theme_cowplot(font_size = 28, line_size = 1.5) +
+  theme(legend.position = "top")
+ggsave("eQTL.png", width = 12, height = 9)
 ```
