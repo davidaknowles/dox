@@ -50,6 +50,18 @@ require(rstan)
 lmm=stan_model("lmm.stan")
 lmm_with_fix=stan_model("lmm_with_fix.stan")
 
+easy_impute=function(geno, prop_var=0.95) {
+    temp=geno
+    temp[is.na(temp)]=outer( rowMeans( geno , na.rm=T), numeric(ncol(geno))+1.0)[is.na(temp)]
+    s=svd(temp)
+    v=s$d^2/sum(s$d^2)
+    to_use=cumsum(v)<prop_var
+    s$d[!to_use]=0.0
+    recon=s$u %*% diag(s$d) %*% s$v
+    geno[is.na(geno)]=as.integer(recon[is.na(geno)])
+    geno
+}
+
 genes=intersect(rownames(input),geneloc$geneid)
 rownames(geneloc)=geneloc$geneid
 cisdist=1e5
@@ -59,6 +71,8 @@ results=setNames( foreach(gene=genes, .errorhandling=errorhandling) %do% {
   y=input[gene,]
   cis_snps=snploc[ ((geneloc[gene,"left"]-cisdist) < snploc$pos) & ((geneloc[gene,"right"]+cisdist) > snploc$pos), "snpid" ]
   cis_snps=as.character(cis_snps)
+
+  imp_geno=easy_impute(genotype[cis_snps,])
   # cis_snp=as.character(cis_snps)[1]
   same_ind=outer(anno$findiv, anno$findiv, "==") * 1
   same_conc=outer(anno$conc, anno$conc, "==") * 1
@@ -69,7 +83,7 @@ results=setNames( foreach(gene=genes, .errorhandling=errorhandling) %do% {
 
   fit_no_geno=optimizing(lmm, data, as_vector=F)
   setNames( foreach(cis_snp=cis_snps, .errorhandling=errorhandling) %dopar% {
-    geno=genotype[cis_snp,anno$findiv]
+    geno=imp_geno[cis_snp,anno$findiv]
     #l=lm(y ~ geno + as.factor(anno$conc))
     #anno$geno=geno
     #lme(y ~ geno + as.factor(conc), anno, ~ 1|as.factor(findiv), correlation = corSymm(, fixed=T))
@@ -94,4 +108,4 @@ results=setNames( foreach(gene=genes, .errorhandling=errorhandling) %do% {
   }, cis_snps )
 }, genes )
 
-save(results, file=paste0(DATADIR,"lrt_",chrom,".RData"))
+save(results, file=paste0(DATADIR,"lrt_imp_",chrom,".RData"))

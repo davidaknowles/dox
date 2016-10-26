@@ -58,7 +58,6 @@ mean(q<.05) # 98% DE!
 ## Expression pattern analysis
 ```{r}
 require(rstan)
-mixlm_model=stan_model("mixlm_pred.stan")
 
 dim(input)
 y=t(scale(t(input)))
@@ -68,6 +67,7 @@ data=list(y=y, N=ncol(y), D=nrow(y), x=x, P=ncol(x), K=20)
 
 cached_fit_fn="../data/expression_patterns.RData"
 if (F) {
+  mixlm_model=stan_model("mixlm_pred.stan")
   mixlm_fit=optimizing(mixlm_model, data, verbose=T, iter=100,  as_vector=F) # takes a while... 
   save(file=cached_fit_fn, mixlm_fit)
 } else {
@@ -107,3 +107,22 @@ ggplot(m, aes(conc, mean, col=mixture, shape=mixture, size=pi)) + geom_line(alph
 4. Transient down regulation
 5. Transient up regulation
 6. Down regulation and then some recovery. 
+
+
+```{r}
+source("GOtest.R")
+
+to_use=order(mixlm_fit$par$p, decreasing = T)[1:6]
+mix_means=mixlm_fit$par$betas[to_use,]
+
+assignments=apply(mixlm_fit$par$logprob[,to_use], 1, which.max)
+
+GO_res=foreach(i=1:6) %do% {
+  summary(GOtest(rownames(y), rownames(y)[assignments==i], ontology = "BP")$GO$BP, pvalue = 1e-5)
+}
+
+go_data <- goHeatmapData(GO_res)
+
+go_heatmap <- plotHeatmap(go_data, labCol = "")
+
+```
