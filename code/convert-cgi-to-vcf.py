@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 
 # Create VCF file of phased genotypes.
-
+#
+# Usage:
+#
+# python convert-cgi-to-vcf.py fam samples cgi vcf
+#
+# fam - the Plink .fam file with each row corresponding to a column in the cgi genotype file
+# samples - a subset of individuals (in 2nd column) from fam to output in VCF
+# cgi - gzipped tsv file of genotypes from Complete Genomics
+# vcf - gzipped vcf file
+#
 # Create test file with subset of genotypes:
 #
 # $ zcat imputed-override3/imputed_cgi.chr21.tsv.gz | head -n 100000 | tail -n 25 | gzip -c > test_cgi.chr21.tsv.gz
@@ -25,6 +34,7 @@ import os
 import pandas as pd
 from pyliftover import LiftOver
 # https://github.com/konstantint/pyliftover
+import sys
 
 # Functions --------------------------------------------------------------------
 
@@ -88,20 +98,41 @@ def format_vcf(chr, pos, rsid, phase, allele1, allele2,
 
 # Variables --------------------------------------------------------------------
 
+args = sys.argv[1:]
+assert len(args) == 4, \
+"""Incorrect input arguments.
+
+Usage:
+
+python convert-cgi-to-vcf.py fam samples cgi vcf
+
+fam - the Plink .fam file with each row corresponding to a column in the cgi genotype file
+samples - a subset of individuals (in 2nd column) from fam to output in VCF
+cgi - gzipped tsv file of genotypes from Complete Genomics
+vcf - gzipped vcf file
+"""
+
 # Input CGI file
-in_fname = "test_cgi.chr21.tsv.gz"
+in_fname = args[2]
+#in_fname = "test_cgi.chr21.tsv.gz"
+assert os.path.exists(in_fname), "Input cgi file exists."
 in_handle = gzip.open(in_fname)
 
 # Output VCF file
-out_fname = "test_cgi.chr21.vcf.gz"
+out_fname = args[3]
+#out_fname = "test_cgi.chr21.vcf.gz"
 out_handle = gzip.open(out_fname, "wb")
 
 # Plink .fam file
-fam_fname = "qc.fam"
+fam_fname = args[0]
+#fam_fname = "qc.fam"
+assert os.path.exists(fam_fname), "Input cgiPlink .fam file exists."
 fam_handle = open(fam_fname)
 
 # Dox individuals
-dox_fname = "../data/samples.txt"
+dox_fname = args[1]
+#dox_fname = "../data/samples.txt"
+assert os.path.exists(dox_fname), "Input samples file exists."
 dox_handle = open(dox_fname)
 
 contig = os.path.basename(in_fname).split(".")[1]
@@ -160,6 +191,10 @@ for line in in_handle:
     phase = [x[0] for x in cols[8:]]
     allele1 = [x[1] for x in cols[8:]]
     allele2 = [x[2] for x in cols[8:]]
+
+    # Only report SNPs
+    if type != "snp":
+        continue
 
     # Convert hg19 coordinate to hg38 using pyliftover
     # CGI is 0-based, so feed the start position to pyliftover
