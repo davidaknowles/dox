@@ -2,10 +2,6 @@
 
 # Create VCF file of phased genotypes.
 
-# To do:
-#
-# * Convert to hg38
-#
 # Create test file with subset of genotypes:
 #
 # $ zcat imputed-override3/imputed_cgi.chr21.tsv.gz | head -n 100000 | tail -n 25 | gzip -c > test_cgi.chr21.tsv.gz
@@ -27,6 +23,8 @@ import glob
 import gzip
 import os
 import pandas as pd
+from pyliftover import LiftOver
+# https://github.com/konstantint/pyliftover
 
 # Functions --------------------------------------------------------------------
 
@@ -112,6 +110,9 @@ qual = "."
 filter = "."
 format = "GT"
 
+# liftOver chain
+lo = LiftOver("hg19", "hg38")
+
 # Parse individuals -----------------------------------------------------------
 
 # All individuals in Plink .fam file
@@ -135,7 +136,7 @@ assert len(set(ind_all).intersection(ind_dox)) == 46, \
 
 write_vcf_metainfo(handle = out_handle, version = "VCFv4.2",
                    date = "20170110", source = "CGI",
-                   reference = "hg19", contig = contig,
+                   reference = "hg38", contig = contig,
                    phasing = "partial")
 write_vcf_header(handle = out_handle, individuals = ind_dox)
 
@@ -160,8 +161,14 @@ for line in in_handle:
     allele1 = [x[1] for x in cols[8:]]
     allele2 = [x[2] for x in cols[8:]]
 
-    # VCF position is 1-based, CGI appears to be 0-based, so set to end coordinate
-    pos = end
+    # Convert hg19 coordinate to hg38 using pyliftover
+    # CGI is 0-based, so feed the start position to pyliftover
+    lo_result = lo.convert_coordinate("chr" + chr, int(start))
+    assert len(lo_result) == 1, "Only one result per liftOver conversion"
+    lo_chr, lo_pos = lo_result[0][:2]
+    assert lo_chr == "chr" + chr, "liftOver result is on same chromosome"
+    # VCF position is 1-based, so add 1
+    pos = str(lo_pos + 1)
 
     # Subset by individuals in dox project
     phase_dox = [phase[i] for i in range(len(ind_all)) if ind_all[i] in ind_dox]
