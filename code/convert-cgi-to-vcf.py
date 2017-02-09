@@ -28,6 +28,7 @@
 # 3 is imputed using impute2 and phased
 # 4 is imputed using impute2 and phased with parent of origin
 
+import datetime
 import glob
 import gzip
 import os
@@ -144,6 +145,17 @@ format = "GT"
 # liftOver chain
 lo = LiftOver("hg19", "hg38")
 
+# Today's date
+today = str(datetime.date.today()).replace("-", "")
+
+# Logging number of SNPs
+log_variants = 0   # Number of variants
+log_snps = 0       # Number of SNPs
+log_success = 0    # Number of SNPs successfully converted to hg38
+log_nonconvert = 0 # Number of SNPs with no coordinates in hg38
+log_multi = 0      # Number of SNPs with multiple coordinates in hg38
+log_diff_chr = 0  # Number of SNPs with hg38 coordinates on diff chromosome
+
 # Parse individuals -----------------------------------------------------------
 
 # All individuals in Plink .fam file
@@ -165,13 +177,14 @@ assert len(set(ind_all).intersection(ind_dox)) == 46, \
 
 # Parse file -------------------------------------------------------------------
 
-write_vcf_metainfo(handle = out_handle, version = "VCFv4.2",
-                   date = "20170110", source = "CGI",
+write_vcf_metainfo(handle = out_handle, version = "VCFv4.3",
+                   date = today, source = "CGI",
                    reference = "hg38", contig = contig,
                    phasing = "partial")
 write_vcf_header(handle = out_handle, individuals = ind_dox)
 
 for line in in_handle:
+    log_variants += 1
     cols = line.decode("utf-8").strip().split("\t")
     id = cols[0]
     chr = cols[1]
@@ -195,13 +208,33 @@ for line in in_handle:
     # Only report SNPs
     if type != "snp":
         continue
+    log_snps += 1
 
     # Convert hg19 coordinate to hg38 using pyliftover
     # CGI is 0-based, so feed the start position to pyliftover
     lo_result = lo.convert_coordinate("chr" + chr, int(start))
-    assert len(lo_result) == 1, "Only one result per liftOver conversion"
+
+    # Unable to convert from hg19 to hg38
+    if len(lo_result) == 0:
+        log_nonconvert += 1
+        sys.stderr.write("No conversion\t%s\t%s\t%s\n"%(chr, start, rsid))
+        continue
+
+    # Multiple coordinates on hg38
+    if len(lo_result) > 1:
+        log_multi += 1
+        sys.stderr.write("Multiple coordinates\t%s\t%s\t%s\n"%(chr, start, rsid))
+        continue
+
     lo_chr, lo_pos = lo_result[0][:2]
-    assert lo_chr == "chr" + chr, "liftOver result is on same chromosome"
+
+    # Different chromosome between hg19 and hg38
+    if lo_chr != "chr" + chr:
+        log_diff_chr += 1
+        sys.stderr.write("Different chromsome\t%s\t%s\t%s\n"%(chr, start, rsid))
+        continue
+
+    log_success += 1
     # VCF position is 1-based, so add 1
     pos = str(lo_pos + 1)
 
@@ -230,3 +263,12 @@ for line in in_handle:
 
 in_handle.close()
 out_handle.close()
+
+# Report logging on SNPs
+sys.stderr.write("\n\nLog:\n")
+sys.stderr.write("Number of variants:\t%d\n"%(log_variants))
+sys.stderr.write("Number of SNPs:\t%d\n"%(log_snps))
+sys.stderr.write("Number of SNPs successfully converted to hg38:\t%d\n"%(log_success))
+sys.stderr.write("Number of SNPs with no coordinates in hg38:\t%d\n"%(log_nonconvert))
+sys.stderr.write("Number of SNPs with multiple coordinates in hg38:\t%d\n"%(log_multi))
+sys.stderr.write("Number of SNPs with hg38 coordinates on diff chromosome:\t%d\n"%(log_diff_chr))
