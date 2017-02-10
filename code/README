@@ -8,3 +8,18 @@ python ~/Dropbox/dox/code/arrange-fastq.py <downloaddir> fastq
 ./reorg_bams.sh
 ./submit-feature-counts.sh [wait for jobs to finish]
 ./gather-gene-counts.sh
+
+## Converting genotypes to VCF format
+
+The following scripts were run on the PPS cluster at UChicago.
+
+Starting with the Plink file, the file dox-hg38.vcf was created with the script
+genotypes.py. This file does not contain phasing information.
+
+Starting with the genotype files from Complete Genomics, the per-chromosome
+genotypes, e.g. dox-hg38-chr9.vcf.gz, were created with the scripts
+convert-cgi-to-vcf.py and convert-cgi-to-vcf.sh. These files are phased using
+the parent of origin information.
+
+The scripts convert-cgi-to-vcf-test.R and convert-cgi-to-vcf-test.sh perform
+some sanity checks on the genotype files.
