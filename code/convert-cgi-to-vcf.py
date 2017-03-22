@@ -175,6 +175,9 @@ assert len(ind_dox) == 46, "There are 46 individuals in dox project"
 assert len(set(ind_all).intersection(ind_dox)) == 46, \
   "dox individuals are a subset of all individuals"
 
+# Sort individuals by their order in the genotype files
+ind_dox.sort(key = lambda x: ind_all.index(x))
+
 # Parse file -------------------------------------------------------------------
 
 write_vcf_metainfo(handle = out_handle, version = "VCFv4.3",
