@@ -1,5 +1,25 @@
 require(Matrix)
 
+unscale=function(g) {
+  sweep( sweep(g, 1, attr(g,"scaled:scale"), "*"), 1, attr(g,"scaled:center"), "+")
+}
+
+easy_impute=function(geno, prop_var=0.95) {
+  temp=geno
+  temp=t(scale(t(geno)))
+  temp[is.na(temp)]=0
+  s=svd(temp)
+  v=s$d^2/sum(s$d^2)
+  to_use=cumsum(v)<prop_var
+  s$d[!to_use]=0.0
+  recon=s$u %*% diag(s$d) %*% s$v
+  temp[is.na(geno)]=recon[is.na(geno)]
+  temp=unscale(temp)
+  stopifnot(max(abs(temp[!is.na(geno)]-geno[!is.na(geno)]))<1e-10)
+  class(temp)="integer"
+  temp
+}
+
 get_relatedness=function(filename, rna_inds) {
   ibd=read.table(filename, header=T)
   inds=intersect(ibd$Ind1, ibd$Ind2) # 1440!

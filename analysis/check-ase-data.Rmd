@@ -1,0 +1,27 @@
+---
+title: "Check ASE data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load ASE data
+
+```{r}
+require(data.table)
+dat=fread("zcat < ../data/ase.txt.gz")
+setDF(dat)
+sum(!duplicated(dat[,c("chr","pos")]))
+```
+71k (putatively) exonic variants. 
+
+## Check distribution
+
+```{r}
+dat$n=with(dat, r+y)
+dat$rat=with(dat, y/n)
+hist(with(dat, rat[n>20]),100)
+```
+Good to see the bulk is around 0.5 (with a little reference bias). 

@@ -1,0 +1,104 @@
+---
+title: "MatrixEqtl_perConc"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library("knitr")
+opts_chunk$set(cache = TRUE)
+```
+
+## Load genotype data from VCF
+
+```{r}
+DATADIR="~/scailscratch/dox/"
+library("dplyr")
+require(VariantAnnotation)
+
+fl <- system.file("extdata", "../data/dox-hg38.vcf.gz", package="VariantAnnotation") 
+#vcf <- readVcf(fl, "hg19")
+vcf <- readVcf("../data/dox-hg38.vcf.gz", "GRCh38") # slow
+require(snpStats)
+mat <- genotypeToSnpMatrix(vcf) # slow
+
+dim(mat$genotypes) # 46 x 7050203
+dim(mat$map) # 7050203
+head(mat$map)
+mean(mat$map$ignore) # 0.091
+
+genotypes=t(as(mat$genotypes, "numeric"))
+mean(is.na(genotypes))
+prop_na=rowMeans(is.na(genotypes))
+hist(prop_na,46)
+```
+
+Calculate minor allele frequencies
+```{r}
+maf=rowMeans(genotypes, na.rm=T)/2
+hist(maf)
+```
+
+Keep SNP with less than 5% missingness and MAF>5%
+```{r}
+snps_to_keep=prop_na < 0.05 & maf > 0.05
+
+snp_meta=data.frame( snpid=names( rowRanges(vcf)@ranges  ), chr=as.character( rowRanges(vcf)@seqnames ), pos=rowRanges(vcf)@ranges@start )
+unique(rowRanges(vcf)@ranges@width)
+stopifnot( all( snp_meta$snpid == colnames(mat$genotypes) ))
+
+genotypes_filtered=genotypes[snps_to_keep,]
+snp_meta_filtered=snp_meta[snps_to_keep,]
+
+geno=cbind(rownames(genotypes_filtered),genotypes_filtered)
+colnames(geno)[1]="snpid"
+write.table(geno, paste0(DATADIR, "genotype.txt"), quote=F, row.names = F)
+
+write.table(snp_meta_filtered, paste0(DATADIR, "snploc.txt"), quote=F, row.names = F)
+```
+
+Check for population structure
+```{r}
+require(irlba)
+require(ggplot2)
+genotypes_filtered[is.na(genotypes_filtered)]=0.0
+pca=irlba(t(scale(t(genotypes_filtered))))
+qplot(pca$v[,1],pca$v[,2],xlab="PC 1",ylab="PC 2")
+```
+Not really any obvious structure
+
+Check there is a 1-1 mapping between cell line ID and findiv:
+```{r}
+unique(colSums(table(sample_anno[,c("cell_line","findiv")])>0)) # 1
+unique(rowSums(table(sample_anno[,c("cell_line","findiv")])>0)) # 1
+```
+
+## Load covariates
+
+```{r}
+hutt_meta=read.table("../data/dox.fam",header=F)
+colnames(hutt_meta)=c("pop","findiv","a","b","gender","c")
+hutt_meta$gender=hutt_meta$gender-1
+hutt_meta=hutt_meta[,c("findiv","gender")]
+hutt_meta=t(hutt_meta)
+covariates_file_name=paste0(DATADIR,"covariates.txt")
+write.table(hutt_meta,covariates_file_name,col.names = F,row.names = T, quote = F, sep="\t")
+```
+
+Also make a covariate file with top 5 genotype PCs
+```{r}
+stopifnot(colnames(genotypes)==hutt_meta["findiv",])
+colnames(pca$v)=paste0("geno_PC",1:5)
+hutt_meta_pc=rbind(hutt_meta,t(pca$v))
+write.table(hutt_meta_pc,paste0(DATADIR,"covariates_with_PC.txt"),col.names = F,row.names = T, quote = F, sep="\t")
+```
+
+## Make gene position table
+```{r}
+exons=read.table("../data/exons_GRCh38.saf", header=T)
+
+genes=exons %>% group_by(GeneID) %>% summarize(chr=Chr[1], left=min(Start), right=max(End)) %>% as.data.frame
+colnames(genes)[1]="geneid"
+
+write.table(genes, paste0(DATADIR, "genelocGRCh38.txt"), sep="\t", quote=F, row.names = F)
+```
+

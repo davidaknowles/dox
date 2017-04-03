@@ -95,6 +95,10 @@ gzf=gzfile("../data/counts_log_cpm.txt.gz","w")
 write.table(counts_cpm, gzf, sep="\t", quote=F)
 close(gzf)
 
+gzf=gzfile("../data/counts.txt.gz","w")
+write.table(counts, gzf, sep="\t", quote=F)
+close(gzf)
+
 write.table(anno_combined, "../data/sample_annotation.txt", sep="\t", quote=F, row.names = F)
 ```
 

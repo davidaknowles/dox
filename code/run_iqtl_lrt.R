@@ -5,12 +5,10 @@ library(data.table)
 source("utils.R")
 registerDoMC(16)
 
-genotype=fread(paste0("zcat < ",DATADIR,"genotype.txt.gz"))
-setDF(genotype)
-rownames(genotype)=genotype$V1
-genotype$V1=NULL
-colnames(genotype)=genotype[1,]
-genotype=genotype[2:nrow(genotype),]
+genotype=fread("zcat < ../data/genotype.txt.gz", data.table = F, header = T)
+
+rownames(genotype)=genotype$snpid
+genotype$snpid=NULL
 
 genotype=as.matrix(genotype)
 
@@ -44,28 +42,19 @@ colnames(input)=findiv[anno$individual]
 #input=remove_PCs(input, num_PCs_to_remove)
 input=quantile_normalize(input)
 
+findiv[ findiv==160001 ]=106411
+
 anno$findiv=as.character(findiv[anno$individual])
 
 require(rstan)
 lmm=stan_model("lmm.stan")
 lmm_with_fix=stan_model("lmm_with_fix.stan")
 
-easy_impute=function(geno, prop_var=0.95) {
-    temp=geno
-    temp[is.na(temp)]=outer( rowMeans( geno , na.rm=T), numeric(ncol(geno))+1.0)[is.na(temp)]
-    s=svd(temp)
-    v=s$d^2/sum(s$d^2)
-    to_use=cumsum(v)<prop_var
-    s$d[!to_use]=0.0
-    recon=s$u %*% diag(s$d) %*% s$v
-    geno[is.na(geno)]=as.integer(recon[is.na(geno)])
-    geno
-}
-
 genes=intersect(rownames(input),geneloc$geneid)
 rownames(geneloc)=geneloc$geneid
 cisdist=1e5
 errorhandling=if (interactive()) 'stop' else 'pass'
+
 results=setNames( foreach(gene=genes, .errorhandling=errorhandling) %do% {
   print(gene)
   y=input[gene,]
