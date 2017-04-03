@@ -1,0 +1,180 @@
+---
+title: "Checking concordance of phasing and parent of origin assignment"
+date: 2017-01-09
+output: html_document
+---
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(fig.width = 8, fig.height = 8, fig.pos = "center",
+                      tidy = FALSE)
+```
+
+I expect that individuals with more genotyped parents should have more phased SNPs, and furthermore that those phased SNPs should predominantly be assigned a parent of origin.
+I confirm this below.
+
+## Setup
+
+```{r packages, message=FALSE}
+library("dplyr")
+library("tidyr")
+library("ggplot2")
+theme_set(cowplot::theme_cowplot())
+```
+
+The .fam file file is a tab-separated file with the following columns ([documentation][fam]).
+
+* Family ID ('FID')
+* Within-family ID ('IID'; cannot be '0')
+* Within-family ID of father ('0' if father isn't in dataset)
+* Within-family ID of mother ('0' if mother isn't in dataset)
+* Sex code ('1' = male, '2' = female, '0' = unknown)
+* Phenotype value ('1' = control, '2' = case, '-9'/'0'/non-numeric = missing data if case/control)
+
+[fam]: https://www.cog-genomics.org/plink2/formats#fam
+
+Import .fam file
+
+```{r}
+fam <- read.table("Hutterite_imputation/qc.fam", stringsAsFactors = FALSE)
+colnames(fam) <- c("fid", "iid", "father", "mother", "sex", "pheno")
+head(fam)
+stopifnot(fam$fid == "HUTTERITES",
+          fam$iid > 0,
+          any(fam$iid[fam$sex == 1] %in% fam$father),
+          !(fam$iid[fam$sex == 1] %in% fam$mother),
+          any(fam$iid[fam$sex == 2] %in% fam$mother),
+          !(fam$iid[fam$sex == 2] %in% fam$father),
+          fam$sex %in% 1:2,
+          fam$pheno == -9,
+          nrow(fam) == 1415)
+```
+
+Count number of parents that were genotyped.
+
+```{r num-parents}
+fam <- fam %>% mutate(num_parents = father %in% fam$iid + mother %in% fam$iid)
+table(fam$num_parents)
+```
+
+Import counts of phasing scores.
+
+```{r}
+phasing <- read.table("count-phasing.txt", header = TRUE)
+stopifnot(phasing$total == phasing$total[1],
+          nrow(phasing) == 1415,
+          rowSums(phasing[, c("unknown", "p0", "p1", "p2","p3", "p4")]) ==
+            phasing$total)
+summary(phasing)
+```
+
+This file was created by `count-phasing.py`. The columns correspond to the following statistics for each individual across all the automsomes:
+
+* total - number of SNPs
+* unknown - number of unknown SNPs (any SNP w/ at least one N is
+            counted here and not any of the categories below)
+* p0 - number of unphased SNPs
+* p1 - number of phased SNPs
+* p2 - number of SNPs with parent of origin assignments
+* p3 - number of phased SNPs which were imputed with impute2
+* p4 - number of SNPs which were imputed with impute2
+
+ Note that these categories are mutually exclusive, and thus the sum
+ of unknown, p0, p1, p2, p3, and p4 will equal total for each
+ individual.
+
+Calculate more phasing statistics.
+
+```{r}
+phasing <- phasing %>% mutate(perc_unknown = unknown / total * 100,
+                              perc_phased = (p1 + p2 + p3 + p4) / total * 100,
+                              perc_pog = (p2 + p4) / total * 100,
+                              perc_pog_phased = (p2 + p4) / (p1 + p2 + p3 + p4) * 100)
+```
+
+Combine family information with phasing statistics.
+
+```{r}
+d <- cbind(fam, phasing)
+d_long <- d %>%
+  select(iid, num_parents, perc_unknown:perc_pog_phased) %>%
+  gather("metric", "value", -iid, -num_parents)
+head(d_long)
+# Convert metric to factor with better labels
+d_long$metric <- factor(d_long$metric,
+                        levels = c("perc_unknown", "perc_phased",
+                                   "perc_pog", "perc_pog_phased"),
+                        labels = c("SNPs of unknown genotype",
+                                   "Phased SNPs",
+                                   "SNPs assigned parent of origin",
+                                   "Phased SNPs assigned parent of origin"))
+d_sum <- d_long %>% group_by(metric, num_parents) %>%
+  summarize(n = n(),
+         mean = mean(value),
+         sem = sd(value) / sqrt(n)) %>%
+  arrange(metric, num_parents)
+head(d_sum)
+```
+
+It is very rare for a SNP to be phased but not assigned a parent of origin when 1 or 2 of the individual's parents have also been genotyped.
+
+```{r}
+d_sum %>% filter(metric == "Phased SNPs assigned parent of origin") %>%
+  knitr::kable()
+```
+
+## Visualization
+
+```{r}
+ggplot(d_long, aes(x = as.factor(num_parents), y = value)) +
+  geom_boxplot() +
+  facet_wrap(~metric, scales = "free_y") +
+  labs(x = "Number of genotyped parents",
+         y = "Percent")
+```
+
+```{r}
+ggplot(d_sum, aes(x = as.factor(num_parents), y = mean)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem)) +
+  facet_wrap(~ metric, scales = "free_y") +
+    labs(x = "Number of genotyped parents",
+         y = "Percent (mean +/- sem)")
+```
+
+## Subset to individuals in dox study
+
+How well phased are the 46 individuals in the dox study?
+
+```{r}
+dox <- read.table("Hutterite_imputation/samples.txt", stringsAsFactors = FALSE)
+colnames(dox) <- c("fid", "iid")
+stopifnot(nrow(dox) == 46)
+head(dox)
+```
+
+```{r}
+d_dox <- d %>%
+  filter(iid %in% dox$iid) %>%
+  select(iid, num_parents, perc_unknown:perc_pog_phased) %>%
+  gather("metric", "value", -iid, -num_parents) %>%
+  mutate(metric = factor(metric,
+                          levels = c("perc_unknown", "perc_phased",
+                                     "perc_pog", "perc_pog_phased"),
+                          labels = c("SNPs of unknown genotype",
+                                     "Phased SNPs",
+                                     "SNPs assigned parent of origin",
+                                     "Phased SNPs assigned parent of origin"))) %>%
+  group_by(metric, num_parents) %>%
+  summarize(n = n(),
+         mean = mean(value),
+         sem = sd(value) / sqrt(n)) %>%
+  arrange(metric, num_parents)
+d_dox %>% filter(metric == "Phased SNPs assigned parent of origin") %>%
+  knitr::kable()
+```
+
+## Session Information
+
+```{r session-info}
+sessionInfo()
+```
