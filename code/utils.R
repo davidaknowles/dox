@@ -12,7 +12,7 @@ easy_impute=function(geno, prop_var=0.95) {
   v=s$d^2/sum(s$d^2)
   to_use=cumsum(v)<prop_var
   s$d[!to_use]=0.0
-  recon=s$u %*% diag(s$d) %*% s$v
+  recon=s$u %*% diag(s$d) %*% t(s$v)
   temp[is.na(geno)]=recon[is.na(geno)]
   temp=unscale(temp)
   stopifnot(max(abs(temp[!is.na(geno)]-geno[!is.na(geno)]))<1e-10)

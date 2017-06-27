@@ -1,6 +1,7 @@
 
 DATADIR="~/scailscratch/dox/"
 library("dplyr")
+library("tidyr")
 library(data.table)
 source("utils.R")
 registerDoMC(16)
@@ -63,15 +64,20 @@ findiv[ findiv==160001 ]=106411
 anno$findiv=as.character(findiv[anno$individual])
 
 require(rstan)
-lmm=stan_model("lmm.stan")
-lmm_with_fix=stan_model("lmm_with_fix.stan")
+panama_test=stan_model("panama_test.stan")
 
 genes=intersect(rownames(input),geneloc$geneid)
 rownames(geneloc)=geneloc$geneid
 cisdist=1e5
-errorhandling=if (interactive()) 'stop' else 'pass'
+errorhandling=if (interactive()) 'stop' else 'remove'
 
-results=setNames( foreach(gene=genes, .errorhandling=errorhandling) %do% {
+same_ind=outer(anno$findiv, anno$findiv, "==") * 1
+same_conc=outer(anno$conc, anno$conc, "==") * 1
+
+eig_K=eigen(readRDS("../data/Kern.rds"))
+
+results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) %do% {
+  
   print(gene)
   y=input[gene,]
   cis_snps=snploc[ ((geneloc[gene,"left"]-cisdist) < snploc$pos) & ((geneloc[gene,"right"]+cisdist) > snploc$pos), "snpid" ]
@@ -79,40 +85,51 @@ results=setNames( foreach(gene=genes, .errorhandling=errorhandling) %do% {
 
   imp_geno=easy_impute(genotype[cis_snps,])
   # cis_snp=as.character(cis_snps)[1]
-  same_ind=outer(anno$findiv, anno$findiv, "==") * 1
-  same_conc=outer(anno$conc, anno$conc, "==") * 1
+  
   N=length(y)
   
-  x_no_geno=list(diag(N),errorCovariance[ anno$findiv, anno$findiv ],same_ind,same_conc)
-  data=list(N=N,x=x_no_geno,P=length(x_no_geno),y=y-mean(y))
+  intercept_only=matrix(1,ncol=1,nrow=N)
+  data=list(N=N,x=intercept_only,P=1,y=y-mean(y), U_transpose=t(eig_K$vectors), lambda=eig_K$values)
 
-  fit_no_geno=optimizing(lmm, data, as_vector=F)
-  setNames( foreach(cis_snp=cis_snps, .errorhandling=errorhandling) %dopar% {
+  init=list(sigma2=0.1, sigma2_k=1.0, beta=array(0.0))
+
+  fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
+  foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
     geno=imp_geno[cis_snp,anno$findiv]
+    if (sum(imp_geno[cis_snp,]) < 5.0) return(NULL)
     #l=lm(y ~ geno + as.factor(anno$conc))
     #anno$geno=geno
     #lme(y ~ geno + as.factor(conc), anno, ~ 1|as.factor(findiv), correlation = corSymm(, fixed=T))
 
-    x_geno=c( x_no_geno, list(outer(geno,geno)) )
-    data=list(N=N,x=x_geno,P=length(x_geno),y=y-mean(y))
+    data$x=cbind( intercept_only, geno )
+    data$P=ncol(data$x)
     init=fit_no_geno$par
-    init$s=c(init$s,0.01)
-    fit_geno=optimizing(lmm, data, init=init, as_vector=F )
+    init$beta=c(init$beta,0.0)
+    
+    fit_geno=optimizing(panama_test, data, init=init, as_vector=F )
     
     interact=model.matrix(~geno:as.factor(conc),data=anno)
     interact=interact[,3:ncol(interact)]
-    data_interact=list(N=N,x=x_geno,P=length(x_geno),xfix=interact,Pfix=ncol(interact),y=y-mean(y))
+    data_interact=data
+    data_interact$x=cbind( intercept_only, geno, interact )
+    data_interact$P=ncol(data_interact$x)
+  
     init=fit_geno$par
-    init$beta=numeric(data_interact$Pfix)
-    fit_interact=optimizing(lmm_with_fix, data_interact, init=init, as_vector=F)
+    init$beta=c(init$beta,numeric(ncol(interact)))
+    fit_interact=optimizing(panama_test, data_interact, init=init, as_vector=F)
     
-    lrt=2.0*(fit_interact$value - fit_geno$value)
-    df=data_interact$Pfix
+    #lrt_interact=2.0*(fit_interact$value - fit_geno$value)
+    #df_interact=ncol(interact)
+    # pchisq(lrt,df,lower.tail=F)
+    
+    data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value, df=ncol(interact)  )
+  }
+  
+}
 
-    list(cis_snp=cis_snp, beta_interact=fit_interact$par$beta, lrt=lrt, df=df, p=pchisq(lrt, df, lower.tail = F))
-  }, cis_snps )
-}, genes )
-
-resdir=paste0("~/dagscratch/dox/lrt_imp_",normalization_approach,"/")
+resdir=paste0("~/dagscratch/dox/panama_",normalization_approach,"/")
 dir.create(resdir)
-save(results, file=paste0(resdir,chrom,".RData"))
+
+gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
+results %>% format(digits=5) %>% write.table(gz1, quote = F, row.names = F, col.names = T, sep="\t")
+close(gz1)

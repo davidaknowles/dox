@@ -1,0 +1,128 @@
+---
+title: "Check phasing with eQTLs"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r cars}
+require(data.table)
+require(dplyr)
+require(foreach)
+source("utils.R")
+
+theme_bw(base_size = 14)
+
+ase_data=fread("zcat < ../data/ase.txt.gz", data.table=F) %>%
+  mutate(snp=paste(chr,pos,sep=":"))
+
+cl_cond=do.call( rbind, strsplit( ase_data$sample, "_" ) )
+ase_data$cell_line=cl_cond[,1]
+ase_data$cond=cl_cond[,2]
+
+sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F) %>%
+  select( cell_line, findiv ) %>%
+  distinct()
+
+geneloc=read.table("../data/genelocGRCh38.txt.gz",header=T,stringsAsFactors = F)
+rownames(geneloc)=geneloc$geneid
+
+input <- read.delim("../data/counts_log_cpm.txt.gz", check.names = F)
+# corresponds to cols of input
+anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)  %>% 
+  left_join(sample_anno, by=c(individual="cell_line")) %>%
+  mutate(findiv=as.character(findiv))
+
+snploc=read.table("../data/snploc.txt.gz",header=T,stringsAsFactors = F)
+#snploc$chrpos=with(snploc, paste(chr,pos,sep="_"))
+
+eqtl_results=fread("zcat < ../mEQTL_results/summary0_PC10.txt.gz", data.table = F) %>% 
+  filter( q < 0.05 ) %>% 
+  left_join(geneloc, by=c(gene="geneid")) %>%
+  left_join(snploc, by=c(chr="chr", SNP="snpid"))
+
+shape_values = c(0:9, letters, LETTERS)
+
+#pdf("../figures/ai_support_lrt.pdf",width=12,height=6)
+
+pdf("../figures/phasing_vs_eQTL.pdf",width=8,height=4)
+foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do% {
+  print(which_chr)
+  
+phased=fread(paste0("zcat < ../data/phased_genotypes/dox-hg38-",which_chr,".vcf.gz"), data.table=F, skip = "#CHROM", header=T)
+  #phased=fread("zcat < ../data/dox-hg38.vcf.gz", data.table=F, skip = "#CHROM", header=T)
+colnames(phased)[1]="CHROM"
+  #phased=phased %>% filter(CHROM=="chr22")
+
+top_hits = eqtl_results %>% filter( chr==which_chr ) 
+if (nrow(top_hits)==0) return(NULL)
+
+dat_chr=ase_data %>% filter( chr==which_chr ) %>% 
+  left_join( sample_anno , by="cell_line" ) %>% filter( findiv != 160001  ) %>%
+    mutate( pos_alt=paste(pos, alt, sep="_") )
+  #ase_pos=unique( dat_chr$pos )
+  #length( intersect( ase_pos, phased$POS ) ) / length( ase_pos ) # 90%
+  
+phased = phased %>% mutate( pos_alt=paste(POS, ALT, sep="_") ) %>% 
+    distinct(pos_alt, .keep_all = TRUE) 
+  
+rownames( phased )=phased$pos_alt
+  
+dat_chr = dat_chr %>% 
+    mutate( pos_alt=paste(pos, alt, sep="_")  ) %>% 
+    filter( pos_alt %in% rownames(phased) ) %>% 
+    mutate( geno=phased[ cbind(as.character(pos_alt), as.character( findiv )) ] )
+
+ foreach(i=seq_len(nrow(top_hits)), .errorhandling = "stop") %do% {
+    top_hit = top_hits[i,]
+
+    #phased_exonic = phased %>% filter( POS > gene_meta$left, POS < gene_meta$right )
+    
+    ase_dat = dat_chr %>% filter( pos > top_hit$left, pos < top_hit$right ) 
+    
+    if (sum(ase_dat$y+ase_dat$r) < 200) return(NULL)
+    
+    reg_geno = phased %>% filter( POS == top_hit$pos )
+    
+    ase_dat$reg_geno=reg_geno[as.character(ase_dat$findiv)] %>% as.matrix %>% as.character
+    
+    ge=anno %>% mutate(geno=reg_geno[as.character(findiv)] %>% as.matrix %>% as.character, y=as.numeric(input[top_hit$gene,]))
+    ge$geno = foreach(s=strsplit(ge$geno,"|",fixed=T)) %do% { as.numeric(s) %>% sum } %>% unlist %>% factor
+    
+    ge_plot = ge %>% filter(!is.na(geno), conc==0.0) %>% ggplot(aes(geno, y, col=geno)) + geom_boxplot(width=0.1, outlier.shape = NA, alpha=0.5) + geom_sina() + ggtitle(paste("Gene:",top_hit$gene)) + ylab("Expression (log2 cpm)") + xlab("Genotype") + theme(legend.position = "none")
+    #ggsave("../figures/example_ai_vs_lrt.pdf",height=5,width=5)
+    
+    phased_types=c("0|0","0|1","1|0","1|1")
+    to_plot = ase_dat %>%
+      # filter( geno %in% phased_types, reg_geno %in% phased_types ) %>% 
+      filter( cond=="0", geno %in% c("0|1","1|0") ) %>% 
+      mutate( in_phase=geno == reg_geno ) %>% 
+      filter( (r+y) > 0 ) %>% 
+      mutate( ind=as.factor(findiv), snp=as.factor(pos), coverage=r+y, ar = r/coverage, car=ifelse(in_phase,ar,1-ar) )
+    
+   pv=to_plot %>% filter(reg_geno %in% c("0|1","1|0")) %>% with( binom.test( sum(ifelse(in_phase,r,y)), sum(coverage))) %>% .$p.value
+
+   ase_plot = to_plot %>% ggplot(aes( reg_geno,1-car,col=ind,size=coverage,shape=snp)) + geom_point(position = position_jitter(width=0.2,height=0)) + ylim(0,1) + ggtitle(paste0(" p=",format(pv,digits=3))) + scale_shape_manual(values=shape_values[seq_along(levels(to_plot$snp))], guide=F )   + geom_line(aes(group=interaction(ind,snp) ),size=0.5,alpha=0.5)  + xlab("eSNP genotype") + ylab("Phased allelic ratio") + guides(col=F)
+   
+   print( grid.arrange(ge_plot, ase_plot, nrow=1 ) )
+   # %>% print
+    # geom_dotplot(binaxis = "y", stackdir = "center", binwidth=0.01, alpha=.5)
+   NULL
+  }
+}
+dev.off()
+```
+
+
+```{r}
+apoptosis_genes = c(DAP="ENSG00000112977", BCL10="ENSG00000142867", BCL2="ENSG00000171791", BID="ENSG00000015475", GLRX2="ENSG00000023572")
+
+pdf("../figures/apoptosis_genes.pdf",width=5,height=4)
+foreach(gene_name=names(apoptosis_genes)) %do% {
+  print( qplot(as.factor(anno$conc), as.numeric(input[ apoptosis_genes[gene_name],]), geom="violin") + geom_boxplot(width=0.2) + xlab("Dox concentration") + ylab(paste(gene_name, "expression (log2 cpm)"))  ) # + expand_limits(y=0)
+  NULL
+}
+dev.off()
+```

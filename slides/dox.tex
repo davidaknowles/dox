@@ -104,6 +104,11 @@ $$ \text{Blood draw} \Rightarrow \text{LCL} \Rightarrow \text{iPSC} \Rightarrow 
 \includegraphics[width=1\textwidth,clip,trim=0 0 0 0]{../figures/mapped.pdf}
 \end{frame}
 
+\begin{frame}{RNA-seq confirms genotypes}
+\centering
+\includegraphics[width=\textwidth,clip,trim=0 0 0 0]{../figures/confirm_genotypes_rna_single.pdf}
+\end{frame}
+
 \begin{frame}{Dox conc drives expression variability}
 \centering
 \includegraphics[width=.6\textwidth,clip,trim=0 0 0 0]{../figures/pca.pdf}
@@ -161,6 +166,14 @@ y_{ngc} | z_g, \theta &\sim N( \theta_{gcz_g}, \sigma^2 )
 \includegraphics[width=.4\textwidth,clip,trim=0 0 0 0]{../figures/mixture_pi.pdf}
 \end{frame}
 
+\begin{frame}{Apoptosis genes}
+\includegraphics[page=1,width=.45\textwidth,clip,trim=0 0 0 0]{../figures/apoptosis_genes.pdf} 
+\includegraphics[page=4,width=.45\textwidth,clip,trim=0 0 0 0]{../figures/apoptosis_genes.pdf}\
+
+\includegraphics[page=2,width=.45\textwidth,clip,trim=0 0 0 0]{../figures/apoptosis_genes.pdf}
+\includegraphics[page=3,width=.45\textwidth,clip,trim=0 0 0 0]{../figures/apoptosis_genes.pdf}
+\end{frame}
+
 \begin{frame}{Initial eQTL analysis}
 \begin{itemize}
 \item Initially using MatrixEQTL - fast and can handle kinship matrix (from IBD)
@@ -196,20 +209,26 @@ y_{ngc} | z_g, \theta &\sim N( \theta_{gcz_g}, \sigma^2 )
 \begin{align*}
 y_{nc} &= \beta g_n + \gamma_c g_n + u_n + v_c + \xi_n + \epsilon_{nc} \\
 \beta &\sim N(0, \sigma^2_\beta ) \qquad \textit{ genetic effect }  \\
-\gamma_c &\sim N(0, \sigma^2_\gamma ) \qquad \textit{ interaction effects }  \\
+\gamma_c & \qquad \textit{ interaction effects }  \\
 u_n &\sim N(0, \sigma^2_u) \qquad \textit{ individual random effects } \\
 v_c &\sim N(0, \sigma^2_v)  \qquad \textit{ conc random effect } \\
 \xi &\sim MVN(0, \sigma^2_\xi \Sigma ) \qquad \textit{ kinship random effect }  \\
 \epsilon &\sim MVN(0, \text{diag}(\sigma^2_\epsilon)) \qquad \textit{ noise } 
 \end{align*}
 \begin{itemize}
-\item Integrate over $\beta, \gamma, u, v, \xi, \epsilon$, optimize the variances $V=\{ \sigma^2_\beta, \sigma^2_\gamma,  \sigma^2_u, \sigma^2_v,  \sigma^2_\xi, \sigma^2_\epsilon \}$
-\item Null hypothesis: $\sigma^2_\gamma = 0$. Alternative: $\sigma^2_\gamma > 0$.
-\item Look for
-$
-L=\log\frac{ \max_V P( y | V ) }{ \max_{V \backslash \sigma^2_\gamma} P(y | V, \sigma^2_\gamma=0 ) }
-L > 10$, roughly $ \sim p < 0.001$. 
+\item Integrate over $\beta, \gamma, u, v, \xi, \epsilon$, optimize interaction effects $\gamma_c$ and the variances $V=\{ \sigma^2_\beta, \sigma^2_\gamma,  \sigma^2_u, \sigma^2_v,  \sigma^2_\xi, \sigma^2_\epsilon \}$
+\item Null hypothesis: $\gamma_c = 0$. Alternative: $\gamma_c \in \mathbb{R}$.
+\item Likelihood ratio test
+$ L=\log\frac{ \max_V P( y | V, \gamma ) }{ \max_{V \backslash \gamma} P(y | V, \gamma_c=0 ) } $
 \end{itemize}
+\end{frame}
+
+\begin{frame}{Associations}
+\begin{itemize}
+\item 99 at 5\% FDR, 189 at 10\%
+\end{itemize}
+\centering
+\includegraphics[width=.5\textwidth,clip,trim=0 0 0 0]{../figures/lrt.pdf}
 \end{frame}
 
 \begin{frame}{Sensitizing}
@@ -237,6 +256,39 @@ L > 10$, roughly $ \sim p < 0.001$.
 \includegraphics[width=\textwidth,clip,trim=0 0 0 0]{../figures/iqtl_types/buffering.pdf}
 \end{frame}
 
+\begin{frame}{Using allelic signal: example 1}
+\centering
+\includegraphics[width=\textwidth,clip,trim=0 0 0 0]{../figures/ENSG00000197386.pdf}
+\end{frame}
+
+\begin{frame}{Using allelic signal: example 1}
+\centering
+\includegraphics[width=.7\textwidth,clip,trim=0 0 0 0]{../figures/ENSG00000197386_ase.pdf}
+\end{frame}
+
+\begin{frame}{Using allelic signal: example 2}
+\centering
+\includegraphics[width=\textwidth,clip,trim=0 0 0 0]{../figures/56.pdf}
+\end{frame}
+
+\begin{frame}{Using allelic signal: example 2}
+\centering
+\includegraphics[width=.7\textwidth,clip,trim=0 0 0 0]{../figures/5.pdf}
+\end{frame}
+
+\begin{frame}{Using allelic signal: example 2}
+\centering
+\includegraphics[width=.7\textwidth,clip,trim=0 0 0 0]{../figures/example_ai_vs_lrt.pdf}
+\end{frame}
+
+\begin{frame}{Sanity checking with eQTLs}
+\includegraphics[page=3,width=\textwidth,clip,trim=0 0 0 0]{../figures/phasing_vs_eQTL.pdf} 
+\end{frame}
+
+\begin{frame}{Sanity checking with eQTLs}
+\includegraphics[page=20,width=\textwidth,clip,trim=0 0 0 0]{../figures/phasing_vs_eQTL.pdf}
+\end{frame}
+
 \begin{frame}{Troponin}
 \begin{itemize}
 \item Used as a blood borne marker of cardiac damage
@@ -250,7 +302,7 @@ L > 10$, roughly $ \sim p < 0.001$.
 \item Using allelic signal to improve power (challenging for iQTLs)
 \item Link to clinical variables and troponin response
 \item Look for TF motifs explaining iQTLs
-\item Splicing (obviously)
+\item Splicing
 \item Unfortunately I can't find a GWAS for dox cardiotoxicity sensivitiy...
 \end{itemize}
 \end{frame}

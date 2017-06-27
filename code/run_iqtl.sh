@@ -1,10 +1,10 @@
 #!/bin/sh
 #$ -S /bin/bash
 
-ggcd $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR
 
-hostname
+echo Chromosome: $CHROM
+echo Normalization: $NORM
 
-echo $CHROM
-
-Rscript run_iqtl_lrt.R $CHROM
+# Rscript run_iqtl_lrt.R $NORM $CHROM
+Rscript panama_test.R $NORM $CHROM

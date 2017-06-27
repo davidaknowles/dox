@@ -1,0 +1,67 @@
+source("utils.R")
+
+input <- read.delim("../data/counts_log_cpm.txt.gz")
+input=quantile_normalize(input)
+
+svd_ge=svd(input)
+total_prop=cumsum(svd_ge$d^2) / sum(svd_ge$d^2)
+which.min( abs(total_prop - .95) ) # 68
+
+anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
+
+X = model.matrix( ~ as.factor(conc), data=anno)[,2:5]
+
+b=solve( t(X) %*% X, t(X) %*% t(input) )
+
+resi = input - t(X %*% b)
+
+svd_ge=svd(resi)
+total_prop=cumsum(svd_ge$d^2) / sum(svd_ge$d^2)
+which.min( abs(total_prop - .95) ) # 93
+
+#require(irlba)
+#irl=irlba(resi)
+
+require(rstan)
+panama=stan_model("panama.stan")
+
+self_outer=function(g) outer(g,g)
+P=20
+
+x_adjustable=foreach(p=1:P) %do% { svd_ge$v[,p] }
+#inner_prods=foreach(p=1:P) %do% { self_outer( svd_ge$v[,p] ) }
+
+same_ind=outer(anno$findiv, anno$findiv, "==") * 1
+same_conc=outer(anno$conc, anno$conc, "==") * 1
+errorCovariance = readRDS( "../data/error_covariance.Rds" ) 
+
+findiv=sample_anno$findiv
+names(findiv)=sample_anno$cell_line
+findiv[ findiv==160001 ]=106411
+anno$findiv=as.character(findiv[anno$individual])
+
+# residual after removing first P PCs
+rr = resi - svd_ge$u[,1:P] %*% diag(svd_ge$d[1:P]) %*% t(svd_ge$v[,1:P])
+
+inner_prods=list(diag(ncol(input)),errorCovariance[ anno$findiv, anno$findiv ],same_ind,same_conc)
+ip_s=c( mean(rr^2), 0.01, 0.01, mean(b^2)  )
+
+#x_adjustable=matrix(0, nrow=0, ncol=ncol(input))
+dat=list(y=resi, N=ncol(input), G=nrow(input), P=length(inner_prods), x=inner_prods, P_adjustable=length(x_adjustable))
+sinit=svd_ge$d^2 / nrow(input)
+
+init=list( s_adjustable=sinit[1:P], s=ip_s, x_adjustable=x_adjustable )
+o=optimizing(panama, data=dat, init=init, verbose=T, as_vector=F, iter=200)
+
+Kern=Reduce("+", foreach(p=1:dat$P_adjustable) %do% { o$par$s_adjustable[p] * self_outer(o$par$x_adjustable[p,]) } ) + Reduce( "+", foreach(p=2:dat$P) %do% { o$par$s[p] * dat$x[[p]] } ) # don't include noise
+
+saveRDS(Kern, file="../data/Kern.rds")
+
+o$par$s[1] # noise variance
+
+require(dendextend)
+colnames(input) = anno$sample
+dend = input[,1:80] %>% t %>% dist %>% hclust %>% as.dendrogram
+labels_colors(dend) = as.numeric(factor(anno$conc[1:80]))[order.dendrogram(dend)]
+plot(dend)
+ColorDen
