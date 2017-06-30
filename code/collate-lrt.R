@@ -36,7 +36,7 @@ input=quantile_normalize(input)
 anno$findiv=as.character(findiv[anno$individual])
 
 chroms=c(paste0("chr",1:22),"chrX")
-
+    
 pdf("../figures/panama_hits.pdf",width=7,height=5)
 #pdf("../figures/lrt-iqtl-imp-new.pdf",width=7,height=5)
 #threshold=0.0005

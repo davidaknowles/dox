@@ -25,9 +25,11 @@ snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
 if (interactive()) {
   chrom="chr8"
   normalization_approach="qq"
+  permuted=F
 } else {
   ca=commandArgs(trailingOnly = T)
   chrom=ca[2]
+  permuted=ca[3]
   normalization_approach=ca[1]
 }
 
@@ -74,60 +76,86 @@ errorhandling=if (interactive()) 'stop' else 'remove'
 same_ind=outer(anno$findiv, anno$findiv, "==") * 1
 same_conc=outer(anno$conc, anno$conc, "==") * 1
 
-eig_K=eigen(readRDS("../data/Kern.rds"))
+K=readRDS("../data/Kern.rds")
+eig_K=eigen(K)
+
+anno = anno %>% mutate(conc=as.factor(conc))
+no_geno = model.matrix( ~ conc, data=anno) # [,2:5]
+
+N=ncol(input)
 
 results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) %do% {
   
   print(gene)
-  y=input[gene,]
+  y=input[gene,] %>% as.numeric
+  y=y-mean(y)
+  
   cis_snps=snploc[ ((geneloc[gene,"left"]-cisdist) < snploc$pos) & ((geneloc[gene,"right"]+cisdist) > snploc$pos), "snpid" ]
   cis_snps=as.character(cis_snps)
 
   imp_geno=easy_impute(genotype[cis_snps,])
+  
+  if (permuted=="permute") colnames(imp_geno)=colnames(imp_geno)[ sample(ncol(imp_geno),ncol(imp_geno)) ]
   # cis_snp=as.character(cis_snps)[1]
   
-  N=length(y)
-  
-  intercept_only=matrix(1,ncol=1,nrow=N)
-  data=list(N=N,x=intercept_only,P=1,y=y-mean(y), U_transpose=t(eig_K$vectors), lambda=eig_K$values)
+  data=list(N=N,U_transpose_x=t(eig_K$vectors) %*% no_geno,P=ncol(no_geno), U_transpose_y=t(eig_K$vectors) %*% y %>% as.numeric, lambda=eig_K$values)
 
-  init=list(sigma2=0.1, sigma2_k=1.0, beta=array(0.0))
+  init=list(sigma2=0.1, sigma2_k=1.0, beta=lm(y ~ no_geno - 1) %>% coef )
 
   fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
   foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
     geno=imp_geno[cis_snp,anno$findiv]
     if (sum(imp_geno[cis_snp,]) < 5.0) return(NULL)
-    #l=lm(y ~ geno + as.factor(anno$conc))
-    #anno$geno=geno
-    #lme(y ~ geno + as.factor(conc), anno, ~ 1|as.factor(findiv), correlation = corSymm(, fixed=T))
 
-    data$x=cbind( intercept_only, geno )
-    data$P=ncol(data$x)
-    init=fit_no_geno$par
-    init$beta=c(init$beta,0.0)
+    lrt = function(data) {
+      data$U_transpose_x=t(eig_K$vectors) %*% cbind( no_geno, geno )
+      data$P=ncol(data$U_transpose_x)
+      init=fit_no_geno$par
+      init$beta=c(init$beta,0.0)
+      
+      fit_geno=optimizing(panama_test, data, init=init, as_vector=F )
+      
+      interact=model.matrix(~geno:conc,data=anno)
+      interact=interact[,3:ncol(interact)]
+      data_interact=data
+      data_interact$U_transpose_x=t(eig_K$vectors) %*% cbind( no_geno, geno, interact )
+      data_interact$P=ncol(data_interact$U_transpose_x)
     
-    fit_geno=optimizing(panama_test, data, init=init, as_vector=F )
+      init=fit_geno$par
+      init$beta=c(init$beta,numeric(ncol(interact)))
+      fit_interact=optimizing(panama_test, data_interact, init=init, as_vector=F)
+      
+      list( fit_geno=fit_geno, fit_interact=fit_interact )
+    }
     
-    interact=model.matrix(~geno:as.factor(conc),data=anno)
-    interact=interact[,3:ncol(interact)]
-    data_interact=data
-    data_interact$x=cbind( intercept_only, geno, interact )
-    data_interact$P=ncol(data_interact$x)
-  
-    init=fit_geno$par
-    init$beta=c(init$beta,numeric(ncol(interact)))
-    fit_interact=optimizing(panama_test, data_interact, init=init, as_vector=F)
+    lrt_true=lrt( data )
+    fit_geno=lrt_true$fit_geno
+    fit_interact=lrt_true$fit_interact
+    
+    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value, df=ncol(interact)  )
+    
+    if (permuted=="boot") {
+      Sigma = fit_geno$par$sigma2_k * K + fit_geno$par$sigma2 * diag(N)
+      chol_Sigma = chol(Sigma)
+      xb = cbind( no_geno, geno ) %*% fit_geno$par$beta
+      y_boot = t(chol_Sigma) %*% rnorm(N) + xb
+      data_boot = data
+      data_boot$U_transpose_y = t(eig_K$vectors) %*% y_boot %>% as.numeric()
+      lrt_boot = lrt( data_boot )
+      res$l_boot_geno=lrt_boot$fit_geno$value
+      res$l_boot_interact=lrt_boot$fit_interact$value
+    }
     
     #lrt_interact=2.0*(fit_interact$value - fit_geno$value)
     #df_interact=ncol(interact)
     # pchisq(lrt,df,lower.tail=F)
     
-    data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value, df=ncol(interact)  )
+    res
   }
   
 }
 
-resdir=paste0("~/dagscratch/dox/panama_",normalization_approach,"/")
+resdir=paste0("~/dagscratch/dox/panama_",normalization_approach,"_",permuted),"/")
 dir.create(resdir)
 
 gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")

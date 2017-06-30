@@ -1,5 +1,11 @@
 require(Matrix)
 
+lrt_pvalue=function(halfdevi,df) pchisq(2*halfdevi,df=df,lower.tail = F)
+
+bonferroni=function(g) { g %>% group_by(gene) %>% 
+    summarize(p=min(p) * length(p) , cis_snp=cis_snp[which.min(p)] ) %>% 
+    mutate( q=p %>% pmin(1) %>% p.adjust(method="BH") ) }
+
 unscale=function(g) {
   sweep( sweep(g, 1, attr(g,"scaled:scale"), "*"), 1, attr(g,"scaled:center"), "+")
 }

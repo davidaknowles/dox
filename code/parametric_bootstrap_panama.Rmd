@@ -1,0 +1,98 @@
+---
+title: "Parametric bootstrap (panama)"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("utils.R")
+```
+
+## R Markdown
+```{r}
+res_dir="../panama_qq_perm1/"
+eqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
+  print(fn)
+  read.table(paste0(res_dir,fn), header = T, stringsAsFactors = F)
+}
+
+eqtl=eqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
+                      p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
+                      p_joint=lrt_pvalue(l_interact-l0,df=df+1) )
+
+most_sig = eqtl %>% top_n(1, -p_interact)
+most_sig
+```
+
+```{r}
+gene=most_sig$gene[1]
+cis_snp=as.character( most_sig$cis_snp )
+
+y=input[gene,] %>% as.numeric
+cis_snps=snploc[ ((geneloc[gene,"left"]-cisdist) < snploc$pos) & ((geneloc[gene,"right"]+cisdist) > snploc$pos), "snpid" ]
+cis_snps=as.character(cis_snps)
+
+  imp_geno=easy_impute(genotype[cis_snps,])
+  
+  if (permuted) colnames(imp_geno)=colnames(imp_geno)[ sample(ncol(imp_geno),ncol(imp_geno)) ]
+  # cis_snp=as.character(cis_snps)[1]
+  
+  N=length(y)
+  
+  intercept_only=matrix(1,ncol=1,nrow=N)
+  y=y-mean(y)
+  data=list(N=N,U_transpose_x=t(eig_K$vectors) %*% intercept_only,P=1, U_transpose_y=t(eig_K$vectors) %*% y %>% as.numeric, lambda=eig_K$values)
+
+  init=list(sigma2=0.1, sigma2_k=1.0, beta=array(0.0))
+
+  fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
+  
+  geno=imp_geno[cis_snp,anno$findiv]
+    if (sum(imp_geno[cis_snp,]) < 5.0) return(NULL)
+    #l=lm(y ~ geno + as.factor(anno$conc))
+    #anno$geno=geno
+    #lme(y ~ geno + as.factor(conc), anno, ~ 1|as.factor(findiv), correlation = corSymm(, fixed=T))
+
+    lrt = function(data) {
+      data$U_transpose_x=t(eig_K$vectors) %*% cbind( intercept_only, geno )
+      data$P=ncol(data$U_transpose_x)
+      init=fit_no_geno$par
+      init$beta=c(init$beta,0.0)
+      
+      fit_geno=optimizing(panama_test, data, init=init, as_vector=F )
+      
+      interact=model.matrix(~geno:as.factor(conc),data=anno)
+      interact=interact[,3:ncol(interact)]
+      data_interact=data
+      data_interact$U_transpose_x=t(eig_K$vectors) %*% cbind( intercept_only, geno, interact )
+      data_interact$P=ncol(data_interact$U_transpose_x)
+      
+      init=fit_geno$par
+      init$beta=c(init$beta,numeric(ncol(interact)))
+      fit_interact=optimizing(panama_test, data_interact, init=init, as_vector=F)
+      
+      list( fit_geno=fit_geno, fit_interact=fit_interact )
+    }
+    
+    lrt_true=lrt( data )
+    fit_geno=lrt_true$fit_geno
+    
+    K=readRDS("../data/Kern.rds")
+    
+    Sigma = fit_geno$par$sigma2_k * K + fit_geno$par$sigma2 * diag(N)
+    chol_Sigma = chol(Sigma)
+    xb = cbind( intercept_only, geno ) %*% fit_geno$par$beta
+    # mean(abs(cov( t( t(chol_Sigma) %*% matrix(rnorm(10000 * N), N) ) ) - Sigma))
+    lr_boot = foreach(i=1:1000, .combine = c) %dopar% {
+      y_boot = t(chol_Sigma) %*% rnorm(N) + xb
+      data$U_transpose_y = t(eig_K$vectors) %*% y_boot %>% as.numeric()
+      lrt_boot = lrt( data )
+      lrt_boot$fit_interact$value - lrt_boot$fit_geno$value
+    }
+    
+    p_boot = lrt_pvalue(lr_boot, ncol(interact))
+    
+    lm( data$y ~  )
+    
+    multiqq(list(perm=p_boot)) # looks good
+```
