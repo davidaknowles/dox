@@ -10,11 +10,8 @@ require(data.table)
 require(foreach)
 require(dplyr)
 require(tidyr)
-require(magrittr)
-require(doMC)
-registerDoMC(7)
-load_synergy=T
-source("load_data.R")
+require(leafcutter)
+
 source("utils.R")
 ```
 
@@ -27,40 +24,68 @@ qplot(res$p, geom='histogram') + xlim(0,1)
 ```
 
 ```{r}
-
-
-eqtl=foreach(fn=list.files("../panama_qq/",glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
+res_dir="../panama_qq_boot/"
+eqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
   print(fn)
-  read.table(paste0("../panama_qq/",fn), header = T, stringsAsFactors = F)
+  read.table(paste0(res_dir,fn), header = T, stringsAsFactors = F)
 }
+
+df=4
 eqtl=eqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
                       p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
-                      p_joint=lrt_pvalue(l_interact-l0,df=df+1) )
+                      p_joint=lrt_pvalue(l_interact-l0,df=df+1),
+                      p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) )
+```
 
+How many eQTLs, pooling across concentrations. 
+```{r}
 geno_bf=eqtl %>% mutate(p=p_geno) %>% bonferroni
 geno_threshold=geno_bf %>% filter(q<.05) %>% .$p %>% max
-sum(geno_bf$q < 0.05) # 202
+sum(geno_bf$q < 0.05) # 202, 674
+```
 
+How many interaction QTLs (assuming calibrated p-values). 
+```{r}
 interact_bf=eqtl %>% mutate(p=p_interact) %>% bonferroni
 interact_threshold=interact_bf %>% filter(q<.05) %>% .$p %>% max
-sum(interact_bf$q < 0.05) # 603
+sum(interact_bf$q < 0.05) # 603, 371
+```
+According to parametric bootstrap are interaction p-values calibrated? Not, not great. 
+```{r}
+boot_bf=eqtl %>% mutate(p=p_boot) %>% bonferroni
+sum(boot_bf$q < 0.05) 
+qplot(boot_bf$p, geom = "histogram") + xlim(0,1)
+multiqq(list(boot=boot_bf$p))
+```
 
+```{r}
+pvalue_qqplot( eqtl$p_boot ) 
+```
+
+```{r}
+hist(eqtl$p_boot)
+```
+
+How many where genotype has any effect? 
+```{r}
 joint_bf=eqtl %>% mutate(p=p_joint) %>% bonferroni
 joint_threshold=joint_bf %>% filter(q<.05) %>% .$p %>% max
-sum(joint_bf$q < 0.05) # 824
+sum(joint_bf$q < 0.05) # 824, 1091
+```
 
+Response eQTL does not imply regular eQTL. 
+```{r}
 eqtl %>% group_by(gene) %>% 
   summarize(p_interact=min(p_interact) * length(p_interact), p_geno=p_geno[which.min(p_interact)] * length(p_interact))  %>% ggplot(aes(-log10(p_interact),-log10(p_geno))) + geom_point() + geom_hline(yintercept = -log10(geno_threshold)) + geom_vline(xintercept = -log10(interact_threshold))
 ```
 
-So response eQTL does not imply regular eQTL. 
+Joint eQTL usually implies eQTL. 
 ```{r}
 eqtl %>% group_by(gene) %>% 
   summarize(p_joint=min(p_joint) * length(p_joint), p_geno=p_geno[which.min(p_joint)] * length(p_joint))  %>% ggplot(aes(-log10(p_joint),-log10(p_geno))) + geom_point() + geom_hline(yintercept = -log10(geno_threshold)) + geom_vline(xintercept = -log10(joint_threshold))
 ```
 
 Joint eQTL doesn't require eQTL either.
-
 ```{r}
 eqtl %>% group_by(gene) %>% 
   summarize(p_joint=min(p_joint) * length(p_joint), p_interact=p_interact[which.min(p_joint)] * length(p_joint))  %>% ggplot(aes(-log10(p_joint),-log10(p_interact))) + geom_point() + geom_hline(yintercept = -log10(interact_threshold)) + geom_vline(xintercept = -log10(joint_threshold))
@@ -70,6 +95,7 @@ eqtl %>% group_by(gene) %>%
 all_top=bind_rows( eqtl %>% group_by(gene) %>% top_n(1, -p_geno), eqtl %>% group_by(gene) %>% top_n(1, -p_interact), eqtl %>% group_by(gene) %>% top_n(1, -p_joint) ) 
 all_top %>% ggplot(aes(-log10(p_geno),-log(p_joint))) + geom_point() + geom_abline()
 ```
+
 ```{r}
 all_top %>% ggplot(aes(-log10(p_interact),-log(p_joint))) + geom_point() + geom_abline()
 ```
@@ -79,7 +105,7 @@ all_top %>% ggplot(aes(-log10(p_interact),-log(p_geno))) + geom_point() + geom_a
 ```
 
 ```{r}
-hits=joint_bf %>% top_n(10, -p) %>% arrange(p)
+hits=interact_bf %>% top_n(10, -p) %>% arrange(p)
 foreach(i=1:nrow(hits)) %do% {
   hit=hits[i,]
   geno=genotype[ as.character(hit$cis_snp),anno$findiv]
@@ -88,36 +114,56 @@ foreach(i=1:nrow(hits)) %do% {
 ```
 
 ```{r}
-res_dir="../panama_qq_perm1/"
+fdr_results=foreach( q_thres=c(0.01,0.02,0.05,0.1,0.2,0.5), .combine=bind_rows )  %do% {
+  nominal_p=interact_bf %>% filter(q<q_thres) %>% .$p %>% max
+  data.frame( nominal_q=q_thres, boot_hits=sum( boot_bf$p < nominal_p ), nhits=sum( interact_bf$q < q_thres), nominal_p=nominal_p )
+} %>% mutate( empirical_q=boot_hits / nhits )
+# fdr_results %>% ggplot(aes(nominal_q, empirical_q)) + geom_point(size=3)  + geom_abline()
+fdr_results %>% mutate( real_hits = nhits - boot_hits ) %>% select( nominal_q, empirical_q, real_hits, boot_hits ) %>% gather( real, hits, real_hits, boot_hits ) %>%
+  mutate( real= factor(real, c("boot_hits", "real_hits"), c("False positive", "True positive") ), empirical_q=as.factor(format(empirical_q,digits=2)) , nominal_q=as.factor(format(nominal_q,digits=2))) %>% ggplot(aes( nominal_q, hits, fill=real)) + geom_bar(stat="identity" ) + geom_text(aes(nominal_q, -40, label=paste0("(",empirical_q,")") ) ) + xlab("Nominal FDR (Empirical FDR)") + ylab("Number of associations") + theme(legend.position = c(.2,.8))
+```
+
+```{r}
+res_dir="../panama_qq_permute/"
 eqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
   print(fn)
   read.table(paste0(res_dir,fn), header = T, stringsAsFactors = F)
 }
+```
 
+Look pretty calibrated
+```{r}
 eqtl=eqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
                       p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
                       p_joint=lrt_pvalue(l_interact-l0,df=df+1) )
+hist(eqtl$p_geno)
+```
 
-qplot(eqtl$p_geno, geom="histogram") 
-
+No eQTLs, good!
+```{r}
 geno_bf=eqtl %>% mutate(p=p_geno) %>% bonferroni
-geno_threshold=geno_bf %>% filter(q<.05) %>% .$p %>% max
-sum(geno_bf$q < 0.05) # 202
+sum(geno_bf$q < 0.05) 
+```
 
-require(leafcutter)
-multiqq(list(perm=geno_bf$p))
-qplot(geno_bf$p, geom="histogram") + xlim(0,1)
-
-
+14 interaction QTLs (but this isn't really a valid permutation strategy)
+```{r}
 interact_bf=eqtl %>% mutate(p=p_interact) %>% bonferroni
 interact_threshold=interact_bf %>% filter(q<.05) %>% .$p %>% max
-sum(interact_bf$q < 0.05) # 603
-multiqq(list(perm=interact_bf$p))
+sum(interact_bf$q < 0.05) 
+hist(eqtl$p_interact)
+```
 
+
+```{r}
 joint_bf=eqtl %>% mutate(p=p_joint) %>% bonferroni
 joint_threshold=joint_bf %>% filter(q<.05) %>% .$p %>% max
-sum(joint_bf$q < 0.05) # 824
+sum(joint_bf$q < 0.05)
+hist(eqtl$p_joint)
+```
 
-eqtl %>% group_by(gene) %>% 
-  summarize(p_interact=min(p_interact) * length(p_interact), p_geno=p_geno[which.min(p_interact)] * length(p_interact))  %>% ggplot(aes(-log10(p_interact),-log10(p_geno))) + geom_point() + geom_hline(yintercept = -log10(geno_threshold)) + geom_vline(xintercept = -log10(interact_threshold))
+```{r}
+gwas=read.table("../data/164860_3_supp_3656461_nd3knz.txt", header=T, stringsAsFactors = F) %>% 
+  mutate(Ch=paste0("chr",Ch))
+gwas %>% mutate(BP=BP+1) %>% left_join( snploc , by=c(Ch="chr", BP="pos") ) %>% .$snpid
+a=load("~/Dropbox/enviro_code/smalle_data/common_snps.RData")
 ```

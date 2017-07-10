@@ -3,7 +3,7 @@ require(Matrix)
 lrt_pvalue=function(halfdevi,df) pchisq(2*halfdevi,df=df,lower.tail = F)
 
 bonferroni=function(g) { g %>% group_by(gene) %>% 
-    summarize(p=min(p) * length(p) , cis_snp=cis_snp[which.min(p)] ) %>% 
+    summarize( cis_snp=cis_snp[which.min(p)], p=min(p) * length(p)  ) %>% 
     mutate( q=p %>% pmin(1) %>% p.adjust(method="BH") ) }
 
 unscale=function(g) {
@@ -65,4 +65,11 @@ quantile_normalize=function(input) {
   qnorm_input=t(as.matrix(as.data.frame(res)))
   dimnames(qnorm_input)=dimnames(input)
   qnorm_input
+}
+
+pvalue_qqplot=function(pvalues, nl10_obs_p_threshold=0) {
+  n=length(pvalues)
+  data.frame(x=-log10(seq(1/n, 1, length.out = n)), y=-log10(sort(pvalues)) ) %>%
+    filter( y > nl10_obs_p_threshold ) %>%
+    ggplot(aes(x,y)) + geom_point() + geom_abline(intercept=0,slope=1) + xlab("Expected -log10(p)") + ylab("Observed -log10(p)") + expand_limits(x=0, y=0)
 }

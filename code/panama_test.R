@@ -25,7 +25,7 @@ snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
 if (interactive()) {
   chrom="chr8"
   normalization_approach="qq"
-  permuted=F
+  permuted="boot"
 } else {
   ca=commandArgs(trailingOnly = T)
   chrom=ca[2]
@@ -72,9 +72,6 @@ genes=intersect(rownames(input),geneloc$geneid)
 rownames(geneloc)=geneloc$geneid
 cisdist=1e5
 errorhandling=if (interactive()) 'stop' else 'remove'
-
-same_ind=outer(anno$findiv, anno$findiv, "==") * 1
-same_conc=outer(anno$conc, anno$conc, "==") * 1
 
 K=readRDS("../data/Kern.rds")
 eig_K=eigen(K)
@@ -132,7 +129,7 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
     fit_geno=lrt_true$fit_geno
     fit_interact=lrt_true$fit_interact
     
-    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value, df=ncol(interact)  )
+    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value  )
     
     if (permuted=="boot") {
       Sigma = fit_geno$par$sigma2_k * K + fit_geno$par$sigma2 * diag(N)
@@ -155,7 +152,7 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
   
 }
 
-resdir=paste0("~/dagscratch/dox/panama_",normalization_approach,"_",permuted),"/")
+resdir=paste0("~/dagscratch/dox/panama_",normalization_approach,"_",permuted,"/")
 dir.create(resdir)
 
 gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
