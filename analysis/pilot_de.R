@@ -1,0 +1,1 @@
+ggplot( data.frame( conc=c(20,40,80,160), de=c(6921, 5729, 2049, 0) ), aes( as.factor(conc), de )) + geom_bar(stat="identity") + xlab("Dox concentration (uM)") + ylab("Genes differential expressed (5% FDR)") + theme_bw(base_size = 16)

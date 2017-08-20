@@ -256,6 +256,32 @@ $ L=\log\frac{ \max_V P( y | V, \gamma ) }{ \max_{V \backslash \gamma} P(y | V, 
 \includegraphics[width=\textwidth,clip,trim=0 0 0 0]{../figures/iqtl_types/buffering.pdf}
 \end{frame}
 
+\begin{frame}{Controlling for latent confounding}
+Extending PANAMA (Fusi, Stegle, Lawrence 2012): 
+1) Learn latent factors from all genes:
+\begin{align*}
+y_{nci} &= \sum_k W_{ki} x_{nck} + u_{ni} + v_{ci} + \xi_{nci} + \epsilon_{nci} \\
+x_{nck} & \qquad \textit{ latent factor $k$ } \\
+W_{ki} & \sim N(0, \sigma^2_k ) \qquad \textit{ factor loadings/coefficients } \\ 
+u_{ni} &\sim N(0, \sigma^2_u) \qquad \textit{ individual random effects } \\
+v_{ci} & \qquad \textit{ conc effect } \\
+\xi &\sim MVN(0, \sigma^2_\xi \Sigma ) \qquad \textit{ kinship random effect }  \\
+\epsilon &\sim MVN(0, \text{diag}(\sigma^2_\epsilon)) \qquad \textit{ noise } 
+\end{align*}
+\begin{itemize}
+\item Integrate over $W, u, \xi, \epsilon$, optimize $x,v$ and the variances $V=\{ \sigma^2_u, \sigma^2_k,  \sigma^2_\xi, \sigma^2_\epsilon \}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Controlling for latent confounding}
+2) Test individual genes accounting for confounding
+\begin{itemize}
+\item $ \Sigma_\text{PANAMA} = \sum_k \sigma^2_k x_k x_k^T + \sigma^2_u z z^T + \sigma^2_\xi \Sigma $
+\item Null: $ y_i \sim MVN( \mu + \beta g_n + u_
+\item Alternative: $ y_i \sim MVN( \mu 
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Using allelic signal: example 1}
 \centering
 \includegraphics[width=\textwidth,clip,trim=0 0 0 0]{../figures/ENSG00000197386.pdf}
