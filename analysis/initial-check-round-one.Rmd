@@ -16,7 +16,6 @@ library("knitr")
 opts_chunk$set(cache = TRUE)
 ```
 
-
 Each sample has been sequenced once in the first round of sequencing at the core.
 The reads were mapped to GRCh38 with STAR and assigned to protein-coding Ensembl genes with featureCounts.
 

@@ -39,6 +39,7 @@ library("dplyr")
 library("stringr")
 library("ggplot2")
 library("cowplot")
+theme_set(theme_bw(base_size = 14))
 ```
 
 Input annotation.
@@ -110,7 +111,8 @@ std_curve <- tr_intra %>%
                 reading = .$reading,
                 intercept = coef(.$mod)[1],
                 slope = coef(.$mod)[2],
-                r2 = summary(.$mod)$r.squared))
+                r2 = summary(.$mod)$r.squared,
+                stringsAsFactors=F  ))
 ```
 
 Convert absorbance to concentration.
@@ -268,6 +270,178 @@ Combined figure.
 
 ```{r fig.width=14}
 plot_grid(tr_v_dox, tr_var, labels = LETTERS[1:2])
+```
+
+## Fit per individual slope and mean
+
+Most straightforward approach is just a linear model with an interaction term. This is a lot of parameters (92) for only 230 datapoints. 
+```{r}
+d=d %>% mutate(individual=as.factor(findiv))
+l=lm(mean_inter ~ dosage * individual, data=d)
+co=coef(l)
+intercepts=co[paste0("individual",levels(d$individual))]
+intercepts[1]=0.
+names(intercepts)[1]=levels(d$individual)[1]
+intercepts = intercepts + co["(Intercept)"]
+
+slopes=co[paste0("dosage:individual",levels(d$individual))]
+slopes[1]=0.
+names(slopes)[1]=levels(d$individual)[1]
+slopes = slopes + co["dosage"]
+
+troponin_rate = data.frame( individual=levels(d$individual), intercepts=intercepts, slopes=slopes )
+
+cor.test(intercepts, slopes, data=troponin_rate)
+
+troponin_rate %>% ggplot( aes(intercepts, slopes, label=levels(d$individual))) + geom_text()
+```
+
+## How does this compare to transcriptomic response
+
+```{r}
+input <- read.delim("../data/counts_log_cpm.txt.gz")
+
+anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
+
+sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
+
+# mapping from cell-line ID to individual
+findiv=sample_anno$findiv
+names(findiv)=sample_anno$cell_line
+stopifnot(is.character(anno$individual))
+
+colnames(input)=findiv[anno$individual]
+```
+
+```{r}
+pca <- prcomp(t(input), scale. = TRUE)
+variances <- pca$sdev^2
+explained <- variances / sum(variances)
+
+pca_data <- cbind(anno, pca$x[, 1:5])
+
+pca_data %>% mutate(conc=as.factor(conc)) %>% 
+  ggplot( aes(x = PC1, y = PC2, group=individual, color=conc)) +
+  geom_text(aes(label = conc)) +
+  geom_path(aes(alpha=.3)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+Raw PCA plot shows there are individuals with offset trajectories. How to remove this variance? 
+
+### Idea 1: recenter so concentration 0 is at 0. 
+
+```{r}
+pca_data_0 = pca_data
+foreach(individual=unique(pca_data_0$individual)) %do% {
+  rows=pca_data_0$individual==individual
+  cols=paste0("PC",1:5)
+  pca_data_0[rows, cols] = sweep(pca_data_0[rows, cols], 
+                                 2, 
+                                 (pca_data_0[rows, ] %>% filter(conc==0.))[,cols] %>% as.numeric, "-" )
+  
+pca_data_0 %>% mutate(conc=as.factor(conc)) %>% 
+  ggplot( aes(x = PC1, y = PC2, group=individual, color=conc)) +
+  geom_text(aes(label = conc)) +
+  geom_path(aes(alpha=.3)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+This does not fully correct for offset at higher concentrations. 
+
+### Idea 2. Recenter each individual according to mean across conc
+
+```{r}
+pca_data_i = pca_data
+dummy_=foreach(individual=unique(pca_data_0$individual)) %do% {
+  rows=pca_data_i$individual==individual
+  cols=paste0("PC",1:5)
+  pca_data_i[rows, cols] = scale(pca_data_i[rows, cols], scale=F)
+}
+  
+pca_data_i %>% mutate(conc=as.factor(conc)) %>% 
+  ggplot( aes(x = PC1, y = PC2, group=individual, color=conc)) +
+  geom_text(aes(label = conc)) +
+  geom_path(aes(alpha=.3)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+This looks better but might be removing too much biological signal at the 0.625 and 1.250 concentrations. 
+
+### Idea 3: center based on 0., 2.5 and 5. concentrations
+
+These seem like they should be reasonably consistent across individuals.
+
+```{r}
+pca_data_a = pca_data
+dummy_=foreach(individual=unique(pca_data_0$individual)) %do% {
+  rows=pca_data_a$individual==individual
+  cols=paste0("PC",1:5)
+  pca_data_a[rows, cols] = sweep(pca_data_a[rows, cols], 
+                                 2, 
+                                 colMeans( (pca_data_a[rows,] %>% filter(conc %in% c(0.0, 2.5, 5.)))[,cols] ), "-" )
+}
+  
+pca_data_a %>% mutate(conc=as.factor(conc)) %>% 
+  ggplot( aes(x = PC1, y = PC2, group=individual, color=conc)) +
+  geom_text(aes(label = conc)) +
+  geom_path(aes(alpha=.3)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+This might be bad when there are missing concentrations I think? 
+
+Normalizing across all concs looks cleanest. Fit principal curve: 
+```{r}
+require(princurve)
+pca_data_to_use=pca_data_0
+start = pca_data_to_use %>% group_by(conc) %>% select(cols) %>% summarise_all(mean) %>% ungroup() %>% select(cols) %>% as.matrix()
+pcurve=principal.curve(pca_data_to_use[,cols] %>% as.matrix, start=start)
+pca_data$lambda=pcurve$lambda
+curve_df=data.frame(x=pcurve$s[pcurve$tag,1],y=pcurve$s[pcurve$tag,2])
+pca_df=pca_data_to_use %>% mutate(conc=as.factor(conc))
+projection_df=data.frame(conc=pca_df$conc, x=pca_df$PC1, y=pca_df$PC2, xend=pcurve$s[,1], yend=pcurve$s[,2])
+ggplot(curve_df, aes(x,y)) + geom_point( data=pca_df, aes(x = PC1, y = PC2, color=conc)) + geom_segment(data=projection_df, aes(x=x,y=y,xend=xend,yend=yend,col=conc))+ geom_path() +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+```{r}
+pca_data %>% ggplot(aes(conc %>% as.factor() %>% as.numeric(), lambda / max(lambda), group=individual, col=individual)) + geom_point() + geom_path() + xlab("Dox concenration") + scale_x_continuous(breaks=1:5, labels = unique(pca_data$conc)) + ylab("Position on principal curve")
+```
+
+### Initial progression rate
+
+```{r}
+require(broom)
+progression_rate = pca_data %>% filter(conc %in% c(0.,.625,1.25)) %>% group_by(individual) %>% do(tidy(lm(lambda ~ conc - 1, data=.))) %>% filter(!is.na(estimate), term=="conc" )
+hist(progression_rate$estimate)
+```
+
+```{r}
+progression_rate$findiv=findiv[ progression_rate$individual ]
+
+joined = progression_rate %>% 
+  left_join(troponin_rate %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(findiv="individual")) 
+
+cor.test(joined$estimate, joined$intercepts)
+cor.test(joined$estimate, joined$slopes)
+cor.test(joined$estimate, joined$slopes, method="spearman")
+
+#joined %>% ggplot(aes(estimate, intercepts)) + geom_point() # not significant
+joined %>% ggplot(aes(estimate, slopes, label=individual)) + geom_point(alpha=0.1) + geom_text() + xlab("Transcriptomic response") + ylab("Troponin response")
+```
+
+Just compare to lambda at 1.25 conc since this is the most variable. 
+```{r}
+joined = pca_data %>% select( individual, conc, lambda ) %>% filter(conc==1.25) %>% mutate(findiv=findiv[ individual ]) %>%  left_join(troponin_rate %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(findiv="individual")) 
+cor.test(joined$lambda, joined$intercepts)
+cor.test(joined$lambda, joined$slopes)
+cor.test(joined$lambda, joined$slopes, method='spearman')
+joined %>% ggplot(aes(lambda, slopes, label=individual)) + geom_point(alpha=0.1) + geom_text() + xlab("Transcriptomic response") + ylab("Troponin response") 
 ```
 
 ## Save data
