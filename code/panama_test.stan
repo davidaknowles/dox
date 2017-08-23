@@ -1,11 +1,11 @@
 
 data {
-  int<lower=0> N; # individuals
-  int<lower=0> P; # covariates
-  # U areeigenvectors of K 
-  matrix[N,P] U_transpose_x; # rotated covariates
-  vector[N] lambda; # eigenvalues of K
-  vector[N] U_transpose_y;  # rotated expression
+  int<lower=0> N; // individuals
+  int<lower=0> P; // covariates
+  // U areeigenvectors of K 
+  matrix[N,P] U_transpose_x; // rotated covariates
+  vector[N] lambda; // eigenvalues of K
+  vector[N] U_transpose_y;  // rotated expression
 }
 parameters {
   real<lower=0> sigma2_k;

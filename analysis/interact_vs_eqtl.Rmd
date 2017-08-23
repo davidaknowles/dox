@@ -12,15 +12,7 @@ require(dplyr)
 require(tidyr)
 require(leafcutter)
 
-source("utils.R")
-```
-
-```{r}
-
-res=read.table("../data/panama-summary.txt.gz", header = T)
-res=res %>% mutate(q=p %>% pmin(1) %>% p.adjust(method="BH"))
-
-qplot(res$p, geom='histogram') + xlim(0,1)
+source("../code/utils.R")
 ```
 
 ```{r}
@@ -50,6 +42,7 @@ interact_bf=eqtl %>% mutate(p=p_interact) %>% bonferroni
 interact_threshold=interact_bf %>% filter(q<.05) %>% .$p %>% max
 sum(interact_bf$q < 0.05) # 603, 371
 ```
+
 According to parametric bootstrap are interaction p-values calibrated? Not, not great. 
 ```{r}
 boot_bf=eqtl %>% mutate(p=p_boot) %>% bonferroni

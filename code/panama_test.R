@@ -23,7 +23,7 @@ geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt"),header=T,stringsAsFactors
 snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
 
 if (interactive()) {
-  chrom="chr8"
+  chrom="chr15"
   normalization_approach="qq"
   permuted="boot"
 } else {

@@ -1,5 +1,5 @@
 data {
-  int<lower=0> N; # samples (217)
+  int<lower=0> N; // samples (217)
   int<lower=0> P;
   int<lower=0> K; 
   matrix[N,P] y;
