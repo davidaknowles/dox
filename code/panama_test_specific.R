@@ -1,0 +1,158 @@
+
+DATADIR="~/scailscratch/dox/"
+library("dplyr")
+library("tidyr")
+library(data.table)
+source("utils.R")
+#registerDoMC(7)
+
+genotype=fread("zcat < ../data/genotype.txt.gz", data.table = F, header = T)
+
+rownames(genotype)=genotype$snpid
+genotype$snpid=NULL
+
+genotype=as.matrix(genotype)
+
+sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
+if (F) {
+    errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$findiv))
+    saveRDS( errorCovariance, file="../data/error_covariance.Rds" )
+} else { errorCovariance = readRDS( "../data/error_covariance.Rds" ) }
+
+geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt"),header=T,stringsAsFactors = F)
+snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
+
+#gwas_hit=data.frame(chr="chr15", pos=23457305, RSID="rs11855704")
+gwas_hit=data.frame(snpid=2961576,chr="chr4", pos=23168231, RSID="rs7676830")
+normalization_approach="qq"
+permuted="boot"
+
+cis_snp=snploc %>% filter(chr==gwas_hit$chr, pos==gwas_hit$pos) %>% .$snpid %>% as.character()
+any(is.na(genotype[cis_snp,]))
+
+geneloc=geneloc[geneloc$chr==gwas_hit$chr,]
+snploc=snploc[snploc$chr==gwas_hit$chr,]
+
+stopifnot(all(as.character(snploc$snpid) %in% rownames(genotype) ))
+genotype=genotype[as.character(snploc$snpid),]
+
+input <- read.delim("../data/counts_log_cpm.txt.gz")
+
+anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
+
+sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
+
+# mapping from cell-line ID to individual
+findiv=sample_anno$findiv
+names(findiv)=sample_anno$cell_line
+stopifnot(is.character(anno$individual))
+
+colnames(input)=findiv[anno$individual]
+
+#input=remove_PCs(input, num_PCs_to_remove)
+if (normalization_approach=="qq") {
+  input=quantile_normalize(input)
+} else if (normalization_approach=="log") {
+  input=input %>% t %>% scale %>% t
+} else if (normalization_approach=="linear") {
+  input=(2^input) %>% t %>% scale %>% t
+}
+
+findiv[ findiv==160001 ]=106411
+
+anno$findiv=as.character(findiv[anno$individual])
+
+require(rstan)
+panama_test=stan_model("panama_test.stan")
+
+rownames(geneloc)=geneloc$geneid
+cisdist=1e6
+
+genes = geneloc %>% filter(chr==gwas_hit$chr, gwas_hit$pos > (left-cisdist),  gwas_hit$pos < (right+cisdist) ) %>% .$geneid
+genes = intersect(rownames(input),genes)
+
+errorhandling=if (interactive()) 'stop' else 'remove'
+
+K=readRDS("../data/Kern.rds")
+eig_K=eigen(K)
+
+anno = anno %>% mutate(conc=as.factor(conc))
+no_geno = model.matrix( ~ conc, data=anno) # [,2:5]
+
+N=ncol(input)
+
+geno=genotype[cis_snp,anno$findiv]
+
+if (any(is.na(geno))) {
+  snps=  snploc %>% filter(abs(pos - gwas_hit$pos)<5e5) %>% .$snpid %>% as.character()
+  imp_geno=easy_impute( genotype[snps,]  )
+  geno=imp_geno[cis_snp,anno$findiv]
+  #imp_geno[cis_snp,is.na(genotype[cis_snp,])]
+}
+
+results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) %do% {
+  
+  print(gene)
+  y=input[gene,] %>% as.numeric
+  y=y-mean(y)
+  
+  data=list(N=N,U_transpose_x=t(eig_K$vectors) %*% no_geno,P=ncol(no_geno), U_transpose_y=t(eig_K$vectors) %*% y %>% as.numeric, lambda=eig_K$values)
+
+  init=list(sigma2=0.1, sigma2_k=1.0, beta=lm(y ~ no_geno - 1) %>% coef )
+
+  fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
+  
+    lrt = function(data) {
+      data$U_transpose_x=t(eig_K$vectors) %*% cbind( no_geno, geno )
+      data$P=ncol(data$U_transpose_x)
+      init=fit_no_geno$par
+      init$beta=c(init$beta,0.0)
+      
+      fit_geno=optimizing(panama_test, data, init=init, as_vector=F )
+      
+      interact=model.matrix(~geno:conc,data=anno)
+      interact=interact[,3:ncol(interact)]
+      data_interact=data
+      data_interact$U_transpose_x=t(eig_K$vectors) %*% cbind( no_geno, geno, interact )
+      data_interact$P=ncol(data_interact$U_transpose_x)
+    
+      init=fit_geno$par
+      init$beta=c(init$beta,numeric(ncol(interact)))
+      fit_interact=optimizing(panama_test, data_interact, init=init, as_vector=F)
+      
+      list( fit_geno=fit_geno, fit_interact=fit_interact )
+    }
+    
+    lrt_true=lrt( data )
+    fit_geno=lrt_true$fit_geno
+    fit_interact=lrt_true$fit_interact
+    
+    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value  )
+    
+    if (permuted=="boot") {
+      Sigma = fit_geno$par$sigma2_k * K + fit_geno$par$sigma2 * diag(N)
+      chol_Sigma = chol(Sigma)
+      xb = cbind( no_geno, geno ) %*% fit_geno$par$beta
+      y_boot = t(chol_Sigma) %*% rnorm(N) + xb
+      data_boot = data
+      data_boot$U_transpose_y = t(eig_K$vectors) %*% y_boot %>% as.numeric()
+      lrt_boot = lrt( data_boot )
+      res$l_boot_geno=lrt_boot$fit_geno$value
+      res$l_boot_interact=lrt_boot$fit_interact$value
+    }
+    
+    #lrt_interact=2.0*(fit_interact$value - fit_geno$value)
+    #df_interact=ncol(interact)
+    # pchisq(lrt,df,lower.tail=F)
+    
+    res
+
+}
+
+df=4
+results=results %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
+                      p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
+                      p_joint=lrt_pvalue(l_interact-l0,df=df+1),
+                      p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) )
+
+write.table(results, file=paste0("../results/",gwas_hit$RSID,".txt"),sep="\t",row.names=F, quote=F)
