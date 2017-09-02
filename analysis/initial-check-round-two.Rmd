@@ -42,10 +42,9 @@ str(input[, 1:10])
 Split annotation and counts.
 
 ```{r}
-anno <- input %>% dplyr::select(filename, individual, flow_cell, lane, index, conc)
-colnames(anno)[2]="sampleid"
-colnames(anno)[3]="individual"
-anno$filename=paste0("s",anno$filename)
+anno <- input %>% select(filename, sampleid=individual, individual=flow_cell, lane, index, conc) %>%
+  mutate( filename=paste0("s",filename) )
+
 counts_raw <- input %>% dplyr::select(starts_with("ENSG")) 
 counts_raw <- t(counts_raw)
 ```

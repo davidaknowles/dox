@@ -154,6 +154,14 @@ mean( eqtl$p_joint < 0.01 )
 join_all %>% ggplot(aes(-log10(p_joint), -log10(Pvalue))) + geom_point()
 ```
 
+Save eQTL with RSID for future use
+```{r}
+eqtl$chr=NULL
+gz=gzfile("../data/panana_all_eqtl.txt.gz","w")
+eqtl %>% write.table(gz, sep="\t", row.names=F, quote=F)
+close(gz)
+```
+
 Load all SNPs from the HumanOmni1-Quad_v1 used by the GWAS
 ```{r}
 gwas_array=read.csv("../data/HumanOmni1-Quad_v1-small.csv.gz", header = F) %>% 
@@ -264,7 +272,7 @@ table( genotype[as.character(gwas_hit$snpid),] )
 ```
 Yes, should have reasonable power. 
 
-## Canadian GWAS
+## Aminkeng GWAS
 
 From the Aminkeng GWAS, rs7676830 (chr4:23168481) is intergenic and replicates (weakly). No significant eQTL in GTEx. 
 - Nearest coding gene is GBA3 (ENSG00000249948, TSS at chr4:22,692,914, almost .5Mb away).
@@ -312,6 +320,8 @@ table( genotype[as.character(gwas_hit$snpid),] )
 
 Nice, should have decent power. 
 
+### The one decent hit is for 
+
 ## Plot of one potential hit
 
 ENSG00000275835
@@ -347,3 +357,5 @@ df %>% filter(conc %in% c(0, .625)) %>% lm(y ~ geno, data=.) %>% summary()
 ```
 
 Marginally significant :/ 
+
+
