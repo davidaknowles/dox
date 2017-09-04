@@ -1,3 +1,6 @@
+require(data.table)
+
+
 DATADIR=Sys.getenv("DOX_DATA")
 #DATADIR="~/gdrive/dox/"
 genotype=fread(paste0("zcat < ",DATADIR, "genotype.txt.gz"), data.table = F, header = T)
@@ -12,14 +15,14 @@ genotype=as.matrix(genotype)
 if (F) {
   errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$findiv))
   saveRDS( errorCovariance, file="../data/error_covariance.Rds" )
-} else { errorCovariance = readRDS( paste0("zcat < ",DATADIR, "error_covariance.Rds")  ) }
+} else { errorCovariance = readRDS( paste0(DATADIR, "error_covariance.Rds")  ) }
 
 
-input <- read.delim( paste0("zcat < ",DATADIR, "counts_log_cpm.txt.gz") )
+input <- read.delim( paste0(DATADIR, "counts_log_cpm.txt.gz") )
 
-anno <- read.delim( paste0("zcat < ",DATADIR, "sample_annotation.txt") , stringsAsFactors = F)
+anno <- read.delim( paste0(DATADIR, "sample_annotation.txt") , stringsAsFactors = F)
 
-sample_anno=read.table( paste0("zcat < ",DATADIR, "annotation.txt") , header=T, stringsAsFactors = F)
+sample_anno=read.table( paste0(DATADIR, "annotation.txt") , header=T, stringsAsFactors = F)
 
 # mapping from cell-line ID to individual
 findiv=sample_anno$findiv
