@@ -1,7 +1,14 @@
 #!/bin/bash
 
 # Submit per chromosome interaction eQTL scans
-# Usage: normalization chrom permutation_approach cisdist
+# 
+
+if [ -z "$3" ]
+then
+    echo "Not enough arguments supplied"
+    echo "Usage: submit_iqtl.sh normalization permutation_approach cisdist"
+    exit 1
+fi
 
 for CHROMID in {1..22}; do
   resfile=${DOX_DATA}/sqtl_$1_$2_$3/chr${CHROMID}.txt.gz

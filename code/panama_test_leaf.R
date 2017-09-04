@@ -75,6 +75,10 @@ no_geno = model.matrix( ~ conc, data=anno) # [,2:5]
 
 N=ncol(input)
 
+    zz <- file( "/dev/null", open = "wt")
+    sink(zz)
+    sink(zz, type = "message")
+
 results=foreach(gene=geneloc$geneid, .errorhandling=errorhandling, .combine = bind_rows) %do% {
   
   print(gene)
@@ -145,6 +149,9 @@ results=foreach(gene=geneloc$geneid, .errorhandling=errorhandling, .combine = bi
   }
   
 }
+
+    sink(type="message")
+    sink()
 
 resdir=paste0(DATADIR,"sqtl_",normalization_approach,"_",permuted,"/")
 dir.create(resdir)

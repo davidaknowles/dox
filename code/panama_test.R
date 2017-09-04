@@ -7,6 +7,8 @@ registerDoMC(16)
 source("load_data.R")
 require(rstan)
 
+geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
+
 if (interactive()) {
   chrom="chr15"
   normalization_approach="qq"
@@ -48,6 +50,10 @@ anno = anno %>% mutate(conc=as.factor(conc))
 no_geno = model.matrix( ~ conc, data=anno) # [,2:5]
 
 N=ncol(input)
+
+    zz <- file( "/dev/null", open = "wt")
+    sink(zz)
+    sink(zz, type = "message")
 
 results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) %do% {
   
@@ -97,7 +103,7 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
     fit_geno=lrt_true$fit_geno
     fit_interact=lrt_true$fit_interact
     
-    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value  )
+    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value, stringsAsFactors=F  )
     
     if (permuted=="boot") {
       Sigma = fit_geno$par$sigma2_k * K + fit_geno$par$sigma2 * diag(N)
@@ -119,6 +125,9 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
   }
   
 }
+
+    sink(type="message")
+    sink()
 
 resdir=paste0(DATADIR,"panama_",normalization_approach,"_",permuted,"_",cisdist,"/")
 dir.create(resdir)

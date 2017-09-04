@@ -9,4 +9,4 @@
 ml load R
 
 #srun Rscript panama_test_leaf.R $1 $2 $3
-srun Rscript panama_test_leaf.R $1 $2 $3 $4
+srun Rscript panama_test.R $1 $2 $3 $4
