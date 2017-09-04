@@ -1,5 +1,7 @@
 
-DATADIR="~/scailscratch/dox/"
+DATADIR=Sys.getenv("DOX_DATA") 
+cat("DATADIR:", DATADIR,"\n")
+
 library("dplyr")
 library("tidyr")
 require(magrittr)
@@ -8,18 +10,18 @@ require(stringr)
 source("utils.R")
 registerDoMC(16)
 
-genotype=fread("zcat < ../data/genotype.txt.gz", data.table = F, header = T)
+genotype=fread(paste0("zcat < ", DATADIR, "genotype.txt.gz"), data.table = F, header = T)
 
 rownames(genotype)=genotype$snpid
 genotype$snpid=NULL
 
 genotype=as.matrix(genotype)
 
-snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
+snploc=read.table(paste0(DATADIR,"snploc.txt.gz"),header=T,stringsAsFactors = F)
 
 if (interactive()) {
   chrom="chr15"
-  normalization_approach="qq"
+  normalization_approach="none"
   permuted="boot"
 } else {
   ca=commandArgs(trailingOnly = T)
@@ -33,7 +35,7 @@ snploc=snploc[snploc$chr==chrom,]
 stopifnot(all(as.character(snploc$snpid) %in% rownames(genotype) ))
 genotype=genotype[as.character(snploc$snpid),]
 
-input <- read.table("../data/leafcutter_qqnorm.txt.gz", header=T, sep="\t", check.names = F)
+input <- read.table(paste0(DATADIR,"leafcutter_qqnorm.txt.gz"), header=T, sep="\t", check.names = F)
 anno=str_split_fixed(colnames(input), "_", 2) %>% 
   as.data.frame(stringsAsFactors=F) %>%
   set_colnames(c("findiv","conc"))
@@ -144,7 +146,7 @@ results=foreach(gene=geneloc$geneid, .errorhandling=errorhandling, .combine = bi
   
 }
 
-resdir=paste0("~/dagscratch/dox/sqtl_",normalization_approach,"_",permuted,"/")
+resdir=paste0(DATADIR,"sqtl_",normalization_approach,"_",permuted,"/")
 dir.create(resdir)
 
 gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
