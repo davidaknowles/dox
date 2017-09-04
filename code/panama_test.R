@@ -11,12 +11,13 @@ if (interactive()) {
   chrom="chr15"
   normalization_approach="qq"
   permuted="boot"
+  cisdist=1e5
 } else {
   ca=commandArgs(trailingOnly = T)
   chrom=ca[2]
   permuted=ca[3]
   normalization_approach=ca[1]
-  cisdist=as.integer(ca[4])
+  cisdist=as.numeric(ca[4])
 }
 
 geneloc=geneloc[geneloc$chr==chrom,]
