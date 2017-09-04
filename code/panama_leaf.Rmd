@@ -1,0 +1,82 @@
+Load data
+
+```{r}
+source("utils.R")
+
+input <- read.table("../data/leafcutter_qqnorm.txt.gz", header=T, sep="\t", check.names = F)
+
+anno=str_split_fixed(colnames(input), "_", 2) %>% 
+  as.data.frame() %>%
+  set_colnames(c("findiv","conc"))
+```
+
+How many PCs cover 95% of variation? 
+```{r eval=F}
+svd_ge=svd(input)
+total_prop=cumsum(svd_ge$d^2) / sum(svd_ge$d^2)
+which.min( abs(total_prop - .95) ) # 203
+```
+
+Regress out dox effect
+```{r}
+X = model.matrix( ~ as.factor(conc), data=anno)
+b=solve( t(X) %*% X, t(X) %*% t(input) )
+resi = input - t(X %*% b) 
+```
+
+How many PCs to get to 95% variance of residuals? 
+```{r}
+svd_ge=svd(resi)
+total_prop=cumsum(svd_ge$d^2) / sum(svd_ge$d^2)
+which.min( abs(total_prop - .95) ) # 201
+```
+
+Run panama model on residuals
+```{r}
+require(rstan)
+panama=stan_model("../code/panama.stan")
+
+self_outer=function(g) outer(g,g)
+P=20
+
+x_adjustable=foreach(p=1:P) %do% { svd_ge$v[,p] }
+#inner_prods=foreach(p=1:P) %do% { self_outer( svd_ge$v[,p] ) }
+
+same_ind=outer(anno$findiv, anno$findiv, "==") * 1
+same_conc=outer(anno$conc, anno$conc, "==") * 1
+errorCovariance = readRDS( "../data/error_covariance.Rds" ) 
+
+# residual after removing first P PCs
+rr = resi - svd_ge$u[,1:P] %*% diag(svd_ge$d[1:P]) %*% t(svd_ge$v[,1:P])
+
+inner_prods=list(diag(ncol(input)),errorCovariance[ anno$findiv, anno$findiv ],same_ind,same_conc)
+ip_s=c( mean(rr^2), 0.01, 0.001, mean(b^2)  )
+
+#x_adjustable=matrix(0, nrow=0, ncol=ncol(input))
+dat=list(y=resi, N=ncol(input), G=nrow(input), P=length(inner_prods), x=inner_prods, P_adjustable=length(x_adjustable))
+sinit=svd_ge$d^2 / nrow(input)
+
+init=list( s_adjustable=sinit[1:P], s=ip_s, x_adjustable=x_adjustable )
+o=optimizing(panama, data=dat, init=init, verbose=T, as_vector=F, iter=200)
+
+Sigma=Reduce("+", foreach(p=1:dat$P_adjustable) %do% { o$par$s_adjustable[p] * self_outer(o$par$x_adjustable[p,]) } ) + Reduce( "+", foreach(p=1:dat$P) %do% { o$par$s[p] * dat$x[[p]] } ) # don't include noise
+
+require(mvtnorm)
+dmvnorm( dat$y , numeric(dat$N), Sigma, log = T) %>% mean
+```
+```{r}
+Kern=Reduce("+", foreach(p=1:dat$P_adjustable) %do% { o$par$s_adjustable[p] * self_outer(o$par$x_adjustable[p,]) } ) + Reduce( "+", foreach(p=c(2,3)) %do% { o$par$s[p] * dat$x[[p]] } ) # don't include noise or dox effect
+
+saveRDS(Kern, file="../data/Kern_leaf.rds")
+
+o$par$s[1] # noise variance
+```
+
+```{r}
+require(dendextend)
+colnames(input) = anno$sample
+dend = input[,1:80] %>% t %>% dist %>% hclust %>% as.dendrogram
+labels_colors(dend) = as.numeric(factor(anno$conc[1:80]))[order.dendrogram(dend)]
+plot(dend)
+ColorDen
+```

@@ -23,7 +23,9 @@ geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt"),header=T,stringsAsFactors
 snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
 
 #gwas_hit=data.frame(chr="chr15", pos=23457305, RSID="rs11855704")
-gwas_hit=data.frame(snpid=2961576,chr="chr4", pos=23168231, RSID="rs7676830")
+#gwas_hit=data.frame(snpid=2961576,chr="chr4", pos=23168231, RSID="rs7676830")
+gwas_hit=data.frame(snpid=1025660, chr="chr2", pos=12750524, RSID="rs7596623")
+use_panama=F
 normalization_approach="qq"
 permuted="boot"
 
@@ -73,7 +75,9 @@ genes = intersect(rownames(input),genes)
 
 errorhandling=if (interactive()) 'stop' else 'remove'
 
-K=readRDS("../data/Kern.rds")
+# If not using PANAMA then just random effect term for individual
+K=if (use_panama) readRDS("../data/Kern.rds") else outer( anno$individual, anno$individual, "==")
+
 eig_K=eigen(K)
 
 anno = anno %>% mutate(conc=as.factor(conc))
@@ -103,21 +107,25 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
   fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
   
     lrt = function(data) {
-      data$U_transpose_x=t(eig_K$vectors) %*% cbind( no_geno, geno )
+      x_geno= cbind( no_geno, geno )
+      data$U_transpose_x=t(eig_K$vectors) %*% x_geno
       data$P=ncol(data$U_transpose_x)
-      init=fit_no_geno$par
-      init$beta=c(init$beta,0.0)
+      #init=fit_no_geno$par
+      #init$beta=c(init$beta,0.0)
+      init=list(sigma2=0.1, sigma2_k=1.0, beta=lm(y ~ x_geno - 1) %>% coef )
       
       fit_geno=optimizing(panama_test, data, init=init, as_vector=F )
       
       interact=model.matrix(~geno:conc,data=anno)
       interact=interact[,3:ncol(interact)]
       data_interact=data
-      data_interact$U_transpose_x=t(eig_K$vectors) %*% cbind( no_geno, geno, interact )
+      x_interact=cbind( no_geno, geno, interact )
+      data_interact$U_transpose_x=t(eig_K$vectors) %*% x_interact
       data_interact$P=ncol(data_interact$U_transpose_x)
     
-      init=fit_geno$par
-      init$beta=c(init$beta,numeric(ncol(interact)))
+      #init=fit_geno$par
+      #init$beta=c(init$beta,numeric(ncol(interact)))
+      init=list(sigma2=0.1, sigma2_k=1.0, beta=lm(y ~ x_interact - 1) %>% coef )
       fit_interact=optimizing(panama_test, data_interact, init=init, as_vector=F)
       
       list( fit_geno=fit_geno, fit_interact=fit_interact )
@@ -127,7 +135,7 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
     fit_geno=lrt_true$fit_geno
     fit_interact=lrt_true$fit_interact
     
-    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value  )
+    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value, stringsAsFactors = F  )
     
     if (permuted=="boot") {
       Sigma = fit_geno$par$sigma2_k * K + fit_geno$par$sigma2 * diag(N)
@@ -154,5 +162,5 @@ results=results %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
                       p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
                       p_joint=lrt_pvalue(l_interact-l0,df=df+1),
                       p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) )
-
-write.table(results, file=paste0("../results/",gwas_hit$RSID,".txt"),sep="\t",row.names=F, quote=F)
+results
+#write.table(results, file=paste0("../results/",gwas_hit$RSID,".txt"),sep="\t",row.names=F, quote=F)

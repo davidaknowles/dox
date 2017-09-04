@@ -91,17 +91,14 @@ sum(is.na(joint_hits$pos))
 
 These are (unfortunately) hg19. 
 ```{r}
-gwas_df=read.table("../data/164860_3_supp_3656461_nd3knz.txt", stringsAsFactors = F, header = T)
+gwas_df=fread("zcat < ../data/EA_CHF_GWAS.csv.gz", data.table = F)
+gwas_df = gwas_df %>% rename(RSID=SNP, Ch=CHR)
 gwas_df
 ```
 
 How many of the GWAS variants has rs id? 
 ```{r}
 mean(grepl("rs",gwas_df$RSID))
-```
-
-```{r}
-gwas_df %>% mutate(rank=1:nrow(gwas_df)) %>% filter( !grepl("rs",RSID)  )
 ```
 
 Only `kgp8105491` has a high ranking p-value. The GWAS was performed on a HumanOmni1-Quad. Can find this [here](ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/ProductFiles/HumanOmni1-Quad/HumanOmni1-Quad_v1-0-Multi_H.csv) but just gets back to Chr + pos (which agrees with above). 
@@ -111,7 +108,7 @@ Get hg19 SNPs
 hg19_snps=fread("zcat < ~/scailscratch/splicing/snp146_maf0p05.txt.gz", sep="\t", data.table = F) %>% 
  set_colnames(c("Ch","BP","RSID")) %>%
   filter(Ch %in% paste0("chr",1:22)) %>%
-  mutate(Ch=substr(Ch,4,nchar(Ch)) %>% as.integer())
+  mutate(Ch=substr(Ch,4,nchar(Ch)) %>% as.integer(), BP=BP+1)
 ```
 
 Attempt to fix some of the `kgp` IDs used in the GWAS results (and get RS ids instead)
@@ -122,7 +119,7 @@ GWAS 56192541
 hg19_snps 56192540
 hg38_snps 55725823
 ```{r}
-gwas_df = gwas_df %>% mutate(BP=BP-1) %>% left_join( hg19_snps , by=c("Ch","BP"))
+gwas_df = gwas_df %>% left_join( hg19_snps , by=c("Ch","BP"))
 gwas_df %>% filter(is.na(RSID.y))
 ```
 rs76464104 has MAF of 1%, rs2233980 is the MHC region.
@@ -132,10 +129,11 @@ gwas_df$RSID.y[ is.na(gwas_df$RSID.y) ]=gwas_df$RSID.x[ is.na(gwas_df$RSID.y) ]
 gwas_df$RSID=gwas_df$RSID.y
 gwas_df$RSID.x=NULL
 gwas_df$RSID.y=NULL
-gwas_df
+mean(grepl("rs",gwas_df$RSID))
 ```
+Resolves most kgp variants.
 
-## Join eQTL and GWAS results
+## Joint eQTL and GWAS results
 
 ```{r}
 gwas_df %>% inner_join(joint_hits, by="RSID")
@@ -162,8 +160,8 @@ eqtl %>% write.table(gz, sep="\t", row.names=F, quote=F)
 close(gz)
 ```
 
-Load all SNPs from the HumanOmni1-Quad_v1 used by the GWAS
-```{r}
+Load all SNPs from the HumanOmni1-Quad_v1 used by the GWAS (don't need to do this now have full results)
+```{r eval=F}
 gwas_array=read.csv("../data/HumanOmni1-Quad_v1-small.csv.gz", header = F) %>% 
   set_colnames( c("RSID","Ch","BP") ) %>%  
   filter(Ch %in% as.character(1:22)) %>% 
@@ -174,23 +172,59 @@ sort( table( substr(gwas_array$RSID,1,2)), decreasing = T)
 So the majority (85%) have rs IDs, 8% are CNVs, 6.5% have Illumina's kgp ids (could probably map some of these to rs IDs).
 
 How many of the tested eSNP are the on the array: 
-```{r}
+```{r eval=F}
 mean(eqtl$RSID %in% gwas_array$RSID)
-sort( table( substr(eqtl$RSID,1,2)), decreasing = T)
+sort( table( substr(eqtl$RSID,1,2)), decreasing = T )
 ```
 
-Only 15%. So we should only test for enrichment in this subset. 
 ```{r}
-eqtl_sub = eqtl %>% filter(RSID %in% gwas_array$RSID )
-join_sub = eqtl_sub %>% left_join(gwas_df, by="RSID")
-mean( join_sub$p_joint[is.na(join_sub$Pvalue)] < 0.01 )
-mean( join_sub$p_joint[!is.na(join_sub$Pvalue)] < 0.01 )
-
-join_sub %>% ggplot(aes(-log10(p_joint), -log10(Pvalue))) + geom_point()
-
-fisher.test( join_sub$p_joint < 0.01, !is.na(join_sub$Pvalue) )
+bonferroni=function(g) { g %>% group_by(gene) %>% 
+    summarize( cis_snp=cis_snp[which.min(p)], original_p=min(p), p=min(p) * length(p)  ) %>% 
+    mutate( q=p %>% pmin(1) %>% p.adjust(method="BH") ) }
+temp = eqtl %>% group_by(gene) %>% mutate(p=p_interact) %>% bonferroni()
+p_threshold = temp %>% ungroup() %>% filter(q<0.05) %>% .$original_p %>% max(.)
 ```
-Odds ratio is in the right direction (1.5) but not significant.
+
+Using Storey's pi1
+```{r}
+require(qvalue)
+1. - pi0est(join_all$Pvalue)$pi0
+1. - pi0est(join_all %>% filter(p_interact < p_threshold) %>% .$Pvalue)$pi0
+1. - pi0est(join_all %>% filter(p_interact > p_threshold) %>% .$Pvalue)$pi0
+
+pi1_results=foreach(p_eqtl = 10^-seq(2,5,by=0.5), .combine = bind_rows ) %do% {
+  data.frame( p_eqtl=p_eqtl, pi1_hits= 1. - pi0est(join_all %>% filter(p_interact < p_eqtl) %>% .$Pvalue)$pi0, pi1_nonhits= 1. - pi0est(join_all %>% filter(p_interact >= p_eqtl) %>% .$Pvalue)$pi0  )
+}
+pi1_results 
+```
+
+This is very unstable
+
+```{r}
+enrich_results=foreach(p_eqtl = 10^-seq(2,5), .combine = bind_rows ) %do% {
+  foreach(p_gwas = 10^-seq(3,5), .combine = bind_rows ) %do% {
+    gwas_hits = join_all$Pvalue < p_gwas
+    eqtl_hits = join_all$p_interact < p_eqtl
+    ft  = fisher.test( gwas_hits, eqtl_hits )
+    data.frame( p_eqtl = p_eqtl, p_gwas=p_gwas, n_eqtl=sum(eqtl_hits), gwas_hits=sum(gwas_hits), OR=ft$estimate, p = ft$p.value)
+  }
+}
+
+enrich_results_2=foreach(p_eqtl = 10^-seq(1.3,3,by=0.3), .combine = bind_rows ) %do% {
+  foreach(p_gwas = 10^-seq(4,5,by=0.2), .combine = bind_rows ) %do% {
+    gwas_hits = join_all$Pvalue < p_gwas
+    eqtl_hits = join_all$p_interact < p_eqtl
+    ft  = fisher.test( gwas_hits, eqtl_hits )
+    data.frame( p_eqtl = p_eqtl, p_gwas=p_gwas, n_eqtl=sum(eqtl_hits), gwas_hits=sum(gwas_hits), overlap=sum(gwas_hits & eqtl_hits), OR=ft$estimate, p = ft$p.value)
+  }
+}
+enrich_results_2 %>% arrange(p)
+```
+
+
+```{r}
+join_all %>% filter(Pvalue < 1e-5) %>% select(gene, RSID, p_geno, p_interact, p_joint, Pvalue)
+```
 
 ## Using LD
 

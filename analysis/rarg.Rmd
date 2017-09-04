@@ -1,0 +1,172 @@
+---
+title: "RARG analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(data.table)
+require(stringr)
+require(ggplot2)
+require(foreach)
+require(dplyr)
+require(tidyr)
+require(magrittr)
+```
+
+Found motifs using
+```
+scanMotifGenomeWide.pl ~/Dropbox/dox/data/motif236.motif.txt hg38 -p 4 -bed | gzip > ../RARG_hg38.bed.gz
+```
+
+Load motifs:
+```{r}
+rarg_hits = fread("zcat < ../data/RARG_hg38_cons.txt.gz", data.table = F) %>%
+  set_colnames(c("chr",'start','end','motif','score','strand','cons'))
+dim(rarg_hits)
+hist(rarg_hits$score)
+hist(rarg_hits$cons,100)
+rarg_hits = rarg_hits %>% filter(cons > -log10(0.05))
+```
+
+```{r}
+
+gtf = fread("zcat < ~/Dropbox/splicing/leafcutter/leafcutter/data/gencode.v26.annotation.gtf.gz", data.table = F,col.names=c("chr","source","feature","start","end","a","strand","b","dat")) %>% filter(feature=="gene")
+
+get_gtf_feature=function(gtf,feat) {
+  gn_where=regexpr(paste0(feat," \"[^ ]+\""), gtf$dat) # find gene_names in dat
+  offset=nchar(feat)+2
+  gn_where=gn_where + offset # ignore "gene_name" label
+  attr(gn_where,"match.length")=attr(gn_where,"match.length") - offset - 1 # cutoff trailing quote mark
+  regmatches(gtf$dat, gn_where ) 
+}
+
+gtf$gene_id = get_gtf_feature(gtf, "gene_id")
+gtf$gene_id = str_split_fixed(gtf$gene_id, "[.]", 2)[,1]
+
+gtf = gtf %>% 
+  select(chr, start, end, strand, gene_id) %>%
+  distinct() %>%
+  mutate( tss=ifelse(strand=="+",start,end) )
+```
+
+```{r}
+rarg_hits = rarg_hits %>% mutate(center = .5 * (start + end))
+cis_dist=10000
+require(RANN)
+
+gtf=foreach(chrom=intersect(gtf$chr,rarg_hits$chr), .combine = bind_rows) %do% {
+  gtf_here=gtf %>% filter(chr==chrom)
+  rarg_here=rarg_hits %>% 
+    filter(chr==chrom) %>% 
+    .$center
+  stopifnot(length(rarg_here) > 0)
+  neighbors =  nn2( rarg_here, k=length(rarg_here), query=gtf_here$tss, searchtype="radius", radius = cis_dist ) %>%
+    .$nn.idx
+  gtf_here %>% mutate(rarg_motifs = rowSums(neighbors > 0))
+}
+table(gtf$rarg_motifs)
+```
+
+```{r}
+input <- read.delim("../data/counts_log_cpm.txt.gz")
+gtf_sub = gtf %>% filter( gene_id %in% rownames(input) )
+mean( rownames(input) %in% gtf$gene_id )
+table(gtf_sub$rarg_motifs)
+```
+
+107942 and 108082 are het for the RARG variant. 
+```{r pc1-pc2-ind}
+anno <- read.delim("../data/annotation.txt", stringsAsFactors = F)
+sample_anno = read.table("../data/sample_annotation.txt", sep="\t", header=T, stringsAsFactors = F)
+
+findiv=anno$findiv
+names(findiv)=anno$cell_line
+
+colnames(input)=findiv[ sample_anno$individual]
+
+sample_anno$findiv=as.character(findiv[sample_anno$individual])
+
+rarg_mutants= c(107942, 108082)
+sample_anno$rarg_mut=sample_anno$findiv %in%rarg_mutants
+
+pca <- prcomp(t(input[gtf_sub %>% filter(rarg_motifs > 0) %>% .$gene_id,]), scale. = TRUE)
+variances <- pca$sdev^2
+explained <- variances / sum(variances)
+
+pca_data <- cbind(sample_anno, pca$x[, 1:5])
+
+ggplot(pca_data, aes(x = PC1, y = PC2, group=findiv, color=rarg_mut ,size=rarg_mut)) +
+  geom_text(aes(label = conc)) +
+  geom_path(aes(alpha=.1)) +
+  labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+```
+
+The RARG mutants look pretty typical based on this. 
+
+Get per gene-individual fold change from 0 to 0.625. Test whether these are systematically smaller for genes with RARG motifs.
+```{r}
+
+log_cpm_0=input[,sample_anno$conc == 0]
+log_cpm_0.6=input[,sample_anno$conc == 1.25]
+shared_indiv=intersect(colnames(log_cpm_0),colnames(log_cpm_0.6))
+fold_changes=log_cpm_0.6[,shared_indiv]-log_cpm_0[,shared_indiv]
+
+rarg_dat = fold_changes %>% mutate(gene=rownames(fold_changes)) %>% gather(individual, fc, colnames(fold_changes)) %>% inner_join(gtf_sub %>% select(gene_id,rarg_motifs), by=c(gene='gene_id')) %>% mutate(rarg_motifs=rarg_motifs > 0, rarg_genotype = individual %in% rarg_mutants)
+rarg_dat
+```
+
+```{r}
+require(lme4)
+l=lmer( fc ~ rarg_motifs*rarg_genotype + (1|gene) + (1|individual), data=rarg_dat, REML=F )
+l0=lmer( fc ~ rarg_motifs + rarg_genotype + (1|gene) + (1|individual), data=rarg_dat, REML=F )
+anova(l,l0)
+summary(l)
+# lm( fc ~ rarg_motifs * rarg_genotype + gene, data=rarg_dat) %>% summary()
+```
+
+```{r}
+require(broom)
+non_zero = rarg_dat %>% group_by(gene) %>% do(tidy(t.test(.$fc)))
+non_zero = non_zero %>% mutate(q=p.adjust(p.value,method="BH"))
+mean(non_zero$q < 0.05)
+sig_fc = non_zero %>% filter( q < 0.05 )
+```
+So... not even really worth filtering. But flipping fc could be good? 
+
+```{r}
+rarg_flip = rarg_dat %>% inner_join(sig_fc %>% select(gene, estimate), by="gene") %>% mutate(fc = fc / estimate)
+full_model=lmer( fc ~ rarg_motifs*rarg_genotype + (1|gene) + (1|individual), data=rarg_flip, REML=F )
+null_model=lmer( fc ~ rarg_motifs + rarg_genotype + (1|gene) + (1|individual), data=rarg_flip, REML=F )
+anova(full_model,null_model)
+summary(full_model)
+```
+```{r}
+full_model=lm( fc ~ rarg_motifs*rarg_genotype, data=rarg_flip )
+null_model=lm( fc ~ rarg_motifs + rarg_genotype, data=rarg_flip )
+anova(full_model,null_model)
+summary(full_model)
+```
+
+```{r}
+rarg_flip %>% ggplot(aes(fc, col=interaction(rarg_genotype,rarg_motifs))) + geom_density()
+```
+
+```{r}
+require(lme4)
+rarg_reg = rarg_dat %>% filter(rarg_motifs)
+l=lmer( fc ~ rarg_genotype + (1|gene), data=rarg_reg, REML=F )
+l0=lmer( fc ~ (1|gene), data=rarg_reg, REML=F )
+anova(l,l0)
+summary(l)
+# lm( fc ~ rarg_motifs * rarg_genotype + gene, data=rarg_dat) %>% summary()
+```
+
+
+```{r}
+"ENSG00000077097" %in% rownames(input)
+```

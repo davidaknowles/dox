@@ -1,0 +1,172 @@
+---
+title: "Combine leafcutter counts"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("dplyr")
+library("tidyr")
+require(magrittr)
+library(doMC)
+source("utils.R")
+require(stringr)
+require(data.table)
+require(abind)
+```
+
+This gives the same norm_dat matrix as using the counts matrix, but the counts matrix is considerably smaller so I'd rather work with that. 
+```{r eval=F}
+dat_ratio=fread("zcat < ../data/leafcutter_ratio.txt.gz", data.table = F)
+rownames(dat_ratio)=dat_ratio$chrom
+dat_ratio$chrom=NULL
+colnames(dat_ratio) = gsub(".bam", "", colnames(dat_ratio))
+numers_and_denoms=foreach(col=as.list(dat_ratio)) %dopar% {
+  temp=str_split_fixed(col,"/",2)
+  class(temp)="numeric"
+  temp
+} %>% abind(along=3)
+numers=numers_and_denoms[,1,]
+dimnames(numers)=dimnames(dat_ratio)
+denoms=numers_and_denoms[,2,]
+dimnames(denoms)=dimnames(dat_ratio)
+
+norm_dat=(numers + 0.5) / (denoms + 0.5)
+norm_dat[denoms==0]=NA
+```
+
+Work out which samples should be merged. 
+```{r}
+input <- read.delim("../data/gene-counts-round-two.txt.gz", stringsAsFactors = F)
+anno <- input %>% select(filename, sampleid=individual, individual=flow_cell, lane, index, conc) %>%
+  mutate( filename=paste0("s",filename) )
+rm(input)
+gc()
+
+find_individual=read.table("../data/annotation.txt", header=T, stringsAsFactors = F) %>%
+  select(cell_line, findiv) %>%
+  distinct()
+find_individual$findiv[ find_individual$findiv==160001 ]=106411
+
+anno = anno %>% left_join(find_individual, by=c(individual="cell_line"))
+
+ind_conc=anno %>% select(findiv, conc) %>% distinct()
+
+write.table(ind_conc, "../data/leafcutter_anno.txt.gz", sep="\t", quote=F)
+```
+
+```{r}
+dat=read.table("../data/leafcutter.txt.gz", stringsAsFactors = F, check.names = F)
+colnames(dat) = gsub(".bam", "", colnames(dat))
+dat_combined=foreach(row_i=1:nrow(ind_conc), .combine = cbind) %do% {
+   files=anno %>% filter(findiv==ind_conc$findiv[row_i], conc==ind_conc$conc[row_i]) %>% .$filename
+   rowSums( dat[, files] )
+} %>% as.data.frame() %>%
+  set_colnames(with(ind_conc, paste(findiv,conc,sep="_")))
+#dat_combined=dat
+clu = str_split_fixed(rownames(dat_combined), ":", 4)[,4]
+
+#dat_combined$clu=clu
+norm_dat = dat_combined %>% 
+  mutate(clu=clu) %>%
+  group_by(clu) %>% 
+  mutate_all( funs( if(sum(.)>0) (.+0.5)/(sum(.)+0.5) else NA ) ) %>% 
+  ungroup() %>%
+  as.data.frame() %>% 
+  set_rownames(rownames(dat_combined)) %>% 
+  select(-clu)
+```
+
+Gives the same answer as the dplyr solution but the bind_rows is prohibitively slow
+```{r eval=F}
+norm_dat = foreach(clus=unique(clu), .combine = bind_rows) %dopar% {
+  temp = dat_combined[clu == clus, ]
+  cs=colSums(temp)
+  temp[,cs==0]=NA
+  sweep(temp+0.5,2,cs+0.5,"/") %>%
+    mutate( intron=rownames(dat_combined)[clu==clus] )
+}
+```
+
+This follows Yang's calculation exactly. It matches apart from that the 0s from mean imputation in Python for some reason have some numerical noise and therefor get random values during quantile normalisation, whereas in R they all stay at exactly 0. 
+```{r eval=F}
+norm_dat=norm_dat[grep("chrX",rownames(norm_dat), invert = T),]
+norm_dat = norm_dat[rowMeans(is.na(norm_dat)) <= 0.4,,drop=F ]
+row_means = rowMeans(norm_dat, na.rm = T)
+row_means_outer = outer(row_means, rep(1,ncol(norm_dat)))
+norm_dat[is.na(norm_dat)] = row_means_outer[is.na(norm_dat)]
+to_keep=apply(norm_dat, 1, function(g) sd(g,na.rm=T)) >= 0.005
+norm_dat = norm_dat[ to_keep,,drop=F ]
+scale_dat = norm_dat %>% 
+   t() %>% scale() %>% t() # doesn't seem to matter if do n or n-1 SD
+scale_dat[is.na(scale_dat)]=0
+qq_dat = scale_dat %>% 
+  quantile_normalize_cols() 
+```
+
+Simpler workflow, doesn't exactly match Yang's code, but very close
+```{r}
+norm_dat = norm_dat[rowMeans(is.na(norm_dat)) <= 0.4,,drop=F ]
+to_keep=apply(norm_dat, 1, function(g) sd(g,na.rm=T)) >= 0.005
+norm_dat = norm_dat[ to_keep,,drop=F ]
+scale_dat = norm_dat %>% 
+   t() %>% scale() %>% t() # doesn't seem to matter if do n or n-1 SD
+scale_dat[is.na(scale_dat)]=0 # scaled so this is just mean imputation
+qq_dat = scale_dat %>% quantile_normalize_cols() 
+```
+
+```{r}
+gz=gzfile( "../data/leafcutter_qqnorm.txt.gz", "w" )
+write.table(qq_dat, gz, sep="\t", quote=F)
+close(gz)
+```
+
+The remaining was code to check that Yang's calculation came out (roughly) the same as mine. 
+```{r}
+#compare_dat = fread("zcat < ../data/_perind.counts.gz.qqnorm_chr10.gz", data.table=F)
+#compare_dat = fread("../data/leafcutter_chr10_fully_normalized.txt.gz", data.table=F)
+compare_dat = fread("../data/leaf", data.table=F)
+
+rownames(compare_dat) = paste0("chr",compare_dat$ID)
+compare_dat = compare_dat[,5:ncol(compare_dat)] %>% as.matrix()
+colnames(compare_dat) = gsub(".bam", "", colnames(compare_dat))
+
+all( sort( rownames(compare_dat) ) == sort(rownames(norm_dat)[grep("chr10", rownames(norm_dat))]) )
+all( colnames(compare_dat) == colnames(norm_dat) )
+```
+
+```{r}
+  compare_match = scale_dat[rownames(compare_dat),]
+all(rownames(compare_match) == rownames(compare_dat))
+dat_sub=full_mat[rownames(compare_dat),] %>% as.matrix() %>% 
+         t()     %>%
+ head(1)
+#denom_is_zero=0==denoms[ rownames(dat_sub),] %>% as.matrix() %>% as.numeric() 
+qplot( dat_sub %>%  as.numeric(), compare_match %>% as.matrix %>%
+      t() %>%
+       head(1) %>% 
+   as.numeric(), col=1)  + geom_abline(intercept=0,slope=1) + xlab("python") + ylab("R")
+#  col=0==denoms["chr10:134786:179994:clu_4415",]
+
+qplot( full_mat[rownames(scale_dat),20], scale_dat[,20] ) + geom_abline() # + coord_cartesian(xlim=c(1e-8,1e-8),ylim=c(1e-8,1e-8))
+x=full_mat[rownames(scale_dat),20]
+y=scale_dat[,20]
+
+qplot( full_mat_my_qq[rownames(scale_dat),20], qq_dat[,20] ) + geom_abline()
+
+```
+
+```{r}
+full_mat=fread("zcat < ../data/leafcutter_ratio.txt.gz.csv.gz", data.table = F)
+gene_rows=fread("zcat < ../data/leafcutter_ratio.txt.gz_geneRows.txt.gz", data.table = F)
+rownames(full_mat)=paste0("chr",gene_rows$V4)
+
+full_mat_my_qq=quantile_normalize_cols(full_mat)
+```
+
+```{r}
+all(  )
+```

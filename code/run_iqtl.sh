@@ -8,4 +8,5 @@ echo Normalization: $NORM
 echo Perm: $PERM
 
 # Rscript run_iqtl_lrt.R $NORM $CHROM
-Rscript panama_test.R $NORM $CHROM $PERM
+# Rscript panama_test.R $NORM $CHROM $PERM
+Rscript panama_test_leaf.R $NORM $CHROM $PERM

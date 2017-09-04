@@ -1,0 +1,80 @@
+---
+title: "Compare to GTEx heart_all eQTL"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(data.table)
+require(ggplot2)
+theme_set(theme_bw(base_size = 15))
+add_loc=function(dat) {
+  str_split_fixed( dat$variant_id, "_", 5 )[,1:2] %>% 
+    as.data.frame(stringsAsFactors=F) %>% 
+    set_colnames(c("chr","pos")) %>%
+    mutate(pos=as.integer(pos)) %>% 
+    cbind(dat)
+}
+
+```
+
+A better way to do this is using `filter_tss.sh` in `../code`, which uses `awk` to remove abs(tss) > 100kb. 
+```{r eval=F}
+require(stringr)
+heart_all=fread("zcat < ~/scailscratch/dox/GTEx/Heart_Left_Ventricle_Analysis.v6p.all_snpgene_pairs.txt.gz", data.table = F)
+
+heart = heart_all %>% filter( abs(tss_distance) <= 1e5, chr != "X" )
+heart = add_loc(heart)
+
+gz=gzfile("../data/gtex_100k_noX.txt.gz","w")
+heart %>% write.table( gz, sep="\t", quote=F, row.names=F)
+close(gz)
+```
+```{r}
+brain = fread("zcat < ~/scailscratch/dox/GTEx/Brain_Cerebellum_100k.txt.gz", data.table = F) %>%   add_loc() %>% filter(chr != "X")
+lcl=fread("zcat < ~/scailscratch/dox/GTEx/Cells_EBV-transformed_lymphocytes_100k.txt.gz", data.table = F) %>% add_loc() %>% filter(chr != "X")
+heart = fread("zcat < ../data/gtex_100k_noX.txt.gz", data.table = F)
+gtex_tis=list(brain=brain, lcl=lcl, heart=heart)
+```
+
+```{r}
+hg19_snps=fread("zcat < ~/scailscratch/splicing/snp146_maf0p05.txt.gz", sep="\t", data.table = F) %>% 
+ set_colnames(c("Ch","BP","RSID")) %>%
+  filter(Ch %in% paste0("chr",1:22)) %>%
+  mutate(Ch=substr(Ch,4,nchar(Ch)) %>% as.integer(), BP=BP+1)
+```
+
+
+```{r}
+gtex_tis=foreach(tis=gtex_tis) %dopar% {
+  tis %>% mutate(chr=as.integer(chr)) %>% inner_join(hg19_snps, by=c(chr="Ch",pos="BP"))  %>% 
+  mutate( gene_id=str_split_fixed(gene_id, '[.]', 2)[,1] )
+} %>% set_names(names(gtex_tis))
+```
+
+```{r}
+eqtl = fread("zcat < ../data/panana_all_eqtl.txt.gz", data.table = F)
+```
+
+Nominal p of 1e-5 is roughly cutoff for nomimal FDR 0.05. 
+s
+```{r}
+require(qvalue)
+replication_rates = foreach(tis_n=names(gtex_tis), .combine = bind_rows) %dopar% {
+  tis=gtex_tis[[tis_n]]
+  eqtl_join_gtex = eqtl %>% inner_join(tis, by=c(gene="gene_id", RSID="RSID"))
+
+  rep_p = eqtl_join_gtex %>% filter(p_geno < 1e-5) %>% .$pval_nominal
+  
+  data.frame( tissue=tis_n, prop_shared=nrow(eqtl_join_gtex)/nrow(eqtl), naive_rep= mean(rep_p < 0.05), p1= 1. - pi0est(rep_p)$pi0, stringsAsFactors = F)
+}
+replication_rates %>% mutate(tissue=factor(tissue,c("brain","lcl","heart"),c("Brain (Cerebellum)","Lymphoblastoid cell line","Heart (Left Ventricle)"))) %>% ggplot(aes(tissue, p1)) + geom_bar(stat='identity') + xlab("GTEx tissue") + ylab("Storey's pi1") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylim(0,1)
+ggsave("../figures/gtex.pdf",width=3,height=4)
+```
+
+```{r}
+eqtl_join_gtex %>% ggplot(aes(x=-log10(p_geno),y=-log10(pval_nominal))) + stat_binhex(aes(fill=asinh(..count..))) + scale_fill_gradientn(colours=c("white","blue","black"))
+```

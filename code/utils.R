@@ -56,10 +56,21 @@ remove_PCs=function(input,num_PCs_to_remove) {
 }
 
 require(doMC)
+
+my_qqnorm=function(x) {
+  n=length(x)
+  a=if (n<=10) (3.0/8.0) else 0.5
+  qnorm( (rank(x)-a)/(n+1.0-2.0*a) )
+}
+
+quantile_normalize_cols=function(input) {
+  apply(input, 2, my_qqnorm)
+}
+
 quantile_normalize=function(input) {
   # Quantile normalization
   input_t=as.data.frame(t(input))
-  res= foreach(l=as.list(input_t)) %do% {
+  res= foreach(l=as.list(input_t)) %dopar% {
     qqnorm(l,plot.it = F)$x
   }
   qnorm_input=t(as.matrix(as.data.frame(res)))

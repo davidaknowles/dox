@@ -104,9 +104,9 @@ cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9", 
 foreach(i=4) %do% {
   hit=hits[i,]
   geno=genotype[ as.character(hit$cis_snp),anno$findiv]
-  data.frame(y= 2^input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs2654185") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = c(0.15,0.2), legend.background = element_blank() ) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
-}
-ggsave("../figures/ELP5.pdf",width=4.5,height=3.5)
+  data.frame(y=2^ input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs2654185") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
+} #  c(0.15,0.2)
+#ggsave("../figures/ELP5.pdf",width=4.5,height=3.5)
 ```
 
 ```{r}
