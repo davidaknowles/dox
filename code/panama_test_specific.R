@@ -1,12 +1,12 @@
 
-DATADIR="~/scailscratch/dox/"
+DATADIR="~/gdrive/dox/"
 library("dplyr")
 library("tidyr")
 library(data.table)
 source("utils.R")
 #registerDoMC(7)
 
-genotype=fread("zcat < ../data/genotype.txt.gz", data.table = F, header = T)
+genotype=fread(paste0("zcat < ",DATADIR, "genotype.txt.gz"), data.table = F, header = T)
 
 rownames(genotype)=genotype$snpid
 genotype$snpid=NULL
@@ -25,7 +25,7 @@ snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
 #gwas_hit=data.frame(chr="chr15", pos=23457305, RSID="rs11855704")
 #gwas_hit=data.frame(snpid=2961576,chr="chr4", pos=23168231, RSID="rs7676830")
 gwas_hit=data.frame(snpid=1025660, chr="chr2", pos=12750524, RSID="rs7596623")
-use_panama=F
+use_panama=F 
 normalization_approach="qq"
 permuted="boot"
 

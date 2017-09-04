@@ -223,20 +223,22 @@ enrich_results_2 %>% arrange(p)
 
 
 ```{r}
-join_all %>% filter(Pvalue < 1e-5) %>% select(gene, RSID, p_geno, p_interact, p_joint, Pvalue)
+join_all %>% filter(Pvalue < 1e-5) #%>% select(gene, RSID, p_geno, p_interact, p_joint, Pvalue)
 ```
+
+GTEx: nothing for rs7596623, rs4058287, but eQTL for rs766643 for ENSG00000145545 in "Esophagus - Mucosa".
 
 ## Using LD
 
 ```{r}
 ld_dir="~/scailscratch/EUR_LD_FILTERED_NONAN_R/"
-
-gwas_df_with_ld = foreach(chr=unique(gwas_df$Ch), .combine = bind_rows ) %do% {
+gwas_df_1e5 = gwas_df %>% filter(Pvalue < 1e-5)
+gwas_df_with_ld = foreach(chr=unique(gwas_df_1e5$Ch), .combine = bind_rows ) %do% {
   print(chr)
   ld_df=readRDS(paste0(ld_dir,chr,".Rds")) %>% 
     as.data.frame() %>%
     select(SNP_A,SNP_B,R)
-  gwas_here=gwas_df %>% filter(Ch==chr)
+  gwas_here=gwas_df_1e5 %>% filter(Ch==chr)
   rbind( gwas_here %>% inner_join(ld_df, by=c(RSID="SNP_A")) %>% rename(other_snp=SNP_B), 
          gwas_here %>% inner_join(ld_df, by=c(RSID="SNP_B")) %>% rename(other_snp=SNP_A), 
          gwas_here %>% mutate(other_snp=RSID, R=1. ))

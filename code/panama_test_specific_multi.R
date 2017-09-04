@@ -1,32 +1,23 @@
 
-DATADIR="~/scailscratch/dox/"
+
 library("dplyr")
 library("tidyr")
 library(data.table)
 source("utils.R")
 #registerDoMC(7)
+require(rstan)
 
-genotype=fread("zcat < ../data/genotype.txt.gz", data.table = F, header = T)
 
-rownames(genotype)=genotype$snpid
-genotype$snpid=NULL
+source("load_data.R")
 
-genotype=as.matrix(genotype)
-
-sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-if (F) {
-    errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$findiv))
-    saveRDS( errorCovariance, file="../data/error_covariance.Rds" )
-} else { errorCovariance = readRDS( "../data/error_covariance.Rds" ) }
-
-geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt"),header=T,stringsAsFactors = F)
+geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
 
 load("~/Dropbox/enviro_code/smalle_data/common_snps.RData")
 hg38_snps = common_snps[,1:3]
 rm(common_snps)
 gc()
 colnames(hg38_snps)=c("Ch","BP","RSID")
-snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F) 
+
 snploc=snploc %>% 
   mutate(Ch=substr(chr,4,nchar(chr)) %>% as.integer()) %>% 
   left_join(hg38_snps, by=c(Ch="Ch",pos="BP"))
@@ -37,19 +28,6 @@ permuted="boot"
 
 genotype=genotype[as.character(snploc$snpid),]
 
-input <- read.delim("../data/counts_log_cpm.txt.gz")
-
-anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
-
-sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-
-# mapping from cell-line ID to individual
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
-stopifnot(is.character(anno$individual))
-
-colnames(input)=findiv[anno$individual]
-
 #input=remove_PCs(input, num_PCs_to_remove)
 if (normalization_approach=="qq") {
   input=quantile_normalize(input)
@@ -59,16 +37,13 @@ if (normalization_approach=="qq") {
   input=(2^input) %>% t %>% scale %>% t
 }
 
-findiv[ findiv==160001 ]=106411
 
-anno$findiv=as.character(findiv[anno$individual])
 
-require(rstan)
+
 panama_test=stan_model("panama_test.stan")
 
 rownames(geneloc)=geneloc$geneid
 cisdist=1e6
-
 
 #errorhandling=if (interactive()) 'stop' else 'remove'
 errorhandling='remove'
@@ -167,3 +142,11 @@ mega_res=mega_res %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
                       p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) )
 
 write.table(mega_res, file=paste0("../results/mega.txt"),sep="\t",row.names=F, quote=F)
+
+hits = mega_res %>% group_by(cis_snp) %>% 
+  top_n(1, -p_joint) %>% 
+  ungroup() %>%
+  mutate(cis_snp=as.integer(cis_snp)) %>% 
+  left_join(snploc, by=c(cis_snp="snpid"))
+
+mega_res %>% group_by(cis_snp) %>% summarize( p=min(p_joint) * length(p_joint), gene=gene[which.min(p_joint)] )

@@ -1,26 +1,11 @@
 
-DATADIR="~/scailscratch/dox/"
 library("dplyr")
 library("tidyr")
 library(data.table)
 source("utils.R")
 registerDoMC(16)
-
-genotype=fread("zcat < ../data/genotype.txt.gz", data.table = F, header = T)
-
-rownames(genotype)=genotype$snpid
-genotype$snpid=NULL
-
-genotype=as.matrix(genotype)
-
-sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-if (F) {
-    errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$findiv))
-    saveRDS( errorCovariance, file="../data/error_covariance.Rds" )
-} else { errorCovariance = readRDS( "../data/error_covariance.Rds" ) }
-
-geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt"),header=T,stringsAsFactors = F)
-snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
+source("load_data.R")
+require(rstan)
 
 if (interactive()) {
   chrom="chr15"
@@ -31,6 +16,7 @@ if (interactive()) {
   chrom=ca[2]
   permuted=ca[3]
   normalization_approach=ca[1]
+  cisdist=as.integer(ca[4])
 }
 
 geneloc=geneloc[geneloc$chr==chrom,]
@@ -38,19 +24,6 @@ snploc=snploc[snploc$chr==chrom,]
 
 stopifnot(all(as.character(snploc$snpid) %in% rownames(genotype) ))
 genotype=genotype[as.character(snploc$snpid),]
-
-input <- read.delim("../data/counts_log_cpm.txt.gz")
-
-anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
-
-sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-
-# mapping from cell-line ID to individual
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
-stopifnot(is.character(anno$individual))
-
-colnames(input)=findiv[anno$individual]
 
 #input=remove_PCs(input, num_PCs_to_remove)
 if (normalization_approach=="qq") {
@@ -61,16 +34,10 @@ if (normalization_approach=="qq") {
   input=(2^input) %>% t %>% scale %>% t
 }
 
-findiv[ findiv==160001 ]=106411
-
-anno$findiv=as.character(findiv[anno$individual])
-
-require(rstan)
 panama_test=stan_model("panama_test.stan")
 
 genes=intersect(rownames(input),geneloc$geneid)
 rownames(geneloc)=geneloc$geneid
-cisdist=1e5
 errorhandling=if (interactive()) 'stop' else 'remove'
 
 K=readRDS("../data/Kern.rds")
@@ -152,7 +119,7 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
   
 }
 
-resdir=paste0("~/dagscratch/dox/panama_",normalization_approach,"_",permuted,"/")
+resdir=paste0(DATADIR,"panama_",normalization_approach,"_",permuted,"_",cisdist,"/")
 dir.create(resdir)
 
 gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
