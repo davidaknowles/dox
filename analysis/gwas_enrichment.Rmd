@@ -13,6 +13,7 @@ require(tidyr)
 require(leafcutter)
 require(magrittr)
 source("../code/utils.R")
+
 ```
 
 Two options for matching: 
@@ -39,6 +40,42 @@ eqtl=eqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
                       p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) )
 ```
 
+### Get RS IDs for eSNPs
+
+Get hg38 SNPs
+```{r}
+load("~/Dropbox/enviro_code/smalle_data/common_snps.RData")
+hg38_snps = common_snps[,1:3]
+rm(common_snps)
+gc()
+colnames(hg38_snps)=c("Ch","BP","RSID")
+dim(hg38_snps)
+```
+
+Load my snp positions (these are GrCh38) and find RS IDs
+```{r}
+snploc=read.table(paste0(DATADIR,"snploc.txt.gz"),header=T,stringsAsFactors = F) 
+snploc=snploc %>% 
+ mutate(Ch=substr(chr,4,nchar(chr)) %>% as.integer()) %>% 
+  left_join(hg38_snps, by=c(Ch="Ch",pos="BP"))
+```
+
+```{r}
+eqtl = eqtl %>% 
+  left_join(snploc, by=c(cis_snp="snpid")) 
+sum(is.na(eqtl$RSID)) # 90982 = 3.2%
+```
+
+Save eQTL with RSID for future use
+```{r}
+eqtl$chr=NULL
+gz=gzfile("../data/panana_all_eqtl.txt.gz","w")
+eqtl %>% write.table(gz, sep="\t", row.names=F, quote=F)
+close(gz)
+```
+
+### Total hits
+
 How many eQTLs, pooling across concentrations. 
 ```{r}
 geno_bf=eqtl %>% mutate(p=p_geno) %>% bonferroni
@@ -61,31 +98,7 @@ sum(joint_bf$q < 0.05) # 1091
 ```
 
 
-### Get RS IDs for eSNPs
 
-Get hg38 SNPs
-```{r}
-load("~/Dropbox/enviro_code/smalle_data/common_snps.RData")
-hg38_snps = common_snps[,1:3]
-rm(common_snps)
-gc()
-colnames(hg38_snps)=c("Ch","BP","RSID")
-dim(hg38_snps)
-```
-
-Load my snp positions (these are GrCh38) and find RS IDs
-```{r}
-snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F) 
-snploc=snploc %>% 
- mutate(Ch=substr(chr,4,nchar(chr)) %>% as.integer()) %>% 
-  left_join(hg38_snps, by=c(Ch="Ch",pos="BP"))
-```
-
-Attach RS IDs to hits
-```{r}
-joint_hits = joint_bf %>% filter(q<0.05) %>% left_join(snploc, by=c(cis_snp="snpid"))
-sum(is.na(joint_hits$pos))
-```
 
 ## Load GWAS results. 
 
@@ -140,25 +153,16 @@ gwas_df %>% inner_join(joint_hits, by="RSID")
 ```
 No overlap :( 
 
+
 Look for enrichment
 ```{r}
-eqtl = eqtl %>% 
-  left_join(snploc, by=c(cis_snp="snpid")) 
-sum(is.na(eqtl$RSID)) # 90982 = 3.2%
-
 join_all = eqtl %>% inner_join(gwas_df, by="RSID")
 mean( join_all$p_joint < 0.01 )
 mean( eqtl$p_joint < 0.01 )
 join_all %>% ggplot(aes(-log10(p_joint), -log10(Pvalue))) + geom_point()
 ```
 
-Save eQTL with RSID for future use
-```{r}
-eqtl$chr=NULL
-gz=gzfile("../data/panana_all_eqtl.txt.gz","w")
-eqtl %>% write.table(gz, sep="\t", row.names=F, quote=F)
-close(gz)
-```
+
 
 Load all SNPs from the HumanOmni1-Quad_v1 used by the GWAS (don't need to do this now have full results)
 ```{r eval=F}
@@ -201,32 +205,66 @@ pi1_results
 This is very unstable
 
 ```{r}
-enrich_results=foreach(p_eqtl = 10^-seq(2,5), .combine = bind_rows ) %do% {
-  foreach(p_gwas = 10^-seq(3,5), .combine = bind_rows ) %do% {
+p_range=outer( c(5,1), 10^-seq(1,5)) %>% as.numeric() %>% tail(-1)
+enrich_results=foreach(p_eqtl = p_range, .combine = bind_rows ) %do% {
+  foreach(p_gwas = p_range, .combine = bind_rows ) %dopar% {
     gwas_hits = join_all$Pvalue < p_gwas
-    eqtl_hits = join_all$p_interact < p_eqtl
+    eqtl_hits = join_all$p_joint < p_eqtl
     ft  = fisher.test( gwas_hits, eqtl_hits )
-    data.frame( p_eqtl = p_eqtl, p_gwas=p_gwas, n_eqtl=sum(eqtl_hits), gwas_hits=sum(gwas_hits), OR=ft$estimate, p = ft$p.value)
+    data.frame( p_eqtl = p_eqtl, p_gwas=p_gwas, n_eqtl=sum(eqtl_hits), gwas_hits=sum(gwas_hits),  overlap=sum(gwas_hits & eqtl_hits), OR=ft$estimate, p = ft$p.value)
   }
 }
-
-enrich_results_2=foreach(p_eqtl = 10^-seq(1.3,3,by=0.3), .combine = bind_rows ) %do% {
-  foreach(p_gwas = 10^-seq(4,5,by=0.2), .combine = bind_rows ) %do% {
-    gwas_hits = join_all$Pvalue < p_gwas
-    eqtl_hits = join_all$p_interact < p_eqtl
-    ft  = fisher.test( gwas_hits, eqtl_hits )
-    data.frame( p_eqtl = p_eqtl, p_gwas=p_gwas, n_eqtl=sum(eqtl_hits), gwas_hits=sum(gwas_hits), overlap=sum(gwas_hits & eqtl_hits), OR=ft$estimate, p = ft$p.value)
-  }
-}
-enrich_results_2 %>% arrange(p)
+enrich_results
+enrich_results %>% mutate(p_eqtl=as.factor(p_eqtl), p_gwas=as.factor(p_gwas)) %>% ggplot(aes(p_eqtl,p_gwas, fill=log(OR), label=paste( format(p,digits=1), format(OR,digits=1)))) + geom_tile() + geom_text() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + scale_fill_gradient2()
 ```
 
 
 ```{r}
-join_all %>% filter(Pvalue < 1e-5) #%>% select(gene, RSID, p_geno, p_interact, p_joint, Pvalue)
+join_all %>% filter(Pvalue < 1e-5) %>% select(-starts_with("l"), -Ch.x, -Ch.y, -p_boot)#%>% select(gene, RSID, p_geno, p_interact, p_joint, Pvalue)
+```
+GTEx: nothing for rs7596623, rs4058287, but eQTL for rs766643 for ENSG00000145545 in "Esophagus - Mucosa".
+
+## eCAVIAR co-localization
+
+```{r}
+gene_of_interest="ENSG00000078295"
+gene_dat = join_all %>% filter(gene==gene_of_interest) 
+gene_dat %>% ggplot(aes(pos, -log10(p_interact), col="eQTL")) + geom_vline(aes(xintercept=pos),alpha=0.1) + geom_point() + geom_point(aes(pos, -log10(Pvalue), col="GWAS")) + theme_bw() + theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) # + coord_cartesian(xlim=c(58300000,58400000))
+gene_dat %>% ggplot(aes(-log10(Pvalue), -log10(p_interact))) + geom_point()
 ```
 
-GTEx: nothing for rs7596623, rs4058287, but eQTL for rs766643 for ENSG00000145545 in "Esophagus - Mucosa".
+```{r}
+gene_of_interest="ENSG00000078295"
+#gene_dat = join_all %>% filter(gene==gene_of_interest) 
+#for_ecaviar=paste0("../data/",gene_of_interest,"/")
+
+setup_eCAVIAR = function(gene_dat, for_ecaviar) {
+  
+  dir.create(for_ecaviar)
+  
+  gene_dat %>% .$RSID %>% writeLines(con=paste0(for_ecaviar,"snps.txt"))
+  gene_dat %>% mutate( z=sign(log(OR)) * qnorm(.5 * Pvalue)) %>% 
+    select(RSID, z) %>% 
+    write.table(paste0(for_ecaviar,"gwas_z.txt"), quote=F, row.names=F, col.names=F)
+  
+  gene_dat %>% mutate( z=qnorm(.5 * p_joint)) %>%
+    select(RSID, z) %>% 
+    write.table(paste0(for_ecaviar,"eqtl_z.txt"), quote=F, row.names=F, col.names=F)
+  
+  eqtl_ld=genotype[as.character(gene_dat$cis_snp),] %>% t() %>% cor(use="pairwise")
+  #heatmap(eqtl_ld, Rowv = NA, Colv=NA)
+  eqtl_ld %>% write.table(file=paste0(for_ecaviar,"eqtl_ld.txt"), row.names = F, col.names = F)
+  
+  rs_list=gene_dat %>% .$RSI %>% paste0(collapse="%0A")
+  r2=system(paste0("curl -k -s -o temp -X GET 'https://analysistools.nci.nih.gov/LDlink/LDlinkRest/ldmatrix?snps=",rs_list,"&pop=EUR&r2_d=R2'"), intern=T)
+  ld=read.table("temp", header=T)
+  #ld=read.table(paste0(for_ecaviar,"r2.txt"), stringsAsFactors = F, header=T)
+  rownames(ld) = ld$RS_number
+  ld$RS_number=NULL
+  write.table( sqrt(ld), file=paste0(for_ecaviar,"gwas_ld.txt"), row.names = F, col.names = F)
+}
+```
+
 
 ## Using LD
 
@@ -248,6 +286,41 @@ gwas_df_with_ld = foreach(chr=unique(gwas_df_1e5$Ch), .combine = bind_rows ) %do
 ```{r}
 gwas_ld_filtered = gwas_df_with_ld %>% filter(R > 0.5)
 gwas_ld_filtered %>% inner_join(joint_hits, by=c(other_snp="RSID"))
+```
+
+##  Explicitly testing GWAS variants
+
+```{r}
+mega_res = read.table("../results/mega.txt", header=T, stringsAsFactors = F)
+
+hits = mega_res %>% group_by(cis_snp) %>% 
+  top_n(1, -p_joint) %>% 
+  ungroup() %>%
+  mutate(cis_snp=as.integer(cis_snp)) %>% 
+  left_join(snploc, by=c(cis_snp="snpid"))
+
+mega_sum=mega_res %>% group_by(cis_snp) %>% summarize( p=min(p_joint) * length(p_joint), gene=gene[which.min(p_joint)] )
+mega_sum
+```
+
+So these 3 are still significant after Bonferonni over tested genes. 
+```{r}
+foreach(gene_of_interest=unique(mega_sum$gene)) %do% {
+  setup_eCAVIAR(gene_of_interest)
+}
+```
+
+Then run eCAVIAR using (couldn't get this to compile on Mac so run on linux)
+```
+eCAVIAR -l gwas_ld.txt -l eqtl_ld.txt -z gwas_z.txt -z eqtl_z.txt -c 3 -o c3
+```
+
+```{r}
+foreach(gene_of_interest=unique(mega_sum$gene), .combine = bind_rows) %do% {
+  read.table(paste0("../data/",gene_of_interest,"/c3_col"), header=T, stringsAsFactors = F) %>%
+    top_n(1, CLPP) %>%
+    mutate(gene=gene_of_interest)
+}
 ```
 
 ## Focusing on replicated GWAS variant

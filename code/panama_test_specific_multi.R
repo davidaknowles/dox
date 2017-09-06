@@ -143,10 +143,3 @@ mega_res=mega_res %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
 
 write.table(mega_res, file=paste0("../results/mega.txt"),sep="\t",row.names=F, quote=F)
 
-hits = mega_res %>% group_by(cis_snp) %>% 
-  top_n(1, -p_joint) %>% 
-  ungroup() %>%
-  mutate(cis_snp=as.integer(cis_snp)) %>% 
-  left_join(snploc, by=c(cis_snp="snpid"))
-
-mega_res %>% group_by(cis_snp) %>% summarize( p=min(p_joint) * length(p_joint), gene=gene[which.min(p_joint)] )

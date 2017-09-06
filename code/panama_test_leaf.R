@@ -1,6 +1,4 @@
 
-DATADIR=Sys.getenv("DOX_DATA") 
-cat("DATADIR:", DATADIR,"\n")
 
 library("dplyr")
 library("tidyr")
@@ -8,27 +6,23 @@ require(magrittr)
 library(data.table)
 require(stringr)
 source("utils.R")
-registerDoMC(16)
 
-genotype=fread(paste0("zcat < ", DATADIR, "genotype.txt.gz"), data.table = F, header = T)
-
-rownames(genotype)=genotype$snpid
-genotype$snpid=NULL
-
-genotype=as.matrix(genotype)
-
-snploc=read.table(paste0(DATADIR,"snploc.txt.gz"),header=T,stringsAsFactors = F)
-
+#  "chr5:102961229:102990272:clu_17500"
 if (interactive()) {
-  chrom="chr15"
+  chrom="chr5"
   normalization_approach="none"
   permuted="boot"
+  cisdist=1e6
 } else {
+  registerDoMC(16)
   ca=commandArgs(trailingOnly = T)
   chrom=ca[2]
   permuted=ca[3]
   normalization_approach=ca[1]
+  cisdist=1e5
 }
+
+source("load_data.R")
 
 snploc=snploc[snploc$chr==chrom,]
 
@@ -39,7 +33,6 @@ input <- read.table(paste0(DATADIR,"leafcutter_qqnorm.txt.gz"), header=T, sep="\
 anno=str_split_fixed(colnames(input), "_", 2) %>% 
   as.data.frame(stringsAsFactors=F) %>%
   set_colnames(c("findiv","conc"))
-
 
 geneloc=str_split_fixed(rownames(input),":",4) %>% 
   as.data.frame(stringsAsFactors=F) %>%
@@ -63,7 +56,7 @@ require(rstan)
 panama_test=stan_model("panama_test.stan")
 
 rownames(geneloc)=geneloc$geneid
-cisdist=1e5
+
 errorhandling=if (interactive()) 'stop' else 'remove'
 
 #K=readRDS("../data/Kern.rds")
@@ -94,7 +87,7 @@ results=foreach(gene=geneloc$geneid, .errorhandling=errorhandling, .combine = bi
   init=list(sigma2=0.1, sigma2_k=1.0, beta=lm(y ~ no_geno - 1) %>% coef )
 
   fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
-  foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
+  results=foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
     geno=imp_geno[cis_snp,anno$findiv]
     if (sum(imp_geno[cis_snp,]) < 5.0) return(NULL)
 
@@ -146,9 +139,11 @@ results=foreach(gene=geneloc$geneid, .errorhandling=errorhandling, .combine = bi
   
 }
 
+results %>%  format(digits=5) %>% write.table("../data/chr5_102961229_102990272_clu_17500.txt", quote = F, row.names = F, col.names = T, sep="\t")
+
 resdir=paste0(DATADIR,"sqtl_",normalization_approach,"_",permuted,"/")
 dir.create(resdir)
 
-gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
-results %>% format(digits=5) %>% write.table(gz1, quote = F, row.names = F, col.names = T, sep="\t")
-close(gz1)
+#gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
+#results %>% format(digits=5) %>% write.table(gz1, quote = F, row.names = F, col.names = T, sep="\t")
+#close(gz1)
