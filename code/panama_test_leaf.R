@@ -68,6 +68,18 @@ no_geno = model.matrix( ~ conc, data=anno) # [,2:5]
 
 N=ncol(input)
 
+
+resdir=paste0(DATADIR,"sqtl_",normalization_approach,"_",permuted,"/")
+dir.create(resdir)
+
+#checkpoint_dir=paste0(resdir,chrom,"_checkpoint/")
+#dir.create(checkpoint_dir)
+
+# Suppress excessive output from Stan fitting.
+zz <- file( "/dev/null", open = "wt")
+sink(zz)
+sink(zz, type = "message")
+
 results=foreach(gene=geneloc$geneid, .errorhandling=errorhandling, .combine = bind_rows) %do% {
   
   print(gene)
@@ -87,7 +99,7 @@ results=foreach(gene=geneloc$geneid, .errorhandling=errorhandling, .combine = bi
   init=list(sigma2=0.1, sigma2_k=1.0, beta=lm(y ~ no_geno - 1) %>% coef )
 
   fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
-  results=foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
+  foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
     geno=imp_geno[cis_snp,anno$findiv]
     if (sum(imp_geno[cis_snp,]) < 5.0) return(NULL)
 
@@ -139,11 +151,10 @@ results=foreach(gene=geneloc$geneid, .errorhandling=errorhandling, .combine = bi
   
 }
 
-results %>%  format(digits=5) %>% write.table("../data/chr5_102961229_102990272_clu_17500.txt", quote = F, row.names = F, col.names = T, sep="\t")
+#results %>%  format(digits=5) %>% write.table("../data/chr5_102961229_102990272_clu_17500.txt", quote = F, row.names = F, col.names = T, sep="\t")
+sink(type="message")
+sink()
 
-resdir=paste0(DATADIR,"sqtl_",normalization_approach,"_",permuted,"/")
-dir.create(resdir)
-
-#gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
-#results %>% format(digits=5) %>% write.table(gz1, quote = F, row.names = F, col.names = T, sep="\t")
-#close(gz1)
+gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
+results %>% format(digits=5) %>% write.table(gz1, quote = F, row.names = F, col.names = T, sep="\t")
+close(gz1)

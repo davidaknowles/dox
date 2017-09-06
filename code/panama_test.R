@@ -7,16 +7,19 @@ registerDoMC(16)
 source("load_data.R")
 require(rstan)
 
+geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
+
 if (interactive()) {
   chrom="chr15"
   normalization_approach="qq"
   permuted="boot"
+  cisdist=1e5
 } else {
   ca=commandArgs(trailingOnly = T)
   chrom=ca[2]
   permuted=ca[3]
   normalization_approach=ca[1]
-  cisdist=as.integer(ca[4])
+  cisdist=as.numeric(ca[4])
 }
 
 geneloc=geneloc[geneloc$chr==chrom,]
@@ -48,9 +51,24 @@ no_geno = model.matrix( ~ conc, data=anno) # [,2:5]
 
 N=ncol(input)
 
+resdir=paste0(DATADIR,"panama_",normalization_approach,"_",permuted,"_",cisdist,"/")
+dir.create(resdir)
+
+checkpoint_dir=paste0(resdir,chrom,"_checkpoint/")
+dir.create(checkpoint_dir)
+
+zz <- file( "/dev/null", open = "wt")
+sink(zz)
+sink(zz, type = "message")
+
 results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) %do% {
   
   print(gene)
+  check_fn=paste0(checkpoint_dir,gene,".txt.gz")
+  if (file.exists(check_fn)) {
+    return(read.table(check_fn, header=T, stringsAsFactors = F, sep="\t"))
+  }
+
   y=input[gene,] %>% as.numeric
   y=y-mean(y)
   
@@ -67,7 +85,7 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
   init=list(sigma2=0.1, sigma2_k=1.0, beta=lm(y ~ no_geno - 1) %>% coef )
 
   fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
-  foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
+  gene_results = foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
     geno=imp_geno[cis_snp,anno$findiv]
     if (sum(imp_geno[cis_snp,]) < 5.0) return(NULL)
 
@@ -96,7 +114,7 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
     fit_geno=lrt_true$fit_geno
     fit_interact=lrt_true$fit_interact
     
-    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value  )
+    res=data.frame(gene=gene, cis_snp=cis_snp, l0=fit_no_geno$value, l_geno=fit_geno$value, l_interact=fit_interact$value, stringsAsFactors=F  )
     
     if (permuted=="boot") {
       Sigma = fit_geno$par$sigma2_k * K + fit_geno$par$sigma2 * diag(N)
@@ -110,17 +128,20 @@ results=foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) 
       res$l_boot_interact=lrt_boot$fit_interact$value
     }
     
-    #lrt_interact=2.0*(fit_interact$value - fit_geno$value)
-    #df_interact=ncol(interact)
-    # pchisq(lrt,df,lower.tail=F)
-    
     res
   }
   
+  checkpoint_file=gz1 = gzfile( check_fn,"w")
+  gene_results %>% format(digits=5) %>% write.table(checkpoint_file, quote = F, row.names = F, col.names = T, sep="\t")
+  close(checkpoint_file)
+  
+  gene_results
 }
 
-resdir=paste0(DATADIR,"panama_",normalization_approach,"_",permuted,"_",cisdist,"/")
-dir.create(resdir)
+# Could just zcat everything into one file rather than bind_rows
+
+sink(type="message")
+sink()
 
 gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")
 results %>% format(digits=5) %>% write.table(gz1, quote = F, row.names = F, col.names = T, sep="\t")
