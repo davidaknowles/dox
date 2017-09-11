@@ -13,20 +13,11 @@ require(tidyr)
 require(leafcutter)
 
 source("../code/utils.R")
+source("../code/load_data.R")
 ```
 
 ```{r}
-res_dir="~/gdrive/dox_data/panama_qq_boot_1e+06/"
-eqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
-  print(fn)
-  fread(paste0(res_dir,fn), data.ta
-}
-
-df=4
-eqtl=eqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
-                      p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
-                      p_joint=lrt_pvalue(l_interact-l0,df=df+1),
-                      p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) )
+eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
 ```
 
 How many eQTLs, pooling across concentrations. 
@@ -107,7 +98,7 @@ cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9", 
 foreach(i=1:4) %do% {
   hit=hits[i,]
   geno=genotype[ as.character(hit$cis_snp),anno$findiv]
-  data.frame(y= 2^input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
+  data.frame(y= input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
 } #  c(0.15,0.2)
 #ggsave("../figures/ELP5.pdf",width=4.5,height=3.5)
 ```
@@ -160,9 +151,3 @@ sum(joint_bf$q < 0.05)
 hist(eqtl$p_joint)
 ```
 
-```{r}
-gwas=read.table("../data/164860_3_supp_3656461_nd3knz.txt", header=T, stringsAsFactors = F) %>% 
-  mutate(Ch=paste0("chr",Ch))
-gwas %>% mutate(BP=BP+1) %>% left_join( snploc , by=c(Ch="chr", BP="pos") ) %>% .$snpid
-a=load("~/Dropbox/enviro_code/smalle_data/common_snps.RData")
-```

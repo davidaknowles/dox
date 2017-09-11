@@ -26,39 +26,21 @@ Do I need to take LD into account?
 ## Load (response) eQTLs
 
 ```{r}
-DATADIR="~/scailscratch/dox/"
-res_dir="../panama_qq_boot/"
-eqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
-  print(fn)
-  read.table(paste0(res_dir,fn), header = T, stringsAsFactors = F)
-}
-
-df=4
-eqtl=eqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
-                      p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
-                      p_joint=lrt_pvalue(l_interact-l0,df=df+1),
-                      p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) )
+DATADIR="~/gdrive/dox_data/"
+eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
 ```
 
 ### Get RS IDs for eSNPs
 
 Load my snp positions (these are GrCh38)
 ```{r}
-snploc=read.table(paste0(DATADIR,"snploc_w_rsid.txt.gz"),header=T,stringsAsFactors = F) 
+snploc=fread(paste0("zcat < ",DATADIR,"snploc_w_rsid.txt.gz"), data.table = F) 
 ```
 
 ```{r}
 eqtl = eqtl %>% 
   left_join(snploc, by=c(cis_snp="snpid")) 
 sum(is.na(eqtl$RSID)) # 90982 = 3.2%
-```
-
-Save eQTL with RSID for future use
-```{r}
-eqtl$chr=NULL
-gz=gzfile("../data/panana_all_eqtl.txt.gz","w")
-eqtl %>% write.table(gz, sep="\t", row.names=F, quote=F)
-close(gz)
 ```
 
 ### Total hits
@@ -84,32 +66,15 @@ joint_threshold=joint_bf %>% filter(q<.05) %>% .$p %>% max
 sum(joint_bf$q < 0.05) # 1091
 ```
 
-
-
-
 ## Load GWAS results. 
 
 ```{r}
 gwas_df = fread("zcat < ../data/schneider_gwas_clean.txt.gz", data.table = F)
 ```
 
-## Joint eQTL and GWAS results
+## [Deprecated]
 
-```{r}
-gwas_df %>% inner_join(joint_hits, by="RSID")
-```
-No overlap :( 
-
-
-Look for enrichment
-```{r}
-join_all = eqtl %>% inner_join(gwas_df, by="RSID")
-mean( join_all$p_joint < 0.01 )
-mean( eqtl$p_joint < 0.01 )
-join_all %>% ggplot(aes(-log10(p_joint), -log10(Pvalue))) + geom_point()
-```
-
-
+Have the full summary stats now so don't need to do this. 
 
 Load all SNPs from the HumanOmni1-Quad_v1 used by the GWAS (don't need to do this now have full results)
 ```{r eval=F}
@@ -128,12 +93,20 @@ mean(eqtl$RSID %in% gwas_array$RSID)
 sort( table( substr(eqtl$RSID,1,2)), decreasing = T )
 ```
 
+## Joint eQTL and GWAS results
+
+```{r}
+join_all = eqtl %>% inner_join(gwas_df, by="RSID")
+```
+
+What p-value threshold corresponds to 5% FDR? 
 ```{r}
 bonferroni=function(g) { g %>% group_by(gene) %>% 
     summarize( cis_snp=cis_snp[which.min(p)], original_p=min(p), p=min(p) * length(p)  ) %>% 
     mutate( q=p %>% pmin(1) %>% p.adjust(method="BH") ) }
 temp = eqtl %>% group_by(gene) %>% mutate(p=p_interact) %>% bonferroni()
 p_threshold = temp %>% ungroup() %>% filter(q<0.05) %>% .$original_p %>% max(.)
+p_threshold
 ```
 
 Using Storey's pi1

@@ -1,0 +1,33 @@
+---
+title: "Add RSID to snploc"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(tidyverse)
+load("~/Dropbox/enviro_code/smalle_data/common_snps.RData")
+hg38_snps = common_snps[,1:3]
+rm(common_snps)
+gc()
+colnames(hg38_snps)=c("Ch","BP","RSID")
+dim(hg38_snps)
+```
+
+Load my snp positions (these are GrCh38) and find RS IDs
+```{r}
+DATADIR=Sys.getenv("DOX_DATA")
+snploc=read.table(paste0(DATADIR,"snploc.txt.gz"),header=T,stringsAsFactors = F) 
+snploc=snploc %>% 
+ mutate(Ch=substr(chr,4,nchar(chr)) %>% as.integer()) %>% 
+  left_join(hg38_snps, by=c(Ch="Ch",pos="BP"))
+```
+
+```{r}
+gz=gzfile(paste0(DATADIR,"snploc_w_rsid.txt.gz"),"w")
+write.table(snploc %>% select(-Ch), gz, quote=F, col.names=T, row.names=F, sep="\t")
+close(gz)
+```

@@ -1,0 +1,296 @@
+---
+title: "eQTL vs response eQTL"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ggplot2)
+require(data.table)
+require(foreach)
+require(dplyr)
+require(tidyr)
+require(leafcutter)
+require(stringr)
+require(magrittr)
+source("../code/utils.R")
+cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
+
+```
+
+```{r}
+source("../code/load_data.R")
+```
+## Load sQTL
+
+```{r}
+input <- read.table(paste0(DATADIR,"leafcutter_qqnorm.txt.gz"), header=T, sep="\t", check.names = F)
+anno=str_split_fixed(colnames(input), "_", 2) %>% 
+  as.data.frame(stringsAsFactors=F) %>%
+  set_colnames(c("findiv","conc"))
+```
+
+```{r}
+sqtl = read_qtls("~/gdrive/dox_data/sqtl_none_boot/")
+```
+
+## Get intron info
+
+```{r}
+dat_combined = read.table("../data/combined_leafcutter.txt.gz", sep="\t", header=T)
+```
+
+```{r}
+exons = fread("zcat < ~/Dropbox/splicing/leafcutter/leafcutter/data/gencode.v26.exons.txt.gz", data.table = F)
+intron_meta=get_intron_meta(rownames(dat_combined)) %>% 
+  mutate(clusterID = clu, deltapsi = 0, verdict="annotated") %>% 
+  set_rownames(rownames(dat_combined))
+
+clu_gene_map    = map_clusters_to_genes(intron_meta, exons) # version from utils.R
+sqtl = sqtl %>% mutate(clu = str_split_fixed(gene, ":", 4)[,4] )
+```
+
+How many eQTLs, pooling across concentrations. 
+```{r}
+geno_bf=sqtl %>% mutate(p=p_geno) %>% bonferroni()
+geno_threshold=geno_bf %>% filter(q<.05) %>% .$p %>% max
+sum(geno_bf$q < 0.05) # 720! 
+```
+
+How many interaction QTLs (assuming calibrated p-values). 
+```{r}
+interact_bf=sqtl %>% mutate(p=p_interact) %>% bonferroni()
+interact_threshold=interact_bf %>% filter(q<.05) %>% .$p %>% max()
+interact_bf = interact_bf %>% mutate(clu=str_split_fixed(gene, ":", 4)[,4] ) %>%
+  left_join(clu_gene_map, by="clu") 
+sum(interact_bf$q < 0.05) # 47
+```
+
+How many where genotype has any effect? 
+```{r}
+joint_bf=sqtl %>% mutate(p=p_joint) %>% bonferroni
+joint_threshold=joint_bf %>% filter(q<.05) %>% .$p %>% max
+sum(joint_bf$q < 0.05) # 696
+```
+
+
+
+```{r}
+hits=interact_bf %>% top_n(30, -p) %>% arrange(p) %>% left_join(snploc, by=c(cis_snp="snpid"))
+hits
+```
+
+### Cherry picking
+
+- IGF1R: Deficiency of insulin-like growth factor-1 receptor confers resistance to oxidative stress in C2C12 myoblasts https://www.ncbi.nlm.nih.gov/pubmed/23675509. Also: Oxidative stress regulates IGF1R expression in vascular smooth-muscle cells via p53 and HDAC recruitment. https://www.ncbi.nlm.nih.gov/pubmed/17600529 **
+- APIP: APAF1 Interacting Protein. Inhibits mitochrondrial apoptosis (competes with caspase-9 to bind to CARD domain of Apaf-1): https://www.ncbi.nlm.nih.gov/pubmed/19238172. APAF1 and caspase9 mediate ROS -> apoptosis https://www.ncbi.nlm.nih.gov/pubmed/15262985 **
+- TSFM kind interesting: mitochondrial translation elongation factor.  Combined Oxidative Phosphorylation Deficiency 3 and Dilated Cardiomyopathy. https://www.nature.com/articles/ncomms10210. **
+- NDUFAF6 nuclear mitochrondrial protein, helps assemble Complex I, part of oxphos pathway in mitrochrondia. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4793296/. In muscle degeneration: http://www.jbc.org/content/early/2013/11/12/jbc.M113.493270.full.pdf (NDUFB8 in Burridge paper) **
+
+### Kinda rubbish 
+
+- ERV3-1: increased expression in competitive cyclists: http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0132099
+- SCAMP5: ER stress in neurons in Huntingdon's https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2670137/
+- ANAPC13 and ZFYVE1 upregulated with TYMS inhibitors http://molpharm.aspetjournals.org/content/molpharm/88/6/970.full.pdf?with-ds=yes
+- M6PR modifies OS in Arabidopsis
+
+```{r}
+norm_dat = read.table("../data/normalized_leafcutter.txt.gz", sep="\t", header=T)
+```
+
+```{r}
+#hit=sqtl_w_gwas %>% filter(Pvalue < 1e-4) %>% top_n(1, -p_geno) %>% top_n(1, -Pvalue)
+
+foreach(i=1:30) %do% {
+  hit=hits[i,]
+  geno=genotype[ as.character(hit$cis_snp), as.character(ind_conc$findiv)]
+  data.frame(y=norm_dat[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=ind_conc$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) + ylim(0,1) + ggtitle(paste(i, hit$gene_name)) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
+} #  c(0.15,0.2)
+#ggsave("../figures/ELP5.pdf",width=4.5,height=3.5)
+```
+
+
+
+
+
+
+```{r}
+foreach( gene_interest=c("IGF1R", "TSFM", "NDUFAF6", "APIP") ) %do% {
+   hit=hits %>% filter(gene_name==gene_interest) %>% slice(which.min(p))
+   print(dim(hit))
+  # hit=hits[i,] %>% inner_join(snploc, by=c(cis_snp="snpid"))
+  clu = intron_meta[hit$gene, "clu"]
+  geno=genotype[ as.character(hit$cis_snp), as.character(ind_conc$findiv)]
+  to_keep = !is.na(geno)
+  meta = data.frame( geno=geno, conc=as.factor(ind_conc$conc) ) %>% 
+    mutate(geno = factor(geno, 0:2, c("AA","AC","CC")) %>% droplevels(), group=interaction(conc,geno,sep="|")) %>%
+    filter(to_keep)
+  clu_plots = make_cluster_plot(clu, clu, exons, meta, intron_meta$clu, dat_combined[,to_keep], intron_meta, snp_pos = hit$pos )
+  # length_transform = function(g) g
+  pdf(paste0("../figures/",gene_interest,".pdf"), width=20,height = 8)
+  do.call( grid.arrange, c( clu_plots, nrow=length(unique(meta$geno)) ) )
+  dev.off()
+}
+```
+
+```{r}
+introns=intron_meta %>% select(-clu) %>% filter(clusterID==clu) %>% select(start,end) %>% mutate(what="intron")
+exons_here = exons %>% filter(gene_name=="ANAPC13") %>% select(start,end) %>% mutate(what="exon")
+both=rbind(exons_here,introns)
+both %>% mutate(i=seq_len(nrow(both))) %>% ggplot(aes(x=start,xend=end,y=i,yend=i,col=what)) + geom_segment()
+```
+
+Interesting: this is an alternative TSS! 
+
+
+```{r}
+ros_go=rbind( fread("../data/amigo2_oxidative_stress.txt", data.table = F),
+              fread("../data/amigo2_reactive_oxygen_species.txt", data.table = F) ) %>%
+  set_colnames(c("uniprot","gene","synonyms"))
+
+ros_clusters = clu_gene_map %>% inner_join(ros_go, by=c(gene_name="gene"))
+```
+
+```{r}
+hits = sqtl %>% inner_join(ros_clusters, by="clu") %>% 
+  group_by(gene) %>% 
+  slice(which.min(p_interact)) %>% # top_n deals poorly with tied p-values
+  ungroup() %>% 
+  top_n(20, p_interact) %>%
+  arrange(p_interact)
+hits
+```
+
+```{r}
+fdr_results=foreach( q_thres=c(0.01,0.02,0.05,0.1,0.2,0.5), .combine=bind_rows )  %do% {
+  nominal_p=interact_bf %>% filter(q<q_thres) %>% .$p %>% max
+  data.frame( nominal_q=q_thres, boot_hits=sum( boot_bf$p < nominal_p ), nhits=sum( interact_bf$q < q_thres), nominal_p=nominal_p )
+} %>% mutate( empirical_q=boot_hits / nhits )
+# fdr_results %>% ggplot(aes(nominal_q, empirical_q)) + geom_point(size=3)  + geom_abline()
+fdr_results %>% mutate( real_hits = nhits - boot_hits ) %>% select( nominal_q, empirical_q, real_hits, boot_hits ) %>% gather( real, hits, real_hits, boot_hits ) %>%
+  mutate( real= factor(real, c("boot_hits", "real_hits"), c("False positive", "True positive") ), empirical_q=as.factor(format(empirical_q,digits=2)) , nominal_q=as.factor(format(nominal_q,digits=2))) %>% ggplot(aes( nominal_q, hits, fill=real)) + geom_bar(stat="identity" ) + geom_text(aes(nominal_q, -40, label=paste0("(",empirical_q,")") ) ) + xlab("Nominal FDR (Empirical FDR)") + ylab("Number of associations") + theme(legend.position = c(.2,.8))
+```
+
+## Check overlap with eQTL
+
+```{r}
+eqtl=fread("zcat < ../data/panana_all_eqtl.txt.gz", data.table = F)
+```
+
+```{r}
+eqtl_p_where_sqtl = sqtl %>% filter( p_joint < joint_threshold ) %>% inner_join(eqtl, by="cis_snp") %>% .$p_joint.y
+hist(eqtl_p_where_sqtl)
+1. - qvalue::pi0est(eqtl_p_where_sqtl)$pi0
+```
+
+35% of significant sQTL are also eQTL.
+
+```{r}
+joint_bf=eqtl %>% mutate(p=p_joint) %>% bonferroni()
+eqtl_joint_threshold=joint_bf %>% filter(q<.05) %>% .$p %>% max
+eqtl_joint_threshold
+```
+
+```{r}
+sqtl_p_where_eqtl = eqtl %>% filter( p_joint < joint_threshold ) %>% inner_join(sqtl, by="cis_snp") %>% .$p_joint.y
+hist(sqtl_p_where_eqtl)
+1. - qvalue::pi0est(sqtl_p_where_eqtl)$pi0
+```
+
+17% of significant eQTL are also sQTL. 
+
+## GWAS enrichment
+
+```{r}
+gwas_df = fread("zcat < ../data/schneider_gwas_clean.txt.gz", data.table = F)
+sqtl = sqtl %>% left_join(snploc, by=c(cis_snp="snpid")) 
+```
+
+```{r}
+sqtl_w_gwas = sqtl %>% inner_join(gwas_df, by="RSID")
+```
+
+```{r}
+p_range=outer( c(5,1), 10^-seq(1,5)) %>% as.numeric() %>% tail(-1)
+enrich_results=foreach(p_eqtl = p_range, .combine = bind_rows ) %do% {
+  foreach(p_gwas = p_range, .combine = bind_rows ) %dopar% {
+    gwas_hits = sqtl_w_gwas$Pvalue < p_gwas
+    eqtl_hits = sqtl_w_gwas$p_joint < p_eqtl
+    ft  = fisher.test( gwas_hits, eqtl_hits )
+    data.frame( p_eqtl = p_eqtl, p_gwas=p_gwas, n_eqtl=sum(eqtl_hits), gwas_hits=sum(gwas_hits),  overlap=sum(gwas_hits & eqtl_hits), OR=ft$estimate, p = ft$p.value)
+  }
+}
+enrich_results %>% arrange(p)
+enrich_results %>% mutate(p_eqtl=as.factor(p_eqtl), p_gwas=as.factor(p_gwas)) %>% ggplot(aes(p_eqtl,p_gwas, fill=log(OR), label=paste( format(p,digits=1), format(OR,digits=1)))) + geom_tile() + geom_text() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + scale_fill_gradient2()
+```
+
+```{r}
+sqtl_w_gwas %>% mutate(both=(1-Pvalue) * (1-p_joint)) %>% arrange(-both)
+```
+
+```{r}
+sqtl_w_gwas %>% mutate( q = p.adjust(Pvalue, method="BH") ) %>% top_n(10, -q)
+```
+
+```{r}
+sqtl_w_gwas %>% mutate( q = p.adjust(Pvalue, method="BH") , both=(1-q) * (1-p_joint)) %>% arrange(-both)
+```
+
+```{r}
+sqtl_w_gwas %>% filter(Pvalue < 1e-4) %>% arrange(p_geno) 
+```
+
+-  "chr5:103019843:103028185:clu_17501" does sort of track with LD. 
+- "chr5:102961229:102990272:clu_17500" is probably the same effect. Would be nice to redo sQTL mapping with cisdist=1e6.
+- "chr12:120444955:120445966:clu_2625" is not very convincing
+- "chr8:141141324:141142300:clu_27600" nope
+- "chr8:141173741:141175200:clu_27601" don't think so
+
+```{r}
+gene_of_interest = "chr5:102961229:102990272:clu_17500"
+gene_dat = sqtl_w_gwas %>% filter(gene==gene_of_interest) 
+gene_dat %>% ggplot(aes(pos, -log10(p_geno), col="eQTL")) + geom_vline(aes(xintercept=pos),alpha=0.1) + geom_point() + geom_point(aes(pos, -log10(Pvalue), col="GWAS")) + theme_bw() + theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) # + coord_cartesian(xlim=c(58300000,58400000))
+gene_dat %>% ggplot(aes(-log10(Pvalue), -log10(p_geno))) + geom_point()
+```
+```{r}
+setup_eCAVIAR( gene_of_interest, gene_dat %>% mutate(p_joint = p_geno) )
+```
+
+```{r}
+for_ecaviar=paste0("../data/",gene_of_interest,"/")
+ecaviar_res=read.table(paste0(for_ecaviar,"c1_col"), stringsAsFactors = F, header = T)
+sum(ecaviar_res$CLPP)
+```
+
+```{r}
+ hit=gene_dat %>% top_n(1,-p_joint) %>% head(1)
+  geno=genotype[ as.character(hit$cis_snp),anno$findiv]
+  data.frame(y=input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) 
+```
+
+```{r}
+results = read.table("../data/chr5_102961229_102990272_clu_17500.txt", stringsAsFactors = F, header=T) %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
+                      p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
+                      p_joint=lrt_pvalue(l_interact-l0,df=df+1),
+                      p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) ) %>%
+  select(-starts_with("l"))
+results = results %>% left_join(snploc, by=c(cis_snp="snpid")) 
+results_w_gwas = results %>% inner_join(gwas_df, by="RSID")
+```
+
+```{r}
+results_w_gwas %>% ggplot(aes(pos.x, -log10(p_geno), col="eQTL")) + geom_vline(aes(xintercept=pos.x),alpha=0.1) + geom_point() + geom_point(aes(pos.x, -log10(Pvalue), col="GWAS")) + theme_bw() + theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) # + coord_cartesian(xlim=c(58300000,58400000))
+results_w_gwas %>% ggplot(aes(-log10(Pvalue), -log10(p_geno))) + geom_point()
+```
+
+```{r}
+#gene_dat = join_all %>% filter(gene==gene_of_interest) 
+for_ecaviar=paste0("../data/bigger_region/")
+
+setup_eCAVIAR( results_w_gwas %>% mutate(p_joint = p_geno), for_ecaviar ) 
+```
+
+```{r}
+ecaviar_res=read.table(paste0(for_ecaviar,"c2_col"), stringsAsFactors = F, header = T)
+sum(ecaviar_res$CLPP)
+```

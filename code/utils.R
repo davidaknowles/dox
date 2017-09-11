@@ -1,5 +1,21 @@
 require(Matrix)
 
+read_qtls = function(res_dir, df=4) {
+
+  sqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
+    cat(".")
+    if (fn=="chrX.txt.gz") return(NULL)
+    fread(paste0("zcat < ",res_dir,fn), data.table=F)
+  }
+  
+  df=4
+  sqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
+                        p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
+                        p_joint=lrt_pvalue(l_interact-l0,df=df+1),
+                        p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) ) %>%
+    select(-starts_with("l"))
+}
+
 lrt_pvalue=function(halfdevi,df) pchisq(2*halfdevi,df=df,lower.tail = F)
 
 bonferroni=function(g) { g %>% group_by(gene) %>% 
