@@ -39,7 +39,7 @@ norm_dat[denoms==0]=NA
 ```
 
 Work out which samples should be merged. 
-```{r}
+```{r eval=F}
 input <- read.delim("../data/gene-counts-round-two.txt.gz", stringsAsFactors = F)
 anno <- input %>% select(filename, sampleid=individual, individual=flow_cell, lane, index, conc) %>%
   mutate( filename=paste0("s",filename) )
@@ -55,10 +55,13 @@ anno = anno %>% left_join(find_individual, by=c(individual="cell_line"))
 
 ind_conc=anno %>% select(findiv, conc) %>% distinct()
 
-write.table(ind_conc, "../data/leafcutter_anno.txt.gz", sep="\t", quote=F)
+gz=gzfile("../data/leafcutter_anno.txt.gz","w")
+write.table(ind_conc, gz, sep="\t", quote=F, row.names = F)
+close(gz)
 ```
 
 ```{r}
+ind_conc=fread("zcat < ../data/leafcutter_anno.txt.gz", data.table = F)
 dat=read.table("../data/leafcutter.txt.gz", stringsAsFactors = F, check.names = F)
 colnames(dat) = gsub(".bam", "", colnames(dat))
 dat_combined=foreach(row_i=1:nrow(ind_conc), .combine = cbind) %do% {
@@ -66,10 +69,15 @@ dat_combined=foreach(row_i=1:nrow(ind_conc), .combine = cbind) %do% {
    rowSums( dat[, files] )
 } %>% as.data.frame() %>%
   set_colnames(with(ind_conc, paste(findiv,conc,sep="_")))
-#dat_combined=dat
+
+gz=gzfile("../data/combined_leafcutter.txt.gz", "w")
+dat_combined %>% write.table(gz, quote=F, sep="\t", col.names=T, row.names=T)
+close(gz)
+```
+
+```{r}
 clu = str_split_fixed(rownames(dat_combined), ":", 4)[,4]
 
-#dat_combined$clu=clu
 norm_dat = dat_combined %>% 
   mutate(clu=clu) %>%
   group_by(clu) %>% 
@@ -78,6 +86,10 @@ norm_dat = dat_combined %>%
   as.data.frame() %>% 
   set_rownames(rownames(dat_combined)) %>% 
   select(-clu)
+
+gz=gzfile("../data/normalized_leafcutter.txt.gz", "w")
+norm_dat %>% write.table(gz, quote=F, sep="\t", col.names=T, row.names=T)
+close(gz)
 ```
 
 Gives the same answer as the dplyr solution but the bind_rows is prohibitively slow
@@ -112,6 +124,7 @@ Simpler workflow, doesn't exactly match Yang's code, but very close
 norm_dat = norm_dat[rowMeans(is.na(norm_dat)) <= 0.4,,drop=F ]
 to_keep=apply(norm_dat, 1, function(g) sd(g,na.rm=T)) >= 0.005
 norm_dat = norm_dat[ to_keep,,drop=F ]
+
 scale_dat = norm_dat %>% 
    t() %>% scale() %>% t() # doesn't seem to matter if do n or n-1 SD
 scale_dat[is.na(scale_dat)]=0 # scaled so this is just mean imputation

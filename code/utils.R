@@ -10,6 +10,21 @@ unscale=function(g) {
   sweep( sweep(g, 1, attr(g,"scaled:scale"), "*"), 1, attr(g,"scaled:center"), "+")
 }
 
+
+map_clusters_to_genes = function (intron_meta, exons_table) 
+{
+  foreach(chrom = sort(unique(intron_meta$chr)), .combine = bind_rows) %dopar% 
+  {
+    intron_chr = intron_meta %>% filter( chr == chrom )
+    exons_chr = exons_table %>% filter( chr == chrom )
+    three_prime_matches = inner_join(intron_chr, exons_chr, by=c(end="start") )
+    five_prime_matches = inner_join(intron_chr, exons_chr, by=c(start="end") )
+    all_matches = rbind( three_prime_matches %>% select( clu, gene_name ), 
+                         five_prime_matches %>% select( clu, gene_name ) )  %>% 
+      distinct()
+  }
+}
+
 easy_impute=function(geno, prop_var=0.95) {
   temp=geno
   temp=t(scale(t(geno)))

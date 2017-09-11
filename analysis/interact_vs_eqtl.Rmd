@@ -16,10 +16,10 @@ source("../code/utils.R")
 ```
 
 ```{r}
-res_dir="../panama_qq_boot/"
+res_dir="~/gdrive/dox_data/panama_qq_boot_1e+06/"
 eqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
   print(fn)
-  read.table(paste0(res_dir,fn), header = T, stringsAsFactors = F)
+  fread(paste0(res_dir,fn), data.ta
 }
 
 df=4

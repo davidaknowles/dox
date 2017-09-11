@@ -42,22 +42,9 @@ eqtl=eqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
 
 ### Get RS IDs for eSNPs
 
-Get hg38 SNPs
+Load my snp positions (these are GrCh38)
 ```{r}
-load("~/Dropbox/enviro_code/smalle_data/common_snps.RData")
-hg38_snps = common_snps[,1:3]
-rm(common_snps)
-gc()
-colnames(hg38_snps)=c("Ch","BP","RSID")
-dim(hg38_snps)
-```
-
-Load my snp positions (these are GrCh38) and find RS IDs
-```{r}
-snploc=read.table(paste0(DATADIR,"snploc.txt.gz"),header=T,stringsAsFactors = F) 
-snploc=snploc %>% 
- mutate(Ch=substr(chr,4,nchar(chr)) %>% as.integer()) %>% 
-  left_join(hg38_snps, by=c(Ch="Ch",pos="BP"))
+snploc=read.table(paste0(DATADIR,"snploc_w_rsid.txt.gz"),header=T,stringsAsFactors = F) 
 ```
 
 ```{r}
@@ -102,49 +89,9 @@ sum(joint_bf$q < 0.05) # 1091
 
 ## Load GWAS results. 
 
-These are (unfortunately) hg19. 
 ```{r}
-gwas_df=fread("zcat < ../data/EA_CHF_GWAS.csv.gz", data.table = F)
-gwas_df = gwas_df %>% rename(RSID=SNP, Ch=CHR)
-gwas_df
+gwas_df = fread("zcat < ../data/schneider_gwas_clean.txt.gz", data.table = F)
 ```
-
-How many of the GWAS variants has rs id? 
-```{r}
-mean(grepl("rs",gwas_df$RSID))
-```
-
-Only `kgp8105491` has a high ranking p-value. The GWAS was performed on a HumanOmni1-Quad. Can find this [here](ftp://webdata2:webdata2@ussd-ftp.illumina.com/downloads/ProductFiles/HumanOmni1-Quad/HumanOmni1-Quad_v1-0-Multi_H.csv) but just gets back to Chr + pos (which agrees with above). 
-
-Get hg19 SNPs 
-```{r}
-hg19_snps=fread("zcat < ~/scailscratch/splicing/snp146_maf0p05.txt.gz", sep="\t", data.table = F) %>% 
- set_colnames(c("Ch","BP","RSID")) %>%
-  filter(Ch %in% paste0("chr",1:22)) %>%
-  mutate(Ch=substr(Ch,4,nchar(Ch)) %>% as.integer(), BP=BP+1)
-```
-
-Attempt to fix some of the `kgp` IDs used in the GWAS results (and get RS ids instead)
-Line up +1/-1 stuff
-rs2184559 chr14
-USCS hg19 56192791 (!)
-GWAS 56192541
-hg19_snps 56192540
-hg38_snps 55725823
-```{r}
-gwas_df = gwas_df %>% left_join( hg19_snps , by=c("Ch","BP"))
-gwas_df %>% filter(is.na(RSID.y))
-```
-rs76464104 has MAF of 1%, rs2233980 is the MHC region.
-
-```{r}
-gwas_df$RSID.y[ is.na(gwas_df$RSID.y) ]=gwas_df$RSID.x[ is.na(gwas_df$RSID.y) ]
-gwas_df$RSID=gwas_df$RSID.y
-gwas_df$RSID.x=NULL
-gwas_df$RSID.y=NULL
-mean(grepl("rs",gwas_df$RSID))
-```
-Resolves most kgp variants.
 
 ## Joint eQTL and GWAS results
 
