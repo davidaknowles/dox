@@ -1,5 +1,7 @@
 require(Matrix)
 
+cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
+
 read_qtls = function(res_dir, df=4) {
 
   sqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
@@ -41,6 +43,10 @@ map_clusters_to_genes = function (intron_meta, exons_table)
   }
 }
 
+fix_diag=function(x) {
+  if(length(x)==1) matrix(x) else diag(x)
+}
+
 easy_impute=function(geno, prop_var=0.95) {
   temp=geno
   temp=t(scale(t(geno)))
@@ -49,10 +55,11 @@ easy_impute=function(geno, prop_var=0.95) {
   v=s$d^2/sum(s$d^2)
   to_use=cumsum(v)<prop_var
   s$d[!to_use]=0.0
-  recon=s$u %*% diag(s$d) %*% t(s$v)
+  recon=s$u %*% fix_diag(s$d) %*% t(s$v)
   temp[is.na(geno)]=recon[is.na(geno)]
   temp=unscale(temp)
   stopifnot(max(abs(temp[!is.na(geno)]-geno[!is.na(geno)]))<1e-10)
+  temp=round(temp)
   class(temp)="integer"
   temp
 }
@@ -99,14 +106,7 @@ quantile_normalize_cols=function(input) {
 }
 
 quantile_normalize=function(input) {
-  # Quantile normalization
-  input_t=as.data.frame(t(input))
-  res= foreach(l=as.list(input_t)) %dopar% {
-    qqnorm(l,plot.it = F)$x
-  }
-  qnorm_input=t(as.matrix(as.data.frame(res)))
-  dimnames(qnorm_input)=dimnames(input)
-  qnorm_input
+  apply(input, 1, my_qqnorm) %>% t()
 }
 
 pvalue_qqplot=function(pvalues, nl10_obs_p_threshold=0) {
@@ -115,3 +115,22 @@ pvalue_qqplot=function(pvalues, nl10_obs_p_threshold=0) {
     filter( y > nl10_obs_p_threshold ) %>%
     ggplot(aes(x,y)) + geom_point() + geom_abline(intercept=0,slope=1) + xlab("Expected -log10(p)") + ylab("Observed -log10(p)") + expand_limits(x=0, y=0)
 }
+
+get_qqplot_data=function(pvalues) {
+  n=length(pvalues)
+  data.frame(x=-log10(seq(1/n, 1, length.out = n)), y=-log10(sort(pvalues)) )
+}
+
+pvalue_qqplot=function(pvalues, nl10_obs_p_threshold=0) {
+  get_qqplot_data(pvalues) %>%
+    filter( y > nl10_obs_p_threshold ) %>%
+    ggplot(aes(x,y)) + geom_point() + geom_abline(intercept=0,slope=1) + xlab("Expected -log10(p)") + ylab("Observed -log10(p)") + expand_limits(x=0, y=0)
+}
+
+pvalue_qqplot_multi=function(pvalues, nl10_obs_p_threshold=0) {
+  pvalues %>% group_by(group) %>% mutate(x=-log10(seq(1/n(), 1, length.out = n())), y=-log10(sort(p)) ) %>% ungroup() %>%
+    filter( y > nl10_obs_p_threshold ) %>%
+    ggplot(aes(x,y,col=group)) + geom_point() + geom_abline(intercept=0,slope=1) + xlab("Expected -log10(p)") + ylab("Observed -log10(p)") 
+}
+
+

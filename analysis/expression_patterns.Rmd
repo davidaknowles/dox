@@ -18,25 +18,10 @@ registerDoMC(detectCores()-1)
 DATADIR="~/scailscratch/dox/"
 library("dplyr")
 library(data.table)
-source("utils.R")
+source("../code/utils.R")
 
-sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$findiv))
+source("../code/load_data.R")
 
-input <- read.delim("../data/counts_log_cpm.txt.gz")
-
-anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
-
-sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-
-# mapping from cell-line ID to individual
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
-stopifnot(is.character(anno$individual))
-
-colnames(input)=findiv[anno$individual]
-
-#input=remove_PCs(input, num_PCs_to_remove)
 input=quantile_normalize(input)
 ```
 
@@ -45,28 +30,36 @@ input=quantile_normalize(input)
 ```{r}
 anno$findiv=as.character(findiv[anno$individual])
 genes=rownames(input)
-pvalues=setNames( foreach(gene=genes, .errorhandling='pass', .combine = c) %dopar% {
+pvalues=foreach(gene=genes, .errorhandling='pass', .combine = bind_rows) %dopar% {
   y=input[gene,]
-  anova( lm(y ~ as.factor(anno$conc)), lm(y ~ 1))["Pr(>F)"][2,1]
-}, genes )
-qplot(pvalues, geom="blank") + geom_histogram() + theme_bw(base_size = 16) + xlab("p-value")
-ggsave("../figures/de_boring.pdf", width = 5, heigh=5)
-q=p.adjust(pvalues,method="BH")
-mean(q<.05) # 98% DE! 
+  data.frame(gene=gene,
+             lm_p=anova( lm(y ~ as.factor(anno$conc)), lm(y ~ 1))["Pr(>F)"][2,1],
+             spearman_p=cor.test(y, anno$conc, method="spearman")$p.value,
+             stringsAsFactors = F
+  )
+}
+qplot(pvalues$lm_p, geom="blank") + geom_histogram() + theme_bw(base_size = 16) + xlab("p-value")
+#ggsave("../figures/de_boring.pdf", width = 5, heigh=5)
+q=p.adjust(pvalues$lm_p,method="BH")
+cat( sum(q<.05), "/", length(q), "(", mean(q<.05), ")\n") # 98% DE! 
+
+q=p.adjust(pvalues$spearman_p,method="BH")
+cat( sum(q<.05), "/", length(q), "(", mean(q<.05), ")\n") # 98% DE! 
 ```
 
 ## Expression pattern analysis
 ```{r}
-require(rstan)
-
-dim(input)
-y=t(scale(t(input)))
-x=model.matrix(~as.factor(conc)-1, data=anno)
-#x=x[,2:ncol(x)]
-data=list(y=y, N=ncol(y), D=nrow(y), x=x, P=ncol(x), K=20)
 
 cached_fit_fn="../data/expression_patterns.RData"
 if (F) {
+  require(rstan)
+
+  dim(input)
+  y=t(scale(t(input)))
+  x=model.matrix(~as.factor(conc)-1, data=anno)
+  #x=x[,2:ncol(x)]
+  data=list(y=y, N=ncol(y), D=nrow(y), x=x, P=ncol(x), K=20)
+
   mixlm_model=stan_model("mixlm_pred.stan")
   mixlm_fit=optimizing(mixlm_model, data, verbose=T, iter=100,  as_vector=F) # takes a while... 
   save(file=cached_fit_fn, mixlm_fit)
@@ -98,7 +91,10 @@ colnames(m)=c("mixture","conc","mean")
 weights=mixlm_fit$par$p[to_use]
 m$pi=weights[m$mixture]
 m$mixture=as.factor(m$mixture)
-ggplot(m, aes(conc, mean, col=mixture, shape=mixture, size=pi)) + geom_line(alpha=.5) + geom_point() + scale_x_sqrt() + theme_bw(base_size = 16) + ylab("Relative expression") + xlab("Dox concentration")
+mixture_centroids = ggplot(m, aes(conc, mean, col=mixture, shape=mixture, size=pi*100)) + geom_line(alpha=.7) + geom_point() + scale_x_sqrt(breaks=concs, labels=concs, expand=c(0,0)) + theme_bw(base_size = 14) + ylab("Relative expression") + xlab("Doxorubicin concentration") + scale_size("% genes") + scale_color_manual("Cluster ID", values=cbPalette) + scale_shape("Cluster ID")
+mixture_centroids
+ggsave("../figures/mixture_centroids.svg",width=5.5,height=4)
+ggsave("../figures/mixture_centroids.pdf",width=5.5,height=4,device=cairo_pdf)
 ```
 
 1. Down regulated
@@ -125,4 +121,60 @@ go_data <- goHeatmapData(GO_res)
 
 go_heatmap <- plotHeatmap(go_data, labCol = "")
 
+```
+
+```{r}
+gene_cluster_dir="../data/gene_clusters/"
+dir.create(gene_cluster_dir)
+foreach(i=1:6) %do% {
+  write.table(rownames(input)[assignments==i], paste0(gene_cluster_dir,i,".txt"), col.names = F, row.names = F, quote=F)
+}
+```
+
+Ran HOMER on dag-ws-4
+
+```{r}
+
+all_go=foreach(i=1:6, .combine = bind_rows) %do% {
+homer_res_dir=paste0(gene_cluster_dir,"homer",i,"/")
+  all_txt=list.files(homer_res_dir, glob2rx("*.txt"))
+  to_load=setdiff( all_txt, c("knownResults.txt","motifFindingParameters.txt","targetIDs.ug.txt"))
+  foreach(fn=to_load, .combine = bind_rows) %do% {
+    fread(paste0("cut -f1-9 ",homer_res_dir,fn), data.table = F) %>% mutate(source=fn, TermID=as.character(TermID))
+  } %>% mutate(cluster=i)
+}
+
+
+all_go = all_go %>% filter(`Genes in Term` < 2000 )
+```
+
+```{r}
+all_go_sub = all_go %>% filter(`Genes in Term` > 50 )
+interesting_terms = all_go_sub %>% group_by(cluster) %>% top_n(5, -logP) %>% .$TermID %>% unique()
+
+clusters=c("1.Down","2.Up-DOWN","3.Up","4.Down-up","5.Up-down","6.DOWN-up")
+
+#all_go = all_go %>% mutate(q=p.adjust(Enrichment, method="BH"))
+
+all_go_sub = all_go_sub %>% mutate(OR=(`Target Genes in Term` / `Genes in Term`) / ((`Total Target Genes` - `Target Genes in Term`) / (`Total Genes` - `Genes in Term`) ) )
+
+
+go_mat = all_go_sub %>% filter(TermID %in% interesting_terms) %>% select(Term, cluster, OR) %>% spread(cluster, OR) 
+rownames(go_mat) = go_mat$Term
+go_mat$Term=NULL
+go_mat = as.matrix(go_mat)
+heatmap(go_mat)
+```
+
+```{r}
+row_order_i = go_mat %>% dist() %>% hclust() %>% as.dendrogram() %>% order.dendrogram()
+row_order=rownames(go_mat)[row_order_i]
+col_order = go_mat %>% t() %>% dist() %>% hclust() %>% as.dendrogram() %>% order.dendrogram()
+
+all_go_sub %>% filter(TermID %in% interesting_terms) %>% 
+  mutate(label=paste0(format(OR, digits=1),ifelse(q<0.1,"*","")), 
+         cluster=factor(cluster, col_order, clusters[col_order]), 
+         Term=factor(Term, row_order)) %>% 
+   ggplot(aes(cluster, Term, fill=OR, label=label)) + geom_tile() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + scale_fill_gradient(low="white",high="black") + geom_text() + xlab("Cluster") + ylab("Gene set") # + scale_fill_gradient2(low = "white", mid = "yellow", high="red", midpoint = 2)
+ggsave("../figures/cluster_go.pdf",height=6,width=9,device=cairo_pdf)
 ```

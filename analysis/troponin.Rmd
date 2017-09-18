@@ -296,6 +296,33 @@ cor.test(intercepts, slopes, data=troponin_rate)
 troponin_rate %>% ggplot( aes(intercepts, slopes, label=levels(d$individual))) + geom_text()
 ```
 
+```{r}
+require(broom)
+d %>% group_by(findiv) %>% do(tidy(lm(mean_inter ~ dosage, data=.))) %>% filter(term=="dosage") %>% mutate(positive=estimate > 0) %>% group_by(positive) %>% summarize(num_sig=sum(p.value<0.05), num_not_sig=sum(!p.value<0.05))
+
+```
+
+```{r}
+troponin_rate = troponin_rate %>% mutate(slope_bin=cut(slopes, quantile(slopes, c(0,.5,.75,1))))
+
+
+tr_bin = d %>% group_by(individual) %>% summarize(tr_max = max(mean_inter))  %>% mutate(max_bin=cut(tr_max, quantile(tr_max, c(0,.5,.75,1))))
+  
+d %>% left_join( tr_bin, by="individual") %>%
+  ggplot(aes(x = dosage, y = mean_inter,
+                            color = max_bin, group=individual)) +
+  geom_point(size=2.5, alpha=0.3) +
+  scale_x_sqrt(breaks=unique(d$dosage),expand=c(0,0)) +
+  geom_line(alpha=0.5) +
+  theme(legend.position = "none") +
+  # scale_color_grey() +
+  scale_color_manual(values = cbPalette) +
+  labs(x = expression("Doxorubicin concentration ("*mu*"M)"),
+       y = "Cardiac troponin (ng/mL)")
+ggsave("../figures/troponin.pdf",width=4.5,height=4,device=cairo_pdf)
+```
+
+
 ## How does this compare to transcriptomic response
 
 ```{r}
@@ -340,6 +367,7 @@ foreach(individual=unique(pca_data_0$individual)) %do% {
   pca_data_0[rows, cols] = sweep(pca_data_0[rows, cols], 
                                  2, 
                                  (pca_data_0[rows, ] %>% filter(conc==0.))[,cols] %>% as.numeric, "-" )
+}
   
 pca_data_0 %>% mutate(conc=as.factor(conc)) %>% 
   ggplot( aes(x = PC1, y = PC2, group=individual, color=conc)) +
@@ -360,13 +388,20 @@ dummy_=foreach(individual=unique(pca_data_0$individual)) %do% {
   cols=paste0("PC",1:5)
   pca_data_i[rows, cols] = scale(pca_data_i[rows, cols], scale=F)
 }
-  
+```
+
+```{r}
 pca_data_i %>% mutate(conc=as.factor(conc)) %>% 
   ggplot( aes(x = PC1, y = PC2, group=individual, color=conc)) +
-  geom_text(aes(label = conc)) +
-  geom_path(aes(alpha=.3)) +
+   geom_path(alpha=.3) +
+  geom_point(aes(shape = conc), size=2) +
+  scale_color_manual(values=cbPalette) +
+  theme(legend.position = c(.85,.25)) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
-       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2))) +
+  scale_x_continuous(breaks=NULL) +
+   scale_y_continuous(breaks=NULL)
+ggsave("../figures/pca.pdf",width=4.5,height=4,useDingbats=F)
 ```
 This looks better but might be removing too much biological signal at the 0.625 and 1.250 concentrations. 
 
@@ -397,7 +432,8 @@ This might be bad when there are missing concentrations I think?
 Normalizing across all concs looks cleanest. Fit principal curve: 
 ```{r}
 require(princurve)
-pca_data_to_use=pca_data_0
+pca_data_to_use=pca_data_i
+cols=paste0("PC",1:2)
 start = pca_data_to_use %>% group_by(conc) %>% select(cols) %>% summarise_all(mean) %>% ungroup() %>% select(cols) %>% as.matrix()
 pcurve=principal.curve(pca_data_to_use[,cols] %>% as.matrix, start=start)
 pca_data$lambda=pcurve$lambda
@@ -406,7 +442,8 @@ pca_df=pca_data_to_use %>% mutate(conc=as.factor(conc))
 projection_df=data.frame(conc=pca_df$conc, x=pca_df$PC1, y=pca_df$PC2, xend=pcurve$s[,1], yend=pcurve$s[,2])
 ggplot(curve_df, aes(x,y)) + geom_point( data=pca_df, aes(x = PC1, y = PC2, color=conc)) + geom_segment(data=projection_df, aes(x=x,y=y,xend=xend,yend=yend,col=conc))+ geom_path() +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
-       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2)))
+       y = sprintf("PC%d (%.2f%%)", 2, round(explained[2] * 100, 2))) + theme(legend.position = c(.8,.2)) + scale_color_manual(values=cbPalette)
+ggsave("../figures/prin_curve.pdf",height = 4,width=4.5,device=cairo_pdf)
 ```
 
 ```{r}
@@ -422,6 +459,10 @@ hist(progression_rate$estimate)
 ```
 
 ```{r}
+require(scales) # trans_new() is in the scales library
+asinh_trans = function() trans_new("asinh", asinh, sinh)
+
+
 progression_rate$findiv=findiv[ progression_rate$individual ]
 
 joined = progression_rate %>% 
@@ -432,7 +473,20 @@ cor.test(joined$estimate, joined$slopes)
 cor.test(joined$estimate, joined$slopes, method="spearman")
 
 #joined %>% ggplot(aes(estimate, intercepts)) + geom_point() # not significant
-joined %>% ggplot(aes(estimate, slopes, label=individual)) + geom_point(alpha=0.1) + geom_text() + xlab("Transcriptomic response") + ylab("Troponin response")
+joined %>% ggplot(aes(estimate, slopes, label=individual)) + geom_point(alpha=0.1) + geom_text() + xlab("Transcriptomic response") + ylab("Troponin response") +stat_smooth(method="lm", fullrange = T) + coord_trans(y = "asinh", x="log")
+ggsave("../figures/troponin_vs_transcriptome.pdf",height = 4,width=4,device=cairo_pdf)
+```
+
+What about using max troponin? 
+```{r}
+
+joined = progression_rate %>% 
+  left_join(tr_bin %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(findiv="individual"))
+cor.test(joined$estimate, joined$tr_max)
+cor.test(joined$estimate, joined$tr_max, method="spearman")
+
+#joined %>% ggplot(aes(estimate, intercepts)) + geom_point() # not significant
+joined %>% ggplot(aes(estimate, tr_max, label=individual)) + geom_point(alpha=0.1) + geom_text() + xlab("Transcriptomic response") + ylab("Troponin response")+ stat_smooth(method="lm", fullrange = T) + coord_trans(y = "asinh") + ylim(1,20)
 ```
 
 Just compare to lambda at 1.25 conc since this is the most variable. 

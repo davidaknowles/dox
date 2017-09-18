@@ -1,0 +1,227 @@
+\documentclass{article}
+\author{David A. Knowles}
+\date{September 2015}
+
+%\usepackage[utf8]{inputenc}
+\usepackage{fullpage}%, palatino}
+\usepackage{graphicx}
+%\usepackage{palatino}
+\usepackage{setspace}
+\usepackage{helvet}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath,amssymb}
+\doublespacing
+\usepackage{color,soul}
+%\usepackage{natbib}
+\usepackage{titlesec}
+\bibliographystyle{naturemag_noURL}
+\usepackage[super]{natbib}
+\setcitestyle{citesep={,}}
+\titleformat*{\section}{\large\bfseries}
+\titleformat*{\subsection}{\normalsize\bfseries}
+
+\date{}
+
+\begin{document}
+
+{\Large Determining the genetic basis of anthracycline-cardiotoxicity by response eQTL mapping in induced cardiomyocytes}\newline
+
+\vspace{1cm}
+
+\noindent{\normalsize David A Knowles$^{1,2,3,*}$, Courtney Burrows$^{*}$, John Blischak$^{*}$, Jonathan K Pritchard$^{1,7,8}$, Yoav Gilad\\
+\footnotesize{$^{1}$ Department of Genetics, Stanford University, Stanford, CA}\\
+\footnotesize{$^{2}$ Department of Computer Science, Stanford University, Stanford, CA}\\
+\footnotesize{$^{3}$ Department of Radiology, Stanford University, Stanford, CA}\\
+\footnotesize{$^{7}$ Department of Biology, Stanford University, Stanford, CA}\\
+\footnotesize{$^{8}$ Howard Hughes Medical Institute, Stanford University, CA.}\\
+\footnotesize{* These authors contributed equally to this work.}\\
+
+\section*{Introduction}
+
+Anthracyclines, including the prototypical doxorubicin, continue to be used as chemotherapeutic agents treating a wide range of cancers, particularly leukemia, lymphoma, multiple myeloma, breast cancer, and sarcoma. 
+A well-known side-effect of doxorubicin treatment is anthracycline-induced cardiotoxicity (ACT). 
+For some patients ACT manifests as an asymptomatic reduction in cardiac function, as measured by left ventricular ejection fraction (LVEF), but in more extreme cases ACT can lead to congestive heart failure (CHF). 
+The risk of CHF is dosage-dependent: the earliest study estimated 3\% of patients at 400 mg/m2, 7\% of patients at 550 mg/m2, and 18\% of patients at 700 mg/m2 develop CHF\citep{Swain2003}, where a more recent study puts these numbers at 5\%, 26\% and 48\% respectively. 
+ACT prevalence rates in pediatric patients are notably higher \cite{todo}
+Perhaps most daunting for patients is that CHF can occur years after treatment. 
+Reduced LVEF shows a similar dosage-dependent pattern, but is not fully predictive of CHF. 
+
+Various candidate gene studies have attempted to find genetic determinants of ACT, but are plagued by small sample sizes and unclear endpoint definitions, resulting in limited replication between studies. 
+Two ACT genome-wide association studies (GWAS) have been published. 
+While neither found genome-wide significant associations using their discovery cohorts, both found one variant that they were able to replicate in independent cohorts. 
+
+Using a Canadian European discovery cohort of 280 pediatric patients, \citet{Aminkeng2015} found a nonsynonymous coding variant, rs2229774 in RARG (retinoic acid receptor $\gamma$), which replicated in both a European ($p=0.004$) and non-European cohort ($p=1 \times 10^{-4}$). 
+\citet{Aminkeng2015} demonstrated RARG mutants have reduced retinoic acid response element (RAREs) activity and reduced suppression of \emph{Top2b}, which has been proposed as a mediator of ACT. 
+
+% 794 + 51
+\citet{Schneider2016} performed a GWAS in 845 patients with European-ancestry from a large adjuvant breast cancer clinical trial, 51 of whom developed CHF. 
+While no variants reached genome-wide significance levels, rs28714259 ($p=9 \times 10^{-6}$ in discovery cohort) replicated in two further cohorts ($p=0.04, 0.018$). 
+rs28714259 falls in a glucocorticoid receptor protein binding peak, which may play a role in cardiac development. 
+
+TODO: talk about Burridge paper\citep{Burridge2016}
+
+TODO: say something about iPSC lines as model systems. \citep{Thomas2015,Burrows2016}
+
+\section*{Results}
+
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=1\textwidth]{../figures/fig1.pdf} % use small or
+    \caption{\it{The transcriptomic response of cardiomyocytes to doxorubicin is substantial. \textbf{a.} Cardiomyocytes were derived from fibroblasts of 45 Hutterite individuals, followed by exposure to differing concentrations of doxorubicin and RNA-sequencing. \textbf{b.} PCA of gene expression levels across samples reveals that doxorubicin concentration explains more variance than inter-individual differences, and that the response is non-linear with respect to concentration. \textbf{c.} A probabilistic mixture model uncovers six distinct patters of response across genes.}}
+    \label{fig1}
+    \end{center}
+\end{figure}
+
+\subsection*{Cardiomyocyte differentiation}
+
+We successfully generated iPSC-derived cardiomyocytes for 45 Hutterite individuals (Figure 1a). We confirmed cardiomyocyte identity using 
+
+TODO: ? 
+
+\subsection*{Measuring transcriptomic response to doxorubicin exposure}
+
+We exposed all 45 cardiomyocyte lines to doxorubicin at 4 different concentrations for 24 hours, after which cells were processed for RNA-sequencing. We obtained sufficient read depth (10M exonic reads) for downstream analysis for 217 of the $5 \times 45 = 225$ individual-concentration pairs, and confirmed sample identity by calling exonic SNPs. We observed a strong response to doxorubicin across all concentrations, with 98\% (12038 / 12317) of quantifiable genes (5\% FDR) showing differential expression across concentrations. Principal component analysis (PCA, Figure 1b) confirms that the main variation in the data is driven by doxorubicin concentration and that the effect of concentration on expression is nonlinear. For some individuals the $1.25\mu M$ sample is closer to $0.625 \mu M$, whereas for others it is closer to $2.5\mu M$, suggesting there is systematic variation in how different individuals respond to doxorubicin exposure. Since the majority of genes appear responsive to doxorubicin we clustered genes into six distinct response patterns using a mixture model approach (Figure 1c, see Methods). From largest to smallest, these clusters represent genes that are 1) down regulated 2) initial up, then further down-regulated 3) up-regulated 4) transiently down regulated 5) transiently up-regulated 
+6) down-regulated then partially recover. Gene set enrichments (Supplementary Figure~\ref{fig:go}) for the up-regulated cluster include metabolic, mitochrondrial and extracellular processes, as well as known doxorubicin response genes in breast cancer cell lines \cite{graessmann2007chemotherapy}. The down-regulated cluster shares genes with those down-regulated in response to UV light, which, like doxorubicin, causes DNA-damage. Targets of p53, a transcription factor that activates in response to DNA damage, are overrepresented in clusters 2 and 5; these clusters involve up-regulation at low concentrations ($0.625\mu M$) but down-regulation at higher concentrations. 
+
+\subsection*{Mapping variants modulating doxorubicin response}
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=1\textwidth]{../figures/fig2.pdf}     \caption{\it{Genetic variation regulates the transcriptomic response to doxorubicin exposure. \textbf{a.} Marginal eQTL show strong replication in GTEx heart data, and lower replication in other tissues. \textbf{b.} We detect 100s of response-eQTL reQTL): variants that modulate response to doxorubicin. The false positive rate (FPR) is estimated using a parametric bootstrap. \textbf{c.} We developed a statistical method to assign the major and minor allele response to one of the six clusters from Figure 1c. The strongest 46\% of detected reQTL result in a discretely different response, whereas the remainder only modulate the response.}}
+    \label{fig2}
+    \end{center}
+\end{figure}
+
+We next sought to map single nucleotide polymorphisms (SNPs) that modulate the observed transcriptomic response to doxorubicin, leveraging genetic variation across the 45 individuals. We use a linear mixed model approach which allows us to account for relatedness amongst the individuals, intra-individual variation and latent confounding (by extending the PANAMA framework\citep{Fusi2012}). Testing SNPs within 1Mb of the transcription start site (TSS), 518 genes have a variant with a detectable marginal effect on expression (5\% FDR). Reassuring, these eQTL replicate in GTEx heart tissue, and do so more strongly than in GTEx brain or lymphoblastoid cell line (LCL) data (Figure 2a). Remarkably, even with our moderate number of individuals, we are able to detect many response-eQTL (reQTL), i.e. variants that modulate transcriptomic response to doxorubicin. At a nominal 5\% FDR  we find reQTL for 376 genes, which we estimate using a parametric bootstrap corresponds to a true FDR of $8.5\%$ (Figure 2b). 
+
+To characterize the detected reQTL we assigned the response of the major and minor allele to one of the six clusters previously learned (Figure 1c), with heterozygotes expected to display the average of the two homozygous responses. 172 (46\%) of reQTL result in a qualitatively distinct response as determined by the two alleles being assigned to different clusters. The most common transition, occurring for 33 reQTL, is that the major allele is associated with simple down-regulation (cluster 1) in response to doxorubicin, whereas the minor allele shows a transient up-regulation at low concentration followed by down-regulation at higher concentration (cluster 2). 
+
+TODO: analysis of how many reQTL appear to be (de)sensitizing, how many show greater genetic effect at high vs. low dox. 
+
+\subsection*{GWAS enrichment} 
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=1\textwidth]{../figures/fig3.pdf}     \caption{\it{Cardiomyocyte eQTL and reQTL are enriched in ACT GWAS. \textbf{a.} SNPs that have either a marginal or response eQTL with $p<10^{-5}$ are enriched in GWAS variants with $p<0.05$ (hypergeometric test $p=3 \times 10^{-6}$). \textbf{b.} rs4058287 has a GWAS $p$-value of $9.68\times 10^{-6}$ and is a nominally significant eQTL ($p=0.0016$) for ALPK2, which is down-regulated in response to doxorubicin. \textbf{c.} Statistical signal for the eQTL and GWAS co-localizes for ADCY2 at rs6893414.}}
+    \label{fig3}
+    \end{center}
+\end{figure}
+
+We were interested in whether our eQTL could be used to interpret the ACT GWAS of Schneider et al. \cite{Schneider2016}. While this GWAS was not sufficiently powered to find genome-wide significant associations, 11 variants representing 9 independent loci have $p<10^{-5}$, with the most significant (rs2184559) at $p=2.8 \times 10^{-6}$. Of the 8 GWAS variants with $p<10^{-5}$ either tested in our eQTL mapping, or in high LD ($R^2 > 0.8$) with a tested SNP, 7 have nominally significant marginal eQTL ($p<0.05$, the 8th has $p=0.07$) and four have reQTL with $p<0.1$. rs4058287 (GWAS $p$-value $9.68\times 10^{-6}$) has a marginal effect on Alpha-Protein Kinase 2 (ALPK2, also known as ``Heart Alpha-Protein Kinase'' since it was discovered in mouse heart\cite{ryazanov1999alpha} and is expressed in few other tissues\cite{gtex}) expression ($p=0.0016$) as well as a weak interaction effect ($0.06$), see Figure 3a. Interestingly, ALPK2 has been shown to upregulate DNA repair genes and to enable caspase-3 cleavage and apoptosis in a colorectal cancer model\citep{yoshida2012alpk2}. 
+
+\subsection*{Troponin response}
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=1\textwidth]{../figures/fig4.pdf}     \caption{\it{Transcriptomic response is predictive of cardiac damage as measured by cardiac troponin. \textbf{a.} We measured cardiac troponin, a sensitive and specific test for myocardial damage, in response to doxorubicin, across all cell lines. \textbf{b.} We summarized gene expression response by first fitting a ``principal curve'' following increasing doxorubicin concentration, and then measuring the rate of progression along this curve for each individual. \textbf{c.} Increased transcriptomic response is associated with reduced cardiac troponin response, suggesting that the bulk of expression changes we observe are in fact protective against cardiac damage.}}
+    \label{fig4}
+    \end{center}
+\end{figure}
+
+We cardiac troponin to measure damage occurring as a result of doxorubicin exposure, using the same concentrations as for our expression profiling. We observed significant variation in measurable damage caused by doxorubicin across individuals, with 13 out of 45 cell lines having a significant (positive) response (Figure 4a). To compare troponin sensitivity to transcriptomic response we aimed to determine an overall per-individual measurement of transcriptomic response with respect to doxorubicin concentration. To this end we fit a principal curve\citep{princurve} through all gene expression samples, initializing the curve to pass sequentially through the successive doxorubicin concentrations (Figure 4b). This methodology allowed us to project every sample on the principal curve to give a single measure of ``progression'' through doxorubicin response. We then regressed these values against concentration for each individual to obtain a progression rate value. We found the troponin response slope is significantly negatively correlated (Spearman $\rho=-0.42, p=0.004$) with the transcriptomic response rate, suggesting that much of the gene expression program being activated in response to doxorubicin is in fact protective against cardiac damage. 
+
+\section*{Discussion}
+
+\section*{Methods} 
+
+\subsection*{Sample collection and genotyping}
+
+\subsection*{iPSC reprogramming and cardiomyocyte differentiation} 
+
+\subsection*{Doxorubicin exposure}
+
+\subsection*{RNA-sequencing}
+
+\begin{itemize}
+\item 50bp single end on HiSeq 4000 [two rounds]
+\item QC using fastqc and multi\_qc. 
+\item Confirmed sample identity using exonic SNPs. 
+\end{itemize}
+
+\subsection*{Expression quantification}
+
+We aligned RNA-seq reads using STAR version 2.5.2a to GRCh38/GENCODE release 24. We counted reads using featureCounts and calculated counts per million reads (cpm) using `cpm` from the `edgeR` R package (version 3.18.1). We discarded samples with $<10^9$ reads and genes with median $\log_2(cpm)$ less than $0$. 
+
+\subsection*{Differential expression analysis} 
+
+We performed differential expression (DE) analysis across all 5 doxorubicin concentrations jointly, using either a linear model on quantile normalized cpm value or Spearman correlation, followed by Benjamini-Hochberg False Discovery Rate (FDR) control. Since the vast majority of genes showed differential expression we did not investigate better powered DE methods such as DESeq2. 
+
+We clustered genes into ``response patterns'' using a $K$-component mixture model 
+\begin{align}
+\pi &\sim \text{Dir}(1/K,\cdots,1/K) \nonumber \\ 
+z_g | \pi &\sim \text{Discrete}(\pi) \nonumber \\
+y_{ngc} | z_g, \theta &\sim N( \theta_{cz_g}, \sigma^2 )
+\label{eq:mixture}
+\end{align}
+where $\pi$ is a prior probability vector over cluster assignments, Dir is the Dirichlet distribution, $z_g$ is cluster from which gene $g$ is generated, $y_{ngc}$ is the expression of gene $g$ in individual $n$ at concentration $c$, $\theta_{ck}$ is the mixture parameter (mean) across concentrations for cluster $k$, and $\sigma^2$ is a shared noise variance. 
+We marginalize (sum) over $z_g$ and optimize with respect to $\pi, \theta, \sigma$ using the RStan R package (version 2.16.2). 
+The hyperparameters of the Dirichlet distribution are set such that in the limit of large $K$ the model approximates a Dirichlet process mixture \cite{maceachern1998estimating} which allows learning of an appropriate number of mixture components to use from data. 
+
+\subsection*{Response eQTL mapping} 
+
+We extended the PANAMA\cite{Fusi2012} linear mixed model (LMM) framework to map eQTLs and response eQTLs while accounting for latent confounding. PANAMA entails a two step procedure. Step one is used to learn latent factors from all genes, using the model
+\begin{align*}
+y_{ncg} &= \sum_k W_{kg} x_{nck} + u_{ng} + v_{cg} + \xi_{ncg} + \epsilon_{ncg} \\
+W_{kg} & \sim N(0, \sigma^2_k ) \qquad \textit{ factor loadings/coefficients } \\ 
+u_{ng} &\sim N(0, \sigma^2_u) \qquad \textit{ individual random effects } \\
+\xi &\sim MVN(0, \sigma^2_\xi \Sigma ) \qquad \textit{ kinship random effect }  \\
+\epsilon &\sim MVN(0, \text{diag}(\sigma^2_\epsilon)) \qquad \textit{ noise } 
+\end{align*}
+where $x_{nck}$ are latent factors, $v_{cg}$ are per gene, per concentration fixed effects. We integrate over $W, u, \xi$ and $\epsilon$, which results in a per gene multivariate normal,
+\begin{align}
+y_{:g} \sim MVN\left( V v_{:g} , \sum_k \sigma^2_k x_{:k} x_{k:}^T + \sigma^2_u U + \sigma^2_\xi \Sigma + \sigma^2_e I \right),
+\end{align}
+where $y_{:g}$ refers to the vector of expression for gene $g$ across all individuals and concentrations (i.e. all ``samples'' where a sample is an individual-concentration pair), $V$ is a matrix mapping concentrations to samples (i.e. $V_{sc}=1$ iff sample $s$ is at concentration $c$) and $U$ is a matrix of which samples are for the same individual (i.e. $U_{ss'}=1$ if sample $s$ and sample $s'$ come from the same individual). We optimize $x,v$ and the variances $\{ \sigma^2_u, \sigma^2_k,  \sigma^2_\xi, \sigma^2_\epsilon \}$ jointly across all genes $g$. 
+
+In step 2 we test individual gene-SNP pairs while accounting for confounding using the covariance matrix 
+\begin{align}
+ \Sigma_\pi = \sum_k \sigma^2_k x_{:k} x_{k:}^T + \sigma^2_u U + \sigma^2_\xi \Sigma 
+ \end{align}
+which includes both latent confounding, individual random effects and similarity due to kinship. We consider three LMMs, all with the same parameterization of the covariance $\sigma^2_\pi \Sigma_\pi + \sigma^2_e I$ where $\sigma^2_\pi$ and $\sigma^2_e$ are optimized along with the fixed effects to allow the extent to which each gene follows the global covariance pattern to be adapted. The simple structure of this covariance also allows pre-computation of the eigen-decomposition of $\Sigma_\pi$ which enables linear (rather than cubic) time evaluation of the likelihood and its gradient. 
+
+Model 0 involves no effect of the SNP (and can therefore be fit once for a gene), a fixed effect for concentration. Model 1 adds a marginal effect of the SNP genotype dosage $d$. Finally model 2 adds an interaction effect between concentration and genotype, which is equivalent to a concentration-specific genotype effect. In summary: 
+\begin{align}
+\text{Model 0: }& \mathbb{E}[ y_{ncg} ] = v_{cg} \\ 
+\text{Model 1: }& \mathbb{E}[ y_{ncg} ] = v_{cg} + \beta d_n \\
+\text{Model 2: }& \mathbb{E}[ y_{ncg} ] = v_{cg} + \beta_c d_n 
+\end{align}
+We optimize $\sigma^2_\pi$, $\sigma^2_e$ and the regression coefficients for each of the three models separately, and use likelihood ratio tests (LRT) to compare the models. Comparing Model 1 vs 0 (one degree of freedom) tests whether there is a marginal effect of the variant. Comparing Model 2 vs 1 ($C-1=4$ degrees of freedom, where $C$ is the number of conditions/concentrations) tests whether there is an interaction effect, i.e. whether the genetic effect on expression is different at different concentrations (or equivalently whether the response to doxorubicin is different for different genotypes). Finally Model 2 vs 0 ($C=5$ degrees of freedom) tests whether there is any effect of genotype on expression, either in terms of a marginal or concentration-specific effect. We use the conservative approach of using Bonferroni correction across SNPs for a gene, followed by Benjamini-Hochberg FDR control. 
+
+We quantile normalize the expression levels across all samples for each gene to a standard normal distribution so that the distributional assumptions of our linear mixed model are reasonable. However, optimizing the variance parameters $\sigma^2_\pi$ and $\sigma^2_e$ means that the $\chi^2$ distribution for the LRT will only hold asymptotically and $p$-values for finite sample sizes will tend to be somewhat anti-conservative. To account for this for response-eQTL we use a parametric bootstrap since there is no fully valid permutation strategy for testing interaction effects. This involves first fitting Model 1 and then simulating new expression data under the fitted model. Models 1 and 2 are then (re)fit to this data and compared using an LRT. We then perform Bonferroni correction across SNPs for each gene to obtain an empirical null distribution of per gene $p$-values which we use to estimate the true FDR for our response-eQTL results. 
+
+For significant reQTL we assigned the response of the minor allele and major allele to the previously determined clusters using the model
+\begin{align*}
+y_{nc} | z_A,z_a, \theta &\sim N\left( \frac12 d_n \theta_{cz_A} + \frac12 (2 - d_n) \theta_{cz_a}, \sigma^2 \right),
+\end{align*}
+where $y_{nc}$ is the expression for individual $n$ at concentration $c$, $z_A$ and $z_a$ are the cluster assignments for the major and minor allele respectively, $d_n \in \{0,1,2\}$ is the genotype dosage, and $\theta$ and $\sigma^2$ are fixed at the values learned in Equation \ref{eq:mixture}. For each reQTL separately we calculate the likelihood of $y$ given all possible pairs of assignments $(z_A,z_a)$ and choose the maximum likelihood solution. 
+
+\subsection*{GWAS enrichment analysis}
+ 
+\section*{Acknowledgement}
+
+
+\section*{Author Contributions}
+
+\section*{[References at the end]}
+\newpage
+
+%\bibliographystyle{genres}
+%\bibliography{refs}     
+
+\setcounter{figure}{0}
+\makeatletter 
+\renewcommand{\thefigure}{S\@arabic\c@figure}
+
+\section{Supplementary material} 
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=1\textwidth]{../figures/cluster_go.pdf} % use small or
+    \caption{\it{Gene set enrichment analysis of genes in each response cluster confirms expected patterns: metabolic, mitochrondrial and DNA damage processes, as well as existing doxorubicin response genes.}}
+    \label{fig:go}
+    \end{center}
+\end{figure}
+
+\bibliography{dox}     
+\end{document}

@@ -6,11 +6,13 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 require(ggplot2)
+theme_set(theme_bw(base_size = 14))
 require(data.table)
 require(foreach)
 require(dplyr)
 require(tidyr)
 require(leafcutter)
+cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
 
 source("../code/utils.R")
 source("../code/load_data.R")
@@ -42,7 +44,7 @@ qplot(boot_bf$p, geom = "histogram") + xlim(0,1)
 multiqq(list(boot=boot_bf$p))
 ```
 
-```{r}
+```{r eval=F}
 pvalue_qqplot( eqtl$p_boot ) 
 ```
 
@@ -89,28 +91,32 @@ all_top %>% ggplot(aes(-log10(p_interact),-log(p_geno))) + geom_point() + geom_a
 ```
 
 ```{r}
-hits=interact_bf %>% top_n(20, -p) %>% arrange(p)
+#hits=interact_bf %>% top_n(20, -p) %>% arrange(p)
+hits=interact_bf %>% filter(q<0.05) %>% arrange(p)
 ```
 
 ```{r}
-cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
 
-foreach(i=1:4) %do% {
+pdf("../figures/many_reQTL.pdf", width=4.5,height=3.5)
+foreach(i=1:100) %do% {
   hit=hits[i,]
   geno=genotype[ as.character(hit$cis_snp),anno$findiv]
   data.frame(y= input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
 } #  c(0.15,0.2)
+dev.off()
 #ggsave("../figures/ELP5.pdf",width=4.5,height=3.5)
 ```
 
 ```{r}
-fdr_results=foreach( q_thres=c(0.01,0.02,0.05,0.1,0.2,0.5), .combine=bind_rows )  %do% {
+fdr_results=foreach( q_thres=c(0.01,0.02,0.05,0.1,0.2,0.3, 0.4), .combine=bind_rows )  %do% {
   nominal_p=interact_bf %>% filter(q<q_thres) %>% .$p %>% max
   data.frame( nominal_q=q_thres, boot_hits=sum( boot_bf$p < nominal_p ), nhits=sum( interact_bf$q < q_thres), nominal_p=nominal_p )
 } %>% mutate( empirical_q=boot_hits / nhits )
 # fdr_results %>% ggplot(aes(nominal_q, empirical_q)) + geom_point(size=3)  + geom_abline()
 fdr_results %>% mutate( real_hits = nhits - boot_hits ) %>% select( nominal_q, empirical_q, real_hits, boot_hits ) %>% gather( real, hits, real_hits, boot_hits ) %>%
-  mutate( real= factor(real, c("boot_hits", "real_hits"), c("False positive", "True positive") ), empirical_q=as.factor(format(empirical_q,digits=2)) , nominal_q=as.factor(format(nominal_q,digits=2))) %>% ggplot(aes( nominal_q, hits, fill=real)) + geom_bar(stat="identity" ) + geom_text(aes(nominal_q, -40, label=paste0("(",empirical_q,")") ) ) + xlab("Nominal FDR (Empirical FDR)") + ylab("Number of associations") + theme(legend.position = c(.2,.8))
+  mutate( real= factor(real, c("boot_hits", "real_hits"), c("False positives", "True positives") ), empirical_q=as.factor(format(empirical_q,digits=2)) , nominal_q=as.factor(format(nominal_q,digits=2))) %>% ggplot(aes( nominal_q, hits, fill=real)) + geom_bar(stat="identity" ) + geom_text(aes(nominal_q, -40, label=paste0("(",empirical_q,")") ) ) + xlab("Nominal FDR (Empirical FDR)") + ylab("Number of response-eQTL") + theme(legend.position = c(.2,.8)) + scale_fill_manual("",values=cbPalette)
+ggsave("../figures/num_reQTL.svg",width=5,height=4)
+ggsave("../figures/num_reQTL.pdf",width=5,height=4,device=cairo_pdf)
 ```
 
 ```{r}

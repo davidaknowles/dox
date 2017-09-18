@@ -14,7 +14,6 @@ require(leafcutter)
 require(stringr)
 require(magrittr)
 source("../code/utils.R")
-cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
 
 ```
 
