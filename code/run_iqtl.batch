@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --cpus-per-task=16
-#SBATCH --time=48:00:00
-#SBATCH -p normal,pritch,owners,hns
+#SBATCH --time=8:00:00
+#SBATCH -p normal,pritch,owners
 #SBATCH --qos=normal
 
 ml load R

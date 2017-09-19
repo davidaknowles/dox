@@ -49,26 +49,31 @@ map_interaction_qtl = function(input, genotype, geneloc, snploc, anno, sample_ke
       filter(chr==geneloc[gene,"chr"], (geneloc[gene,"left"]-cisdist) < pos,  (geneloc[gene,"right"]+cisdist) > pos) %>%
       .$snpid %>%
       as.character()
+    cat(gene,length(cis_snps)," cis snps\n")
+    
     if (length(cis_snps)==0) return(NULL)
-    
-    print(gene)
-    
+    print(1)
     y=input[gene,] %>% as.numeric
     y=y-mean(y)
     
     imp_geno=easy_impute(genotype[cis_snps,,drop=F])
-    
+    print(2)
     if (permutation_approach=="permute") colnames(imp_geno)=colnames(imp_geno)[ sample(ncol(imp_geno),ncol(imp_geno)) ]
     # cis_snp=as.character(cis_snps)[1]
-    
+    print("2a")    
     data=list(N=N,U_transpose_x=t(eigen_sample_kernel$vectors) %*% no_geno,P=ncol(no_geno), U_transpose_y=t(eigen_sample_kernel$vectors) %*% y %>% as.numeric, lambda=eigen_sample_kernel$values)
-    
+    print("2b")
     init=list(sigma2=0.1, sigma2_k=1.0, beta=lm(y ~ no_geno - 1) %>% coef )
-    
+    print(3)
     fit_no_geno=stan_optimizing_wrapper(panama_test, data, init=init, as_vector=F)
-    gene_results = foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %dopar% {
+    print("Here")
+    gene_results = foreach(cis_snp=cis_snps, .errorhandling=errorhandling, .combine = bind_rows) %do% {
+    	print(cis_snp)
       geno=imp_geno[cis_snp,anno$findiv]
-      if (sum(imp_geno[cis_snp,]) < 5.0) return(NULL)
+      if (sum(imp_geno[cis_snp,]) < 5.0) {
+      	 print("Too few minor alleles")
+	 return(NULL)
+ 	 }
       
       lrt = function(data) {
         data$U_transpose_x=t(eigen_sample_kernel$vectors) %*% cbind( no_geno, geno )
@@ -111,8 +116,8 @@ map_interaction_qtl = function(input, genotype, geneloc, snploc, anno, sample_ke
       
       res
     }
-  
-  checkpoint_file=gz1 = gzfile( check_fn,"w")
+  print("Saving results")
+  checkpoint_file= gzfile( check_fn,"w")
   gene_results %>% format(digits=5) %>% write.table(checkpoint_file, quote = F, row.names = F, col.names = T, sep="\t")
   close(checkpoint_file)
   

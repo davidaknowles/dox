@@ -12,13 +12,15 @@ then
     exit 1
 fi
 
-cisdist=$(printf "%g" "$3")
+cisdist=$(printf "%1.2g" "$3")
+#echo $cisdist
+#exit 1
 for CHROMID in {1..22}; do
-  resfile=${DOX_DATA}/panama_$1_$2_$cisdist/chr${CHROMID}.txt.gz
+  resfile=${DOX_DATA}/panama_$1_$2_${cisdist}/chr${CHROMID}.txt.gz
   if [ ! -f $resfile ]; then
       #qsub -l nodes=1:ppn=16 -d . -q daglab -v CHROM=chr$CHROMID,NORM=$1,PERM=$2 -N lrt$CHROMID run_iqtl.sh
       echo $resfile not found
-      sbatch  -J iqtl_$CHROMID run_iqtl.batch $1 chr$CHROMID $2 $3
+      sbatch  -J eqtl_$CHROMID run_iqtl.batch $1 chr$CHROMID $2 $3
   else
       echo $resfile exists
   fi
