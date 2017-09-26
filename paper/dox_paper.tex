@@ -81,14 +81,13 @@ TODO: ?
 
 \subsection*{Measuring transcriptomic response to doxorubicin exposure}
 
-We exposed all 45 cardiomyocyte lines to doxorubicin at 4 different concentrations for 24 hours, after which cells were processed for RNA-sequencing. We obtained sufficient read depth (10M exonic reads) for downstream analysis for 217 of the $5 \times 45 = 225$ individual-concentration pairs, and confirmed sample identity by calling exonic SNPs. We observed a strong response to doxorubicin across all concentrations, with 98\% (12038 / 12317) of quantifiable genes (5\% FDR) showing differential expression across concentrations. Principal component analysis (PCA, Figure 1b) confirms that the main variation in the data is driven by doxorubicin concentration and that the effect of concentration on expression is nonlinear. For some individuals the $1.25\mu M$ sample is closer to $0.625 \mu M$, whereas for others it is closer to $2.5\mu M$, suggesting there is systematic variation in how different individuals respond to doxorubicin exposure. Since the majority of genes appear responsive to doxorubicin we clustered genes into six distinct response patterns using a mixture model approach (Figure 1c, see Methods). From largest to smallest, these clusters represent genes that are 1) down regulated 2) initial up, then further down-regulated 3) up-regulated 4) transiently down regulated 5) transiently up-regulated 
-6) down-regulated then partially recover. Gene set enrichments (Supplementary Figure~\ref{fig:go}) for the up-regulated cluster include metabolic, mitochrondrial and extracellular processes, as well as known doxorubicin response genes in breast cancer cell lines \cite{graessmann2007chemotherapy}. The down-regulated cluster shares genes with those down-regulated in response to UV light, which, like doxorubicin, causes DNA-damage. Targets of p53, a transcription factor that activates in response to DNA damage, are overrepresented in clusters 2 and 5; these clusters involve up-regulation at low concentrations ($0.625\mu M$) but down-regulation at higher concentrations. 
+We exposed all 45 cardiomyocyte lines to doxorubicin at 4 different concentrations for 24 hours, after which cells were processed for RNA-sequencing. We obtained sufficient read depth (10M exonic reads) for downstream analysis for 217 of the $5 \times 45 = 225$ individual-concentration pairs, and confirmed sample identity by calling exonic SNPs. We observed a strong response to doxorubicin across all concentrations, with 98\% (12038 / 12317) of quantifiable genes (5\% FDR) showing differential expression across concentrations. Principal component analysis (PCA, Figure 1b) confirms that the main variation in the data is driven by doxorubicin concentration and that the effect of concentration on expression is nonlinear. For some individuals the $1.25\mu M$ sample is closer to $0.625 \mu M$, whereas for others it is closer to $2.5\mu M$, suggesting there is systematic variation in how different individuals respond to doxorubicin exposure. Since the majority of genes appear responsive to doxorubicin we clustered genes into six distinct response patterns using a mixture model approach (Figure 1c, see Methods). From largest to smallest, these clusters represent genes that are 1) down regulated 2) initial up, then further down-regulated 3) up-regulated 4) transiently down regulated 5) transiently up-regulated 6) down-regulated then partially recover. Gene set enrichments (Supplementary Figure~\ref{fig:go}) for the up-regulated cluster include metabolic, mitochrondrial and extracellular processes, as well as known doxorubicin response genes in breast cancer cell lines \cite{graessmann2007chemotherapy}. The down-regulated cluster shares genes with those down-regulated in response to UV light, which, like doxorubicin, causes DNA-damage. Targets of p53, a transcription factor that responds to DNA damage, are overrepresented in clusters 2 and 5; these clusters involve up-regulation at low concentrations ($0.625\mu M$) but down-regulation at higher concentrations. Promoter motif enrichment (Supplementary Figure~\ref{fig:tf}) 
 
 \subsection*{Mapping variants modulating doxorubicin response}
 
 \begin{figure}
 \begin{center}
-    \includegraphics[width=1\textwidth]{../figures/fig2.pdf}     \caption{\it{Genetic variation regulates the transcriptomic response to doxorubicin exposure. \textbf{a.} Marginal eQTL show strong replication in GTEx heart data, and lower replication in other tissues. \textbf{b.} We detect 100s of response-eQTL reQTL): variants that modulate response to doxorubicin. The false positive rate (FPR) is estimated using a parametric bootstrap. \textbf{c.} We developed a statistical method to assign the major and minor allele response to one of the six clusters from Figure 1c. The strongest 46\% of detected reQTL result in a discretely different response, whereas the remainder only modulate the response.}}
+    \includegraphics[width=1\textwidth]{../figures/fig2.pdf}     \caption{\it{Genetic variation regulates the transcriptomic response to doxorubicin exposure. \textbf{a.} Marginal eQTL show strong replication in GTEx heart data, and lower replication in other tissues. \textbf{b.} We detect 100s of response-eQTL reQTL): variants that modulate response to doxorubicin. The false positive rate (FPR) is estimated using a parametric bootstrap. \textbf{c.} We developed a statistical method to assign the major and minor allele response to one of the six clusters from Figure 1c. The strongest 46\% of detected reQTL result in a discretely different response, whereas the remainder only modulate the response. \textbf{d.} We calculated relative genotype effect sizes by dividing the fitted effect size at each concentration by the (signed) effect size with the largest absolute value. $K$-means clustering of these effect size profiles reveals distinct patterns, the most common being a small reduction in absolute effect size from $0$ to $0.625\mu M$ and then the largest effect being at high concentrations. \textbf{e.} An example response-eQTL where rs112594884 regulates the response of the mitochondrial complex I chaperone NDUFAF1. Under the major (T) allele we see moderate down-regulation at $0.625\mu M$ followed by up-regulation at higher concentrations. Under the minor (G) allele, we see little change at $0.625\mu M$ followed by substantial down-regulation. Since the genotype effects are reduced at $0.625\mu M$ and largest at high concentrations this reQTL is assigned to cluster 1 of panel \textbf{d}.}}
     \label{fig2}
     \end{center}
 \end{figure}
@@ -97,29 +96,57 @@ We next sought to map single nucleotide polymorphisms (SNPs) that modulate the o
 
 To characterize the detected reQTL we assigned the response of the major and minor allele to one of the six clusters previously learned (Figure 1c), with heterozygotes expected to display the average of the two homozygous responses. 172 (46\%) of reQTL result in a qualitatively distinct response as determined by the two alleles being assigned to different clusters. The most common transition, occurring for 33 reQTL, is that the major allele is associated with simple down-regulation (cluster 1) in response to doxorubicin, whereas the minor allele shows a transient up-regulation at low concentration followed by down-regulation at higher concentration (cluster 2). 
 
-TODO: analysis of how many reQTL appear to be (de)sensitizing, how many show greater genetic effect at high vs. low dox. 
+We further broke-down the significant reQTL by considering the effect of genotype on expression at each concentration ($\beta_c$ in Equation~\ref{eq:betac}). We normalized relative to the $\beta_c$ with the largest absolute value, i.e. we consider $\beta_c / \beta_{\arg \max{ |\beta_{c'}| }} $, so that the largest genotype effect always corresponds to a normalized value of 1. We clustered the resulting normalized effect profiles into 9 clusters (Figure 2d). The largest cluster (cluster 1, 85 reQTLs) represents reQTL with a modest effect size at low concentrations ($0,0.625\mu M$) which is amplified at higher concentrations (Figure 2e shows a highly significant example). Cluster 2 corresponds to reQTL whose effect size is attenuated at $0.625\mu M$: examples in this cluster tend to have higher expression that $0.625\mu M$ and what could be buffering of very high expression levels which reduces the genetic effect (e.g. rs16853200's association with ABCA12 response, Supplementary Figure \ref{fig:ABCA12}).
 
-\subsection*{GWAS enrichment} 
+\subsection*{Alternative splicing} 
+
+% Splicing and ox stress:
+% https://www.ncbi.nlm.nih.gov/pubmed/18059557
+% http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0154390
+% http://gut.bmj.com/content/61/Suppl_2/A123.2
+% https://www.ncbi.nlm.nih.gov/pubmed/27591253
+
+We queried the extent to which doxorubicin exposure disrupts splicing patterns using \texttt{LeafCutter}\cite{leafcutter}. Across all samples \texttt{LeafCutter} detected 27769 alternative splicing ``clusters'' (referred to here as ``ASC'' to avoid confusion with $k$-means clusters) , which correspond approximately to unique splicing events, with a median of 3.0 splice junctions per ASC. 10430 (59\%) ASCs, corresponding to 6398 unique genes, showed an effect of doxorubicin exposure on splicing outcomes (5\% FDR). To understand these changes we calculated the entropy of the splicing choices made for each significant ASC and used $k$-means clusters patterns of change in entropy (Figure \ref{fig_splicing}a). The largest cluster has 6166 ASCs (59\%), and corresponds to the null of no clear change in entropy across concentrations. Clusters 2 ($n=1136$) and 5 ($n=475$) correspond to increasing entropy with concentration, and clusters 3, 4, 6, 8 and 9 correspond to the maximum entropy being at different concentrations and reaching different maximum levels. Interestingly, only the relatively small clusters 8 ($n=304, 3\%$) corresponds to a reduction in entropy with increasingly concentration, suggesting the dominant pattern involves reduced splicing fidelity and increased alternative splicing in response to doxorubicin. 
+
+We further tested the hypothesis that splicing fidelity decreases in the presence of doxorubicin by comparing patterns of $\Psi$ change with canonical vs cryptic (unannotated) splice site usage. We clustered the 7792 introns in significantly differentially spliced ASC, that have $\Delta \Psi > 0.1$ for some pair of concentrations, into 8 response patterns based on their relative excision proportions across concentrations. For each cluster we calculated the proportion of member introns with either neither end annotated, one end unannotated, or both ends annotated (Figure \ref{fig_splicing}b). The clusters representing increased $\Psi$ with concentration (clusters 2, 4, 6 and 7) all show enrichment for cryptic splice site usage. The two most populous clusters (1 and 2) correspond to $\Psi$ decreasing and increasingly continuously with doxorubicin concentration, respectively, and the difference in levels of cryptic splicing is extremely apparent (hypergeometric $p < 2 \times 10^{-16}$, odds ratio for one annotated end vs two is $28.0$).
+
+TODO say something about this agreeing with known findings for individual genes.
 
 \begin{figure}
 \begin{center}
-    \includegraphics[width=1\textwidth]{../figures/fig3.pdf}     \caption{\it{Cardiomyocyte eQTL and reQTL are enriched in ACT GWAS. \textbf{a.} SNPs that have either a marginal or response eQTL with $p<10^{-5}$ are enriched in GWAS variants with $p<0.05$ (hypergeometric test $p=3 \times 10^{-6}$). \textbf{b.} rs4058287 has a GWAS $p$-value of $9.68\times 10^{-6}$ and is a nominally significant eQTL ($p=0.0016$) for ALPK2, which is down-regulated in response to doxorubicin. \textbf{c.} Statistical signal for the eQTL and GWAS co-localizes for ADCY2 at rs6893414.}}
-    \label{fig3}
+    \includegraphics[width=1\textwidth]{../figures/fig3_splicing.pdf}     \caption{\it{Doxorubicin exposure significantly impacts alternative splicing. \textbf{a} The entropy of splicing choices increases in response to doxorubicin exposure. We measured splicing entropy at different concentrations within \texttt{LeafCutter} ``Alternative Splicing Clusters'' (ACSs) and clustered these into patterns of entropy change. \textbf{b} We separated introns differentially excised with $\Delta \Psi > 0.1$ into 8 clusters based on their relatively excision level at each concentration. Introns in clusters corresponding to increased excision at higher doxorubicin concentrations (e.g. cluster 2) are far more likely to use a cryptic (unannotated) splice site at at least one end. $p$-values shown are for a hypergeometric test of that cluster against all others. \textbf{c} We mapped 42 ASCs with response splicing QTL, variants that modulate the differential splicing response to doxorubicin.}}
+    \label{fig_splicing}
     \end{center}
 \end{figure}
 
-We were interested in whether our eQTL could be used to interpret the ACT GWAS of Schneider et al. \cite{Schneider2016}. While this GWAS was not sufficiently powered to find genome-wide significant associations, 11 variants representing 9 independent loci have $p<10^{-5}$, with the most significant (rs2184559) at $p=2.8 \times 10^{-6}$. Of the 8 GWAS variants with $p<10^{-5}$ either tested in our eQTL mapping, or in high LD ($R^2 > 0.8$) with a tested SNP, 7 have nominally significant marginal eQTL ($p<0.05$, the 8th has $p=0.07$) and four have reQTL with $p<0.1$. rs4058287 (GWAS $p$-value $9.68\times 10^{-6}$) has a marginal effect on Alpha-Protein Kinase 2 (ALPK2, also known as ``Heart Alpha-Protein Kinase'' since it was discovered in mouse heart\cite{ryazanov1999alpha} and is expressed in few other tissues\cite{gtex}) expression ($p=0.0016$) as well as a weak interaction effect ($0.06$), see Figure 3a. Interestingly, ALPK2 has been shown to upregulate DNA repair genes and to enable caspase-3 cleavage and apoptosis in a colorectal cancer model\citep{yoshida2012alpk2}. 
+We additionally used \texttt{LeafCutter} quantification of percentage spliced in (PSI) for each splice junction to map splicing QTL (sQTL) and response-splicing QTL (rsQTL) using the same methodology as we employed for reQTL mapping. We tested SNPs within 100kb of either end of the splice junction. At 5\% FDR we found 467 ASCs with marginal effect sQTL and 42 with rsQTL. An example is rs72922482's association with inclusion of exon 2 of APAF1 Interacting Protein (APIP). Under the major T allele exon skipping is extremely rare: the \texttt{LeafCutter} PSI for the spanning junction ranges from $0.00059$ to $0.0049$ across concentrations (Figure \ref{fig_splicing}c). In rs72922482 heterozygotes however the exon is skipped in a significant proportion of transcripts, and this effect is most pronounced at $1.25 \mu M$, with approximately 50\% exon inclusion, suggesting the minor C allele results in very low inclusion of the cassette exon. Another interesting example is NDUFAF6, another mitochrondrial Complex I protein, where doxorubicin exposure (particularly at $0.625 \mu M$) results in increased use of an alternative downstream transcription start site (TSS) which unmasks the influence of rs896853 on a cassette exon between the two alternative TSS (Supplementary Figure \ref{fig:NDUFAF6}).
 
 \subsection*{Troponin response}
 
 \begin{figure}
 \begin{center}
-    \includegraphics[width=1\textwidth]{../figures/fig4.pdf}     \caption{\it{Transcriptomic response is predictive of cardiac damage as measured by cardiac troponin. \textbf{a.} We measured cardiac troponin, a sensitive and specific test for myocardial damage, in response to doxorubicin, across all cell lines. \textbf{b.} We summarized gene expression response by first fitting a ``principal curve'' following increasing doxorubicin concentration, and then measuring the rate of progression along this curve for each individual. \textbf{c.} Increased transcriptomic response is associated with reduced cardiac troponin response, suggesting that the bulk of expression changes we observe are in fact protective against cardiac damage.}}
-    \label{fig4}
+    \includegraphics[width=1\textwidth]{../figures/fig4_troponin.pdf}     \caption{\it{Transcriptomic response is predictive of cardiac damage as measured by cardiac troponin. \textbf{a.} We measured cardiac troponin, a sensitive and specific test for myocardial damage, in response to doxorubicin, across all cell lines. \textbf{b.} We summarized gene expression response by first fitting a ``principal curve'' following increasing doxorubicin concentration, and then measuring the rate of progression along this curve for each individual. \textbf{c.} Increased transcriptomic response is associated with reduced cardiac troponin response, suggesting that the bulk of expression changes we observe are in fact protective against cardiac damage.}}
+    \label{fig_troponin}
     \end{center}
 \end{figure}
 
-We cardiac troponin to measure damage occurring as a result of doxorubicin exposure, using the same concentrations as for our expression profiling. We observed significant variation in measurable damage caused by doxorubicin across individuals, with 13 out of 45 cell lines having a significant (positive) response (Figure 4a). To compare troponin sensitivity to transcriptomic response we aimed to determine an overall per-individual measurement of transcriptomic response with respect to doxorubicin concentration. To this end we fit a principal curve\citep{princurve} through all gene expression samples, initializing the curve to pass sequentially through the successive doxorubicin concentrations (Figure 4b). This methodology allowed us to project every sample on the principal curve to give a single measure of ``progression'' through doxorubicin response. We then regressed these values against concentration for each individual to obtain a progression rate value. We found the troponin response slope is significantly negatively correlated (Spearman $\rho=-0.42, p=0.004$) with the transcriptomic response rate, suggesting that much of the gene expression program being activated in response to doxorubicin is in fact protective against cardiac damage. 
+We cardiac troponin to measure damage occurring as a result of doxorubicin exposure, using the same concentrations as for our expression profiling. We observed significant variation in measurable damage caused by doxorubicin across individuals, with 13 out of 45 cell lines having a significant (positive) response (Figure 4a). To compare troponin sensitivity to transcriptomic response we aimed to determine an overall per-individual measurement of transcriptomic response with respect to doxorubicin concentration. To this end we fit a principal curve\citep{princurve} through all gene expression samples, initializing the curve to pass sequentially through the successive doxorubicin concentrations (Figure 4b). This methodology allowed us to project every sample on the principal curve to give a single measure of ``progression'' through doxorubicin response. We then regressed these values against concentration for each individual to obtain a progression rate value. We found the troponin response slope is significantly negatively correlated (Spearman $\rho=-0.42, p=0.004$, Figure \ref{fig_troponin}c) with the transcriptomic response rate, suggesting that much of the gene expression program being activated in response to doxorubicin is in fact protective against cardiac damage. 
+
+
+\subsection*{GWAS enrichment} 
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=1\textwidth]{../figures/fig5_gwas.pdf}     \caption{\it{Cardiomyocyte molecular QTL are enriched in ACT GWAS. \textbf{a.} SNPs that have either a marginal or response eQTL with $p<10^{-5}$ are enriched in GWAS variants with $p<0.05$ (hypergeometric test $p=3 \times 10^{-6}$). \textbf{b.} rs4058287 has a GWAS $p$-value of $9.68\times 10^{-6}$ and is a nominally significant eQTL ($p=0.0016$) for ALPK2, which is down-regulated in response to doxorubicin. \textbf{c.} }}
+    \label{fig:gwas}
+    \end{center}
+\end{figure}
+
+% Statistical signal for the eQTL and GWAS co-localizes for ADCY2 at rs6893414.
+
+We were interested in whether our eQTL could be used to interpret the ACT GWAS of Schneider et al. \cite{Schneider2016}. While this GWAS was not sufficiently powered to find genome-wide significant associations, 11 variants representing 9 independent loci have $p<10^{-5}$, with the most significant (rs2184559) at $p=2.8 \times 10^{-6}$. Of the 8 GWAS variants with $p<10^{-5}$ either tested in our eQTL mapping, or in high LD ($R^2 > 0.8$) with a tested SNP, 7 have nominally significant marginal eQTL ($p<0.05$, the 8th has $p=0.07$) and four have reQTL with $p<0.1$. rs4058287 (GWAS $p$-value $9.68\times 10^{-6}$) has a marginal effect on Alpha-Protein Kinase 2 (ALPK2, also known as ``Heart Alpha-Protein Kinase'' since it was discovered in mouse heart\cite{ryazanov1999alpha} and is expressed in few other tissues\cite{gtex}) expression ($p=0.0016$) as well as a weak interaction effect ($p=0.06$, see Figure \ref{fig:gwas}a). Interestingly, ALPK2 has been shown to upregulate DNA repair genes and to enable caspase-3 cleavage and apoptosis in a colorectal cancer model\citep{yoshida2012alpk2}. 
+
+We additionally assessed whether there was detectable enrichment of low GWAS $p$-values for our molecular QTLs. For total gene expression we considered SNPs with either a marginal or response eQTL with nominal $p < 10^{-5}$ (corresponding approximately to 5\% FDR) and found a significant enrichment for GWAS $p$-values under $0.05$ (one-sided hypergeometric $p=3 \times 10^{-6}$, OR=$1.2$, Figure \ref{fig:gwas}b). We observed a more modest enrichment for splicing QTL: using the same criteria to define a set of sQTL variants we observe significant enrichment in GWAS $p$-values under $0.005$ (one-sided hypergeometric $p=0.02$, \ref{fig:gwas}c) but not under $0.05$ (one-sided hypergeometric $p=0.7$).  
 
 \section*{Discussion}
 
@@ -184,7 +211,7 @@ Model 0 involves no effect of the SNP (and can therefore be fit once for a gene)
 \begin{align}
 \text{Model 0: }& \mathbb{E}[ y_{ncg} ] = v_{cg} \\ 
 \text{Model 1: }& \mathbb{E}[ y_{ncg} ] = v_{cg} + \beta d_n \\
-\text{Model 2: }& \mathbb{E}[ y_{ncg} ] = v_{cg} + \beta_c d_n 
+\text{Model 2: }& \mathbb{E}[ y_{ncg} ] = v_{cg} + \beta_c d_n \label{eq:betac}
 \end{align}
 We optimize $\sigma^2_\pi$, $\sigma^2_e$ and the regression coefficients for each of the three models separately, and use likelihood ratio tests (LRT) to compare the models. Comparing Model 1 vs 0 (one degree of freedom) tests whether there is a marginal effect of the variant. Comparing Model 2 vs 1 ($C-1=4$ degrees of freedom, where $C$ is the number of conditions/concentrations) tests whether there is an interaction effect, i.e. whether the genetic effect on expression is different at different concentrations (or equivalently whether the response to doxorubicin is different for different genotypes). Finally Model 2 vs 0 ($C=5$ degrees of freedom) tests whether there is any effect of genotype on expression, either in terms of a marginal or concentration-specific effect. We use the conservative approach of using Bonferroni correction across SNPs for a gene, followed by Benjamini-Hochberg FDR control. 
 
@@ -217,9 +244,41 @@ where $y_{nc}$ is the expression for individual $n$ at concentration $c$, $z_A$ 
 
 \begin{figure}
 \begin{center}
+    \includegraphics[width=.6\textwidth]{../figures/burridge_comparison.pdf} % use small or
+    \caption{\it{Our expression data is concordant with that of Burridge et al\citep{burridge}. DOXTOX and DOX correspond to samples from patients that did not and did develop ACT after doxorubicin chemotherapy respectively. We additionally see that the transcriptional response at higher concentrations cannot be extrapolated from that at lower concentrations. Higher concentrations are not shown since including these compresses the first PC obscuring the relevant variation.}}
+    \label{fig:burridge}
+    \end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
     \includegraphics[width=1\textwidth]{../figures/cluster_go.pdf} % use small or
     \caption{\it{Gene set enrichment analysis of genes in each response cluster confirms expected patterns: metabolic, mitochrondrial and DNA damage processes, as well as existing doxorubicin response genes.}}
     \label{fig:go}
+    \end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=1\textwidth]{../figures/cluster_tf.pdf} % use small or
+    \caption{\it{Enrichment of transcription factor binding motifs for each response pattern, using HOMER. ** denotes $q<0.05$, * denotes $q<0.5$.}}
+    \label{fig:tf}
+    \end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=.6\textwidth]{../figures/ABCA12.pdf} % use small or
+    \caption{\it{An example response expression QTL that may act through buffering at high expression levels.}}
+    \label{fig:ABCA12}
+    \end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+    \includegraphics[width=1\textwidth]{../figures/rsQTL/NDUFAF6.pdf} % use small or
+    \caption{\it{Doxorubicin exposure results in the use of a downstream alternative TSS which uncovers an association between rs896853 genotype and inclusion of the exon at chr8:94975318-94975415.}}
+    \label{fig:NDUFAF6}
     \end{center}
 \end{figure}
 

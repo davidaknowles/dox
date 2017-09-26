@@ -7,6 +7,7 @@
 
 import glob
 import sys
+import gzip 
 
 if len(sys.argv) > 1:
     files = sys.argv[1:]
@@ -20,10 +21,12 @@ sys.stdout.write("filename\tindividual\tflow_cell\tlane\tindex\tconc")
 # Get gene names from first file
 gene_list = []
 f = files[0]
-handle = open(f, "r")
+handle = gzip.open(f,"r") if f[-2:]=="gz" else open(f, "r")
 for line in handle:
+    line=str(line)
     if line[0] == "#" or line[:6] == "Geneid":
         continue
+    #print(line, file=sys.stderr)
     cols = line.strip("\n").split("\t")
     gene = cols[0]
     gene_list.append(gene)
@@ -47,7 +50,7 @@ for f in files:
 
     # Get counts from f
     g = 0 # iterator for indexing gene names
-    handle = open(f, "r")
+    handle = gzip.open(f,"r") if f[-2:]=="gz" else open(f, "r")
     for line in handle:
         if line[0] == "#" or line[:6] == "Geneid":
             continue

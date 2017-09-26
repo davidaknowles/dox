@@ -1,0 +1,90 @@
+---
+title: "Tropnonin genes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(rstan)
+library(tidyverse)
+require(dplyr)
+require(magrittr)
+require(ggplot2)
+require(glmnet)
+require(doMC)
+registerDoMC(7)
+
+source("../code/utils.R")
+
+source("../code/load_data.R")
+```
+
+```{r}
+troponin_df=read.table("../data/troponin-processed.txt", header=T, stringsAsFactors = F)
+troponin_df
+anno = anno %>% mutate(findiv=as.integer(findiv)) %>% left_join(troponin_df %>% select(findiv, dosage, troponin), by=c("findiv"="findiv", "conc"="dosage"))
+concs=sort(unique(anno$conc))
+```
+
+```{r}
+#DATADIR="~/gdrive/dox_data/"
+#eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
+eqtl = read_qtls("../panama_qq_boot/")
+```
+
+```{r}
+geno_bf=eqtl %>% mutate(p=p_geno) %>% bonferroni
+interact_bf=eqtl %>% mutate(p=p_interact) %>% bonferroni
+joint_bf=eqtl %>% mutate(p=p_joint) %>% bonferroni
+```
+
+```{r}
+prep_data=function(ge, y) {
+  y = scale(y)
+  ge = scale(ge)
+  gram_matrix=ge %*% t(ge) / ncol(ge)
+  eigen_sample_kernel=eigen(gram_matrix)
+  list(N=length(y), U_transpose_y=t(eigen_sample_kernel$vectors) %*% y %>% as.numeric, lambda=eigen_sample_kernel$values)
+}
+```
+
+```{r}
+troponin_med=troponin_rate %>% rename(findiv=individual, troponin=slopes)
+hit_sets=list(interact_bf=interact_bf,joint_bf=joint_bf,geno_bf=geno_bf)
+foreach(hit_set_name=names(hit_sets), .combine=bind_rows) %do% {
+  sig_cis_snp = hit_sets[[hit_set_name]] %>% filter(q < 0.05) %>% .$cis_snp %>% as.character()
+  #trop_med = troponin_df %>% filter(dosage==1.25) 
+
+  x=genotype[sig_cis_snp, as.character(trop_med$findiv)]
+  x=scale(x)
+  x[is.na(x)]=0.
+  y=trop_med$troponin %>% scale()
+  
+  # LASSO
+  cv=cv.glmnet(t(x), y, nfolds=length(y), parallel=T, keep=T)
+  co = coef(cv, s="lambda.min")
+  fitt = cbind(1,t(x)) %*% co %>% as.numeric()
+  
+  # GCAT
+  dat=prep_data(t(x), y)
+  o=optimizing(gcat_stan, data=dat, init=0, as_vector=F)
+
+  # Bayesian GCAT
+  #samples=sampling(gcat_stan, data=dat, show_messages=F, verbose=F, refresh=0) %>% rstan::extract(c("sigma2_k","sigma2")) %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
+  #quantile(samples$pve, c(0.025,.975) )
+  
+  # Spearman correlation
+  spearman_p=foreach(i=seq_len(nrow(x)), .combine = c) %dopar% {
+    cor.test(x[i,],y, method="spearman")$p.value 
+  }
+  spearman_q = p.adjust(spearman_p, method="BH")
+  data.frame(snps=hit_set_name,
+             min_spearman_q=min(spearman_q),
+             sig_spearman=sum(spearman_q < 0.1),
+             pve_lasso=1. - var(fitt - y) / var(y),
+             pve_gcat=o$par %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2)) %>% .$pve)
+}
+```

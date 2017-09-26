@@ -1,0 +1,141 @@
+---
+title: "Compare Burridge"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(rstan)
+library(tidyverse)
+require(dplyr)
+require(magrittr)
+require(irlba)
+require(ggplot2)
+theme_set(theme_bw(base_size = 14))
+require(glmnet)
+require(doMC)
+registerDoMC(7)
+
+source("../code/utils.R")
+
+source("../code/load_data.R")
+```
+
+```{r}
+burridge=read.csv("../data/GSE76314_Burridge_NM_Processed_Data_File_log_fpkm_plus_1_.csv.gz", header=T, row.names = 1)
+```
+
+```{r}
+burridge_meta=colnames(burridge) %>% str_split_fixed("_",2) %>% as.data.frame() %>% set_colnames(c("line","conc")) %>% mutate(doxtox=grepl("CH",line))
+```
+
+```{r}
+pc_burridge=irlba(burridge %>% as.matrix(), 2)
+burridge_meta %>% mutate(pc1=pc_burridge$v[,1],pc2=pc_burridge$v[,2]) %>% ggplot(aes(pc1,pc2,col=conc,shape=doxtox)) + geom_point()
+```
+
+```{r}
+ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>% 
+  set_colnames(c("hugo","ensembl"))
+```
+
+```{r}
+our_map=data.frame(ensembl=rownames(input), stringsAsFactors = F) %>% left_join(ensg_to_hugo, by="ensembl")
+to_keep=!is.na(our_map$hugo)
+mean(to_keep)
+input_hugo=input[to_keep,] %>% set_rownames(our_map$hugo[to_keep])
+shared_genes=intersect(rownames(input_hugo),rownames(burridge))
+length(shared_genes)
+```
+
+```{r}
+combined=cbind(burridge[shared_genes,], input_hugo[shared_genes,])
+comb_meta=burridge_meta %>% 
+  mutate(conc=gsub("uM","",conc) %>% as.numeric(),
+         group=ifelse(doxtox,"DOXTOX","DOX")) %>%
+  select(conc, group) %>%
+  rbind(anno %>% select(conc) %>% mutate(group="OURS"))  
+pc_combined=irlba(combined %>% as.matrix(), 2)
+comb_meta %>% mutate(pc1=pc_combined$v[,1],pc2=pc_combined$v[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group)) + geom_point()
+```
+
+
+```{r}
+pc_burridge_shared=irlba(burridge[shared_genes,] %>% as.matrix(),2)
+project_onto_burr = t(input_hugo[shared_genes,]) %*% pc_burridge_shared$u
+combined_proj=rbind(pc_burridge_shared$v, project_onto_burr)
+comb_meta %>% mutate(pc1=combined_proj[,1],pc2=combined_proj[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group)) + geom_point()
+```
+
+## Redo with RPKM instead of CPM (doesn't help much)
+
+We're using log2(cpm+0.25) whereas Burridge gives log2(fpkm+1)
+
+```{r}
+rpkm_mat = read.table("../data/counts_log2_fpkm_plus_1.txt.gz", header=T)
+```
+
+```{r}
+our_map=data.frame(ensembl=rownames(rpkm_mat), stringsAsFactors = F) %>% left_join(ensg_to_hugo, by="ensembl")
+to_keep=!is.na(our_map$hugo)
+mean(to_keep)
+rpkm_hugo=rpkm_mat[to_keep,] %>% set_rownames(our_map$hugo[to_keep])
+shared_genes=intersect(rownames(rpkm_hugo),rownames(burridge))
+length(shared_genes)
+```
+
+```{r}
+combined=cbind(burridge[shared_genes,], rpkm_hugo[shared_genes,])
+pc_combined=irlba(combined %>% as.matrix(), 2)
+comb_meta %>% mutate(pc1=pc_combined$v[,1],pc2=pc_combined$v[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group)) + geom_point()
+```
+
+```{r}
+pc_burridge_shared=irlba(burridge[shared_genes,] %>% as.matrix(),2)
+project_onto_burr = t(rpkm_hugo[shared_genes,]) %*% pc_burridge_shared$u
+combined_proj=rbind(pc_burridge_shared$v, project_onto_burr)
+comb_meta %>% mutate(pc1=combined_proj[,1],pc2=combined_proj[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group)) + geom_point()
+```
+
+
+## Our own processing
+
+```{r}
+burridge = read.table("../data/burridge-counts.txt.gz", header=T)
+rownames(burridge)=burridge$filename
+burridge$filename=NULL
+burridge=t(burridge)
+burridge_sub=burridge[rownames(input),]
+burridge=edgeR::cpm(burridge_sub, log=T)
+hist(burridge %>% as.numeric())
+hist(input %>% as.matrix() %>% as.numeric())
+```
+
+Good, look similar. 
+
+```{r}
+burridge_meta=colnames(burridge) %>% str_split_fixed("-",2) %>% as.data.frame() %>% set_colnames(c("line","conc")) %>% mutate(doxtox=grepl("ch",line))
+
+```
+
+
+```{r}
+pc_burridge=irlba(burridge %>% as.matrix(), 2)
+burridge_meta %>% mutate(pc1=pc_burridge$v[,1],pc2=pc_burridge$v[,2]) %>% ggplot(aes(pc1,pc2,col=conc,shape=doxtox)) + geom_point()
+```
+
+```{r}
+to_use=anno$conc < 2
+combined=cbind(burridge, input[,to_use]) %>% t() %>% scale(scale=F) %>% t()
+comb_meta=burridge_meta %>% 
+  mutate(conc=gsub("um","",conc) %>% as.numeric(),
+         group=ifelse(doxtox,"DOXTOX","DOX")) %>%
+  select(conc, group) %>%
+  rbind(anno[to_use,] %>% select(conc) %>% mutate(group="Hutterites"))  
+pc_combined=irlba(combined %>% as.matrix(), 2)
+comb_meta %>% mutate(pc1=pc_combined$v[,1],pc2=pc_combined$v[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group, size=group)) + geom_point(alpha=0.75) + scale_color_manual(values=cbPalette) + scale_size_manual(breaks=c("DOXTOX","DOX","Hutterites"), values=c(4,4,2)  ) + scale_shape_discrete(breaks=c("DOXTOX","DOX","Hutterites")) + xlab("Principal component 1") + ylab("Principal component 2")
+ggsave("../figures/burridge_comparison.pdf",height=4,width=6,device=cairo_pdf)
+```

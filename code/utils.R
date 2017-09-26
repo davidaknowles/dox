@@ -133,4 +133,17 @@ pvalue_qqplot_multi=function(pvalues, nl10_obs_p_threshold=0) {
     ggplot(aes(x,y,col=group)) + geom_point() + geom_abline(intercept=0,slope=1) + xlab("Expected -log10(p)") + ylab("Observed -log10(p)") 
 }
 
+pvalue_qqplot_multi_thin=function(pvalues, nl10_obs_p_threshold=0, fidelity=1000) {
+  pvalues %>% 
+    group_by(group) %>% 
+    mutate(x=-log10(seq(1/n(), 1, length.out = n())), y=-log10(sort(p)) ) %>% 
+    ungroup() %>%
+    filter( y > nl10_obs_p_threshold ) %>%
+    mutate(x_r=round(x*fidelity), y_r=round(y*fidelity)) %>%
+    group_by(group, x_r, y_r) %>% 
+    slice(which.min(p))  %>%
+    ungroup() %>% 
+    ggplot(aes(x,y,col=group)) + geom_point() + geom_abline(intercept=0,slope=1) + xlab("Expected -log10(p)") + ylab("Observed -log10(p)") 
+}
+
 

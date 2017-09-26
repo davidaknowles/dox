@@ -1,0 +1,215 @@
+---
+title: "Tropnonin genes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(rstan)
+library(tidyverse)
+require(dplyr)
+require(magrittr)
+require(ggplot2)
+require(glmnet)
+require(doMC)
+registerDoMC(7)
+
+source("../code/utils.R")
+
+source("../code/load_data.R")
+```
+
+```{r}
+troponin_df=read.table("../data/troponin-processed.txt", header=T, stringsAsFactors = F)
+troponin_df
+anno = anno %>% mutate(findiv=as.integer(findiv)) %>% left_join(troponin_df %>% select(findiv, dosage, troponin), by=c("findiv"="findiv", "conc"="dosage"))
+concs=sort(unique(anno$conc))
+```
+
+
+```{r}
+
+cv=cv.glmnet(t(input), anno$troponin, nfolds=7, parallel=T)
+plot(cv)
+```
+
+```{r}
+co = coef(cv) 
+data.frame(feature=row.names(co), beta=co %>% as.numeric) %>% arrange(-abs(beta))
+```
+
+```{r}
+
+```
+This seems 59% of variance is explained?
+
+```{r}
+per_conc_lasso = foreach(conc=concs, .combine = bind_rows) %do% {
+  print(conc)
+  rows_to_use=anno$conc==conc
+  y= anno$troponin[rows_to_use]
+  cv=cv.glmnet(t(input)[rows_to_use,], y, nfolds=sum(rows_to_use), parallel=T, keep=T)
+  co = coef(cv, s="lambda.min") 
+  pve=1-var(cv$fit.preval[,which.min(cv$cvm)] - y) / var(y)
+  data.frame(conc=conc, n=sum(rows_to_use), pve=pve, nnz=sum(co!=0)-1)
+}
+per_conc_lasso
+```
+
+Cauchy prior made no difference
+```{r}
+gcat_reg_stan=stan_model("gcat_reg.stan")
+```
+
+```{r, message=F, warning=F}
+gcat_stan=stan_model("gcat.stan")
+gcat_weighted_stan=stan_model("gcat_weighted.stan")
+```
+
+```{r}
+prep_data=function(ge, y) {
+  y = scale(y)
+  ge = scale(ge)
+  gram_matrix=ge %*% t(ge) / ncol(ge)
+  eigen_sample_kernel=eigen(gram_matrix)
+  list(N=length(y), U_transpose_y=t(eigen_sample_kernel$vectors) %*% y %>% as.numeric, lambda=eigen_sample_kernel$values)
+}
+```
+
+
+```{r}
+dat=prep_data(t(input), anno$troponin)
+o=optimizing(gcat_stan, data=dat, init=0, as_vector=F)
+o$par %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
+```
+
+```{r}
+anno=anno %>% group_by(conc) %>% mutate(trop_normed=scale(troponin))
+anno %>% ggplot(aes(x = conc, y = trop_normed, group=findiv)) +
+  geom_point(size=2.5, alpha=0.3) +
+  scale_x_sqrt(breaks=concs,expand=c(0,0)) +
+  geom_line(alpha=0.5) +
+  theme(legend.position = "none") +
+  scale_color_manual(values = cbPalette) +
+  labs(x = expression("Doxorubicin concentration ("*mu*"M)"),
+       y = "Cardiac troponin (ng/mL)")
+```
+
+```{r}
+dat=prep_data(t(input), anno$trop_normed)
+o=optimizing(gcat_stan, data=dat, init=0, as_vector=F)
+o$par %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
+samples=sampling(gcat_stan, data=dat, show_messages=F, verbose=F, refresh=0) %>% rstan::extract(c("sigma2_k","sigma2")) %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
+quantile(samples$pve, c(0.025,.975) )
+```
+```{r}
+cv=cv.glmnet(t(input), anno$trop_normed, nfolds=nrow(anno), parallel=T, keep=T)
+1. - var(anno$trop_normed - cv$fit.preval[,which.min(cv$cvm)]) / var(anno$trop_normed)
+co = coef(cv, s="lambda.min")
+fitt = cbind(1,t(input)) %*% co %>% as.numeric()
+1. - var(fitt - anno$trop_normed) / var(anno$trop_normed)
+```
+
+```{r}
+bootstrap_samples=30
+#useful_quantiles=c(0.025,.975) 
+useful_quantiles=c(0.25,.75) 
+per_conc_gcat = foreach(conc=concs, .combine = bind_rows) %dopar% {
+  print(conc)
+  rows_to_use=anno$conc==conc
+  ge=t(input)[rows_to_use,]
+  y=anno$troponin[rows_to_use]
+  dat=prep_data( ge, y )
+  o=optimizing(gcat_stan, data=dat, init=0, as_vector=F, hessian=F)
+  samples=sampling(gcat_stan, data=dat, show_messages=F, verbose=F, refresh=0) %>% rstan::extract(c("sigma2_k","sigma2")) %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
+  quant=quantile(samples$pve, useful_quantiles)
+  bootstrapped_pve=foreach(boot_i=seq_len(bootstrap_samples), .combine=c) %do% {
+    cat("bootstrap",boot_i,"\n")
+    si=sample.int(length(y), replace = T)
+    dat=prep_data(ge[si,],y[si])
+    dat$N=length(unique(si))
+    dat$lambda=dat$lambda[seq_len(dat$N)]
+    dat$U_transpose_y=dat$U_transpose_y[seq_len(dat$N)]
+    stopifnot(all(dat$lambda > 0))
+    #dat$weights=numeric(length(y))
+    #dat$weights[as.integer(names(ta))]=ta
+    R.utils::withTimeout( { o_boot=optimizing( gcat_stan, data=dat, init=0, as_vector=F, hessian=F) }, timeout=5 )
+    o_boot$par %>% 
+      as.data.frame() %>%  
+      mutate(pve=sigma2_k / (sigma2_k + sigma2)) %>% 
+      .$pve
+  }
+  data.frame(conc=conc, 
+             sigma2_k=o$par$sigma2_k, 
+             sigma2=o$par$sigma2, 
+             low=quant[1], 
+             high=quant[2], 
+             posterior_mean=mean(samples$pve), 
+             posterior_sd=sd(samples$pve),
+             bootstrap_mean=mean(bootstrapped_pve),
+             bootstrap_sd=sd(bootstrapped_pve))
+}
+per_conc_gcat = per_conc_gcat %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
+per_conc_gcat
+```
+
+```{r}
+per_conc_gcat %>% ggplot(aes(conc, posterior_mean, ymin=low, max=high)) + geom_errorbar() + geom_point()
+per_conc_gcat %>% ggplot(aes(conc, bootstrap_mean, ymin=bootstrap_mean-bootstrap_sd, max=bootstrap_mean+bootstrap_sd)) + geom_errorbar() + geom_point()
+per_conc_gcat %>% ggplot(aes(conc, posterior_mean, ymin=posterior_mean-posterior_sd, max=posterior_mean+posterior_sd)) + geom_errorbar() + geom_point()
+```
+
+```{r}
+
+```
+Lol at these error bars! 
+
+
+```{r}
+gcat_constrained_stan=stan_model("gcat_constrained.stan")
+```
+
+```{r}
+pve_constained=sampling(gcat_constrained_stan, data=dat, refresh=0) %>% 
+  rstan::extract(c("pve")) %>% 
+  as.data.frame() %>% 
+  .$pve 
+pve=sampling(gcat_stan, data=dat, refresh=0) %>% 
+  rstan::extract(c("sigma2_k","sigma2")) %>% 
+  as.data.frame() %>% 
+  mutate(pve=sigma2_k / (sigma2_k + sigma2)) %>%
+  .$pve
+```
+
+```{r}
+pve_constained %>% quantile(useful_quantiles)
+mean(pve_constained)
+pve %>% quantile(useful_quantiles)
+mean(pve)
+```
+
+```{r}
+ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>% 
+  set_colnames(c("hugo","ensembl"))
+```
+
+```{r}
+selected_genes = data.frame(gene=rownames(co), beta=co[,1], stringsAsFactors = F) %>% 
+  filter(gene != "(Intercept)", beta != 0) %>% 
+  left_join(ensg_to_hugo, by=c('gene'='ensembl')) %>%
+  arrange(-abs(beta))
+selected_genes
+```
+
+- HIBCH is mitochrondrial hydrolase
+
+```{r}
+selected_genes %>% select(gene) %>% write.table("troponin_predictors.txt",quote=F,row.names=F,col.names=F)
+selected_genes %>% filter(beta>0) %>% select(gene) %>% write.table("troponin_predictors_plus.txt",quote=F,row.names=F,col.names=F)
+selected_genes %>% filter(beta<0) %>% select(gene) %>% write.table("troponin_predictors_minus.txt",quote=F,row.names=F,col.names=F)
+rownames(input) %>% write.table("troponin_predictors_background.txt",quote=F,row.names=F,col.names=F)
+```
+- Not finding any enrichment using `http://pantherdb.org/`

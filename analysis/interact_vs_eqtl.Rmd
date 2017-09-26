@@ -9,8 +9,9 @@ require(ggplot2)
 theme_set(theme_bw(base_size = 14))
 require(data.table)
 require(foreach)
-require(dplyr)
-require(tidyr)
+require(tidyverse)
+require(magrittr)
+
 require(leafcutter)
 cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
 
@@ -19,7 +20,10 @@ source("../code/load_data.R")
 ```
 
 ```{r}
-eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
+eqtl = read_qtls("../panama_qq_boot/")
+eqtl = eqtl %>% 
+  left_join(snploc, by=c(cis_snp="snpid")) 
+#eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
 ```
 
 How many eQTLs, pooling across concentrations. 
@@ -92,20 +96,42 @@ all_top %>% ggplot(aes(-log10(p_interact),-log(p_geno))) + geom_point() + geom_a
 
 ```{r}
 #hits=interact_bf %>% top_n(20, -p) %>% arrange(p)
-hits=interact_bf %>% filter(q<0.05) %>% arrange(p)
+ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>% 
+  set_colnames(c("hugo","ensembl"))
+hits=interact_bf %>% filter(q<0.05) %>% 
+  arrange(p) %>% 
+  left_join(ensg_to_hugo, by=c("gene"="ensembl")) %>% 
+  left_join(snploc, by=c(cis_snp="snpid")) 
 ```
 
 ```{r}
 
-pdf("../figures/many_reQTL.pdf", width=4.5,height=3.5)
-foreach(i=1:100) %do% {
+#cairo_pdf("../figures/many_reQTL.pdf", width=4.5,height=4,onefile =T)
+foreach(i=33) %do% {
   hit=hits[i,]
+  gene_name=hit$hugo
+  genotype_labels=c("TT","TG","GG")
+  if (hit$RSID %in% gwas_df$RSID) {
+    temp = gwas_df %>% filter(RSID==hit$RSID) 
+    major=temp$`effect allele`
+    minor=temp$`alternative allele`
+    genotype_labels=c(paste0(major,major),paste0(major,minor),paste0(minor,minor))
+  }
+   ylabel=bquote( .(gene_name) ~ expression ~ ("log"[2]~cpm) )
   geno=genotype[ as.character(hit$cis_snp),anno$findiv]
-  data.frame(y= input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
+  data.frame(y= input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2,genotype_labels), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(ylabel) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs16853200") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "right", legend.background = element_blank() ) #+
+  #c(.2,.2)ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
 } #  c(0.15,0.2)
-dev.off()
-#ggsave("../figures/ELP5.pdf",width=4.5,height=3.5)
+#dev.off()
+#ggsave("../figures/NDUFAF1.pdf",width=4.5,height=3.5)
+ggsave("../figures/ABCA12.pdf",width=6,height=4, device=cairo_pdf)
 ```
+
+- NDUFAF1 encodes a chaperone of Complex I, involved in the first step of mitochrondrial respiration. 
+- Not much for FAM171b
+- MRPL21 is mitochrondrial ribosome protein
+- ZFAT regulates apoptosis. 
+- LOXL4, PRMT6 probably ox stress related. 
 
 ```{r}
 fdr_results=foreach( q_thres=c(0.01,0.02,0.05,0.1,0.2,0.3, 0.4), .combine=bind_rows )  %do% {

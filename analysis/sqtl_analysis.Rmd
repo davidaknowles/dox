@@ -6,10 +6,11 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 require(ggplot2)
+theme_set(theme_bw(base_size = 14))
 require(data.table)
-require(foreach)
-require(dplyr)
-require(tidyr)
+require(doMC)
+registerDoMC(7)
+require(tidyverse)
 require(leafcutter)
 require(stringr)
 require(magrittr)
@@ -26,7 +27,7 @@ source("../code/load_data.R")
 input <- read.table(paste0(DATADIR,"leafcutter_qqnorm.txt.gz"), header=T, sep="\t", check.names = F)
 anno=str_split_fixed(colnames(input), "_", 2) %>% 
   as.data.frame(stringsAsFactors=F) %>%
-  set_colnames(c("findiv","conc"))
+  set_colnames(c("findiv","conc")) 
 ```
 
 ```{r}
@@ -42,7 +43,7 @@ dat_combined = read.table("../data/combined_leafcutter.txt.gz", sep="\t", header
 ```{r}
 exons = fread("zcat < ~/Dropbox/splicing/leafcutter/leafcutter/data/gencode.v26.exons.txt.gz", data.table = F)
 intron_meta=get_intron_meta(rownames(dat_combined)) %>% 
-  mutate(clusterID = clu, deltapsi = 0, verdict="annotated") %>% 
+  mutate(clusterID = clu, deltapsi = 0, verdict="annotated", intron=rownames(dat_combined)) %>% 
   set_rownames(rownames(dat_combined))
 
 clu_gene_map    = map_clusters_to_genes(intron_meta, exons) # version from utils.R
@@ -51,31 +52,31 @@ sqtl = sqtl %>% mutate(clu = str_split_fixed(gene, ":", 4)[,4] )
 
 How many eQTLs, pooling across concentrations. 
 ```{r}
-geno_bf=sqtl %>% mutate(p=p_geno) %>% bonferroni()
+geno_bf=sqtl %>% mutate(gene=clu,p=p_geno) %>% bonferroni()
 geno_threshold=geno_bf %>% filter(q<.05) %>% .$p %>% max
-sum(geno_bf$q < 0.05) # 720! 
+sum(geno_bf$q < 0.05) # 856
 ```
 
 How many interaction QTLs (assuming calibrated p-values). 
 ```{r}
-interact_bf=sqtl %>% mutate(p=p_interact) %>% bonferroni()
+interact_bf=sqtl %>% mutate(gene=clu,p=p_interact) %>% bonferroni()
 interact_threshold=interact_bf %>% filter(q<.05) %>% .$p %>% max()
 interact_bf = interact_bf %>% mutate(clu=str_split_fixed(gene, ":", 4)[,4] ) %>%
-  left_join(clu_gene_map, by="clu") 
-sum(interact_bf$q < 0.05) # 47
+  left_join(clu_gene_map, by=c('gene'="clu") )
+sum(interact_bf$q < 0.05) # 67
 ```
 
 How many where genotype has any effect? 
 ```{r}
 joint_bf=sqtl %>% mutate(p=p_joint) %>% bonferroni
 joint_threshold=joint_bf %>% filter(q<.05) %>% .$p %>% max
-sum(joint_bf$q < 0.05) # 696
+sum(joint_bf$q < 0.05) # 838
 ```
 
 
 
 ```{r}
-hits=interact_bf %>% top_n(30, -p) %>% arrange(p) %>% left_join(snploc, by=c(cis_snp="snpid"))
+hits=interact_bf %>% filter(q<0.05) %>% arrange(p) %>% left_join(snploc, by=c(cis_snp="snpid"))
 hits
 ```
 
@@ -92,6 +93,7 @@ hits
 - SCAMP5: ER stress in neurons in Huntingdon's https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2670137/
 - ANAPC13 and ZFYVE1 upregulated with TYMS inhibitors http://molpharm.aspetjournals.org/content/molpharm/88/6/970.full.pdf?with-ds=yes
 - M6PR modifies OS in Arabidopsis
+- ZNF419: not much story
 
 ```{r}
 norm_dat = read.table("../data/normalized_leafcutter.txt.gz", sep="\t", header=T)
@@ -99,35 +101,63 @@ norm_dat = read.table("../data/normalized_leafcutter.txt.gz", sep="\t", header=T
 
 ```{r}
 #hit=sqtl_w_gwas %>% filter(Pvalue < 1e-4) %>% top_n(1, -p_geno) %>% top_n(1, -Pvalue)
-
+cairo_pdf("../figures/many_sqtl.pdf",height=4,width=5,onefile = T)
 foreach(i=1:30) %do% {
   hit=hits[i,]
-  geno=genotype[ as.character(hit$cis_snp), as.character(ind_conc$findiv)]
-  data.frame(y=norm_dat[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=ind_conc$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) + ylim(0,1) + ggtitle(paste(i, hit$gene_name)) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
+  geno=genotype[ as.character(hit$cis_snp), as.character(anno$findiv)]
+  data.frame(y=norm_dat[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) + ylim(0,1) + ggtitle(paste(i, hit$gene_name)) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
 } #  c(0.15,0.2)
+dev.off()
 #ggsave("../figures/ELP5.pdf",width=4.5,height=3.5)
 ```
 
 
-
+```{r}
+cbPalette=c("#009E73", "#D55E00", "#F0E442")
+#cbPalette=c("#009E73","#F0E442","#D55E00", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
+data.frame(col=factor(cbPalette,cbPalette), dummy=1) %>% ggplot(aes(col,dummy,fill=col)) + geom_bar(stat="identity")+ scale_fill_manual(breaks=cbPalette,values=cbPalette)
+```
 
 
 
 ```{r}
-foreach( gene_interest=c("IGF1R", "TSFM", "NDUFAF6", "APIP") ) %do% {
+# APIP could be reasonable main paper fig? 
+# C21orf59
+# RP11-571M6.15
+# AGPS
+# ZNF419
+# CLK1
+# AP000275.65
+# ZFYVE1
+#"APIP", "C21orf59", "RP11-571M6.15", "AGPS", "ZNF419", "CLK1", "AP000275.65", "ZFYVE1" 
+#foreach( gene_interest=c("IGF1R", "TSFM", "NDUFAF6", "APIP") ) %do% {
+curv_lookup = c("APIP" = .6, "NDUFAF6"=0.5)
+snps_lookup = list( "NDUFAF6"=c("GG","GC","CC") )
+
+foreach( gene_interest=c( "APIP"  ) ) %do% {
    hit=hits %>% filter(gene_name==gene_interest) %>% slice(which.min(p))
    print(dim(hit))
   # hit=hits[i,] %>% inner_join(snploc, by=c(cis_snp="snpid"))
-  clu = intron_meta[hit$gene, "clu"]
-  geno=genotype[ as.character(hit$cis_snp), as.character(ind_conc$findiv)]
+  cluster_here = intron_meta[hit$gene, "clu"]
+  geno=genotype[ as.character(hit$cis_snp), as.character(anno$findiv)]
   to_keep = !is.na(geno)
-  meta = data.frame( geno=geno, conc=as.factor(ind_conc$conc) ) %>% 
-    mutate(geno = factor(geno, 0:2, c("AA","AC","CC")) %>% droplevels(), group=interaction(conc,geno,sep="|")) %>%
+  meta = data.frame( geno=geno, conc=as.factor(anno$conc) ) %>% 
+    mutate(geno = factor(geno, 0:2, c("TT","TC","CC")) %>% droplevels(), group=interaction(conc, geno,sep="|")) %>% # switch geno/conc order
     filter(to_keep)
-  clu_plots = make_cluster_plot(clu, clu, exons, meta, intron_meta$clu, dat_combined[,to_keep], intron_meta, snp_pos = hit$pos )
-  # length_transform = function(g) g
-  pdf(paste0("../figures/",gene_interest,".pdf"), width=20,height = 8)
-  do.call( grid.arrange, c( clu_plots, nrow=length(unique(meta$geno)) ) )
+  
+  other_sig_introns_in_clusters=  hits %>% filter(clu==cluster_here, cis_snp==hit$cis_snp) %>% .$gene
+  intron_meta_here = intron_meta %>% filter(clu==cluster_here) %>% left_join(sqtl %>% filter(cis_snp==hit$cis_snp), by=c('intron'='gene','clu'='clu')) %>% mutate(color=cut(p_interact,c(-Inf,5e-5,5e-2,1)))
+    
+    #mutate(color=ifelse(intron %in% other_sig_introns_in_clusters, "Significant rsQTL", "Not significant"))
+  curv=if (gene_interest %in% names(curv_lookup)) curv_lookup[gene_interest] else .5
+  clu_plots = make_cluster_plot( exons, meta, dat_combined[intron_meta_here$intron,to_keep] %>% t, intron_meta_here, snp_pos = hit$pos, curv=curv, centreLineWidth = 2, exon_height = 4, yOffset = .1, yConstant=0, junction_colors =c( "#D55E00","#009E73", "#F0E442"), legend_title="rsQTL p-value", include_legend = F) #, geom_for_labels=function(...) geom_text_repel(...,box.padding=unit(0.02, "lines")))
+  #function(...) geom_text_repel(...,arrow = arrow(length = unit(0.02, "npc")),  box.padding = unit(1, "lines")))
+  # , colors=c( "Significant rsQTL"="#D55E00","Not significant"="#009E73")
+ # length_transform = function(g) g )
+  pdf(paste0("../figures/rsQTL/",gene_interest,".pdf"), width=12.5,height = 4)
+  #pdf(paste0("../figures/rsQTL/",gene_interest,".pdf"), width=12,height = 12.0)
+  do.call( grid.arrange, c( clu_plots$plots, nrow=length(unique(meta$geno)) ) )
+  #do.call( grid.arrange, c( clu_plots, ncol=length(unique(meta$geno)) ) )
   dev.off()
 }
 ```
@@ -207,6 +237,7 @@ sqtl = sqtl %>% left_join(snploc, by=c(cis_snp="snpid"))
 
 ```{r}
 sqtl_w_gwas = sqtl %>% inner_join(gwas_df, by="RSID")
+sqtl_w_gwas
 ```
 
 ```{r}
@@ -214,13 +245,20 @@ p_range=outer( c(5,1), 10^-seq(1,5)) %>% as.numeric() %>% tail(-1)
 enrich_results=foreach(p_eqtl = p_range, .combine = bind_rows ) %do% {
   foreach(p_gwas = p_range, .combine = bind_rows ) %dopar% {
     gwas_hits = sqtl_w_gwas$Pvalue < p_gwas
-    eqtl_hits = sqtl_w_gwas$p_joint < p_eqtl
-    ft  = fisher.test( gwas_hits, eqtl_hits )
+    #eqtl_hits = sqtl_w_gwas$p_joint < p_eqtl
+    eqtl_hits = (sqtl_w_gwas$p_geno < p_eqtl) | (sqtl_w_gwas$p_interact < p_eqtl)
+    ft  = fisher.test( gwas_hits, eqtl_hits , alternative="greater" )
     data.frame( p_eqtl = p_eqtl, p_gwas=p_gwas, n_eqtl=sum(eqtl_hits), gwas_hits=sum(gwas_hits),  overlap=sum(gwas_hits & eqtl_hits), OR=ft$estimate, p = ft$p.value)
   }
 }
 enrich_results %>% arrange(p)
 enrich_results %>% mutate(p_eqtl=as.factor(p_eqtl), p_gwas=as.factor(p_gwas)) %>% ggplot(aes(p_eqtl,p_gwas, fill=log(OR), label=paste( format(p,digits=1), format(OR,digits=1)))) + geom_tile() + geom_text() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + scale_fill_gradient2()
+```
+
+```{r}
+pvalue_qqplot_multi_thin(sqtl_w_gwas %>% mutate(p=Pvalue, group=factor( (p_geno<1e-5) | (p_interact<1e-5), c(F,T), c("No sQTL","sQTL"))) %>% select(p,group), nl10_obs_p_threshold = 1) + scale_color_manual(values=cbPalette) + theme(legend.position = c(0.8,0.2),legend.title = element_blank())+ expand_limits(x=1, y=1) 
+#ggsave("../figures/splicing_gwas_qqplot.png",height=4,width=4)
+ggsave("../figures/splicing_gwas_qqplot.pdf",height=4,width=4,device=cairo_pdf)
 ```
 
 ```{r}

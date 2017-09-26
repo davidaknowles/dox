@@ -1,9 +1,13 @@
 #!/bin/bash
 
-OUTDIR=~/scailscratch/dox/counts
+# OUTDIR=~/scailscratch/dox/counts
+# INDIR=~/scailscratch/dox/bam/
+INDIR=$1
+OUTDIR=$2
+
 mkdir -p $OUTDIR
 
-for f in ~/scailscratch/dox/bam/*.bam; do
+for f in ${INDIR}*.bam; do
   s=${f%.*}
   bn=$( basename $s )
   echo $bn $f

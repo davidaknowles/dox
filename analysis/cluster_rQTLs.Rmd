@@ -1,8 +1,7 @@
 
 ```{r}
 require(rstan)
-library("dplyr")
-library("tidyr")
+library(tidyverse)
 require(ggplot2)
 require(doMC)
 registerDoMC(7)
@@ -18,9 +17,17 @@ input_qq=quantile_normalize(input)
 
 ```{r eval=F}
 #res_dir="../panama_qq_boot/"
-eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
+#eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+05/")
+eqtl = read_qtls("../panama_qq_boot/")
 
 interact_bf=eqtl %>% mutate(p=p_interact) %>% bonferroni
+```
+```{r}
+anno = anno %>% mutate(conc=as.factor(conc))
+no_geno = model.matrix( ~ conc, data=anno) # [,2:5]
+
+N=ncol(input)
+hits = interact_bf %>% filter(q < 0.05) %>% arrange(p)
 ```
 
 ```{r eval=F}
@@ -33,12 +40,7 @@ errorhandling=if (interactive()) 'stop' else 'remove'
 K=readRDS("../data/Kern.rds")
 eig_K=eigen(K)
 
-anno = anno %>% mutate(conc=as.factor(conc))
-no_geno = model.matrix( ~ conc, data=anno) # [,2:5]
 
-N=ncol(input)
-
-hits = interact_bf %>% filter(q < 0.05) %>% arrange(p)
 ```
 
 ```{r eval=F}
@@ -100,7 +102,7 @@ betas=readRDS("../data/sig_betas.rds") # load pre-computed betas for significant
 
 
 Fit different random restarts
-```{r}
+```{r eval=F}
 
 mix_model=stan_model("mix.stan") # mixture model
 
@@ -113,7 +115,7 @@ foreach(o=os, .combine = c) %do% { o$par$logprob %>% exp %>% normalize_rows() %>
 ```
 
 Get solution with highest likelihood
-```{r}
+```{r eval=F}
 logl=foreach(o=os, .combine = c) %do% { o$value }
 o=os[[ which.max(logl) ]] 
 assignments = o$par$logprob %>% exp %>% normalize_rows() %>% apply(1,which.max)
@@ -125,12 +127,12 @@ used=names(use_counts)[ order(use_counts, decreasing = T) ] %>% as.numeric()
 # seed15 o$value=-760 11 clusters
 ```
 
-```{r}
+```{r eval=F}
 o=readRDS( "../mix_fit_seed15.rds")
 ```
 
 Get a SNP with no missingness and all three genotypes (doesn't matter which one)
-```{r}
+```{r eval=F}
 one_valid_snp=which( apply(genotype[1:100,],1,max) == 2 )[1]
 geno=genotype[one_valid_snp,anno$findiv]
 interact=model.matrix(~geno:conc,data=anno)
@@ -139,7 +141,7 @@ x=cbind( no_geno, geno, interact )
 ```
 
 Make plots of cluster centers
-```{r}
+```{r eval=F}
 foreach(i=used) %do% {
   data.frame(y=(x %*% o$par$means[i,]) %>% as.numeric(), geno=as.factor(geno), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot() + ggtitle(paste("Cluster:",i," (",use_counts[as.character(i)],")")) + ylab("Expression") + xlab("Dox concentration") + theme_bw(base_size=16) 
 }
@@ -226,10 +228,13 @@ geno=genotype[ as.character(hit$cis_snp),anno$findiv]
   data.frame(y=y, geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() )
 ```
 
-```{r eval=F}
+```{r eval=T}
+geno=dat_distinct$geno
 wt=geno==0
 to_use=order(mixlm_fit$par$p, decreasing = T)[1:6]
+```
 
+```{r}
 means_here=t(mixlm_fit$par$means)[wt,to_use]
 y_here=scale(y[wt])
 resid=sweep( means_here,1,y_here,"-")
@@ -247,8 +252,8 @@ cluster_ids= foreach(hit_i=1:nrow(hits), .combine = bind_rows) %dopar% {
   print(hit_i)
   hit=hits[hit_i,]
   y=as.numeric( input[hit$gene,] ) # %>% scale()
-  y=data.frame(y=y, geno=geno) %>% group_by(geno) %>% mutate(y=scale(y)) %>% ungroup() %>% .$y
   geno=genotype[ as.character(hit$cis_snp),anno$findiv]
+  y=data.frame(y=y, geno=geno) %>% group_by(geno) %>% mutate(y=scale(y)) %>% ungroup() %>% .$y
   half_geno=.5 * geno[!is.na(geno)]
   y=y[!is.na(geno)]
   K=ncol(means)
@@ -273,5 +278,47 @@ cluster_ids%>% glm(same_cluster ~ log(1/p), data=., family="binomial") %>% summa
 ```{r}
 clusters=c("1.Down","2.Up-DOWN","3.Up","4.Down-up","5.Up-down","6.DOWN-up")
 cluster_ids %>% mutate( k_mut=factor(k_mut,1:6,clusters) , k_wt=factor(k_wt,1:6,clusters)) %>% select(1,2) %>% table() %>% as.data.frame() %>% mutate(k_wt = factor(k_wt, rev(levels(k_wt)))) %>% ggplot(aes(k_mut,k_wt,fill=Freq, label=Freq)) + geom_tile() + scale_x_discrete(position = "top") + theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust = 0)) + ylab("Major allele cluster") + xlab("Minor allele cluster") + geom_text() + scale_fill_gradient(low="white",high="blue")
-ggsave("../figures/reQTL_clusters.pdf",height=4,width=5, device=cairo_pdf)
+#ggsave("../figures/reQTL_clusters.pdf",height=4,width=5, device=cairo_pdf)
+```
+
+## Look at increasing vs. decreasing effect with conc
+```{r}
+require(magrittr)
+colnames(betas)=colnames(x)
+concs=sort(unique(anno$conc))
+geno_effects=cbind(betas[,"geno"],sweep(betas[,7:10],1,betas[,"geno"],"+")) %>% 
+  set_colnames(concs) %>%
+  as.data.frame()
+effect_df = geno_effects %>% mutate(i=1:n()) %>% gather(conc, effect, `0`:`5`)
+
+require(broom)
+effect_v_conc=effect_df %>% mutate(conc=as.numeric(factor(conc))) %>%
+  group_by(i) %>%
+  do(tidy(lm(effect ~ conc, data=.))) %>%
+  filter(term=="conc") %>% 
+  mutate(q=p.adjust(p.value, method="BH")) %>% 
+  ungroup()
+sum(effect_v_conc$q < 0.05)
+sum(effect_v_conc %>% filter(q < 0.05) %>% .$estimate > 0)
+```
+
+Ward or complete give best hierarchical clusterings. 
+```{r}
+#assignments = (1-abs(cor(t(geno_effects)))) %>% as.dist() %>% hclust() %>% cutree(k=3)
+maxes=apply(geno_effects,1,function(g) g[which.max(abs(g))])
+effects_norm = sweep(geno_effects,1,maxes,"/")
+assignments = effects_norm %>% dist() %>% hclust(method="ward.D") %>% cutree(k=9)
+```
+
+```{r}
+require(ClusterR)
+
+# note this sets the seed already
+km=KMeans_rcpp(effects_norm, 9, num_init=10, initializer='kmeans++')
+
+assignments = km$clusters
+sorted_table = table(assignments) %>% sort(decreasing=T) 
+cluster_order = sorted_table %>% names() %>% as.integer()
+effects_norm %>% mutate(i=1:n()) %>% gather(conc, effect, `0`:`5`) %>% left_join(data.frame(i=1:length(assignments),cluster=assignments), by="i") %>% ggplot(aes(conc,effect,group=i)) + geom_line(alpha=0.2) + geom_point(alpha=0.1) +  facet_wrap(~factor(cluster,cluster_order,paste0(1:9," (n=",sorted_table,")")), strip.position  = "left") +xlab(expression("Doxorubicin concentration ("*mu*"M)")) + ylab("Relative genotype effect size") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))# + theme(  strip.background = element_blank(),  strip.text.x = element_blank())
+#ggsave("../figures/reQTL_curves.pdf", height = 4, width=6, device=cairo_pdf)
 ```

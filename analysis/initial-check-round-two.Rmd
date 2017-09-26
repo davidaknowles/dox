@@ -27,7 +27,7 @@ library("RColorBrewer")
 library("dplyr")
 library("tidyr")
 library("ggplot2")
-theme_set(theme_bw(base_size = 12))
+theme_set(theme_bw(base_size = 14))
 library("edgeR")
 library(doMC)
 ```
@@ -99,6 +99,21 @@ write.table(counts, gzf, sep="\t", quote=F)
 close(gzf)
 
 write.table(anno_combined, "../data/sample_annotation.txt", sep="\t", quote=F, row.names = F)
+```
+
+```{r}
+gene_lengths=read.table("gene_lengths.tsv",header=F) %>%
+  set_colnames(c("gene_v","length")) %>%
+  mutate( gene=str_split_fixed(gene_v,"[.]",2)[,1] )
+shared_genes=intersect(rownames(counts),gene_lengths$gene)
+our_gene_lengths=data.frame(gene=shared_genes, stringsAsFactors = F) %>% 
+  left_join(gene_lengths, by="gene")
+rpkm_mat = rpkm(counts[shared_genes,], our_gene_lengths$length, log=T, prior.count = 1 )
+
+gzf=gzfile("../data/counts_log2_fpkm_plus_1.txt.gz","w")
+write.table(rpkm_mat, gzf, sep="\t", quote=F)
+close(gzf)
+
 ```
 
 ```{r}

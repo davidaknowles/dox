@@ -50,7 +50,7 @@ outdir <- args[1]
 ftpfile <- args[2]
 
 # For interactive testing:
-outdir <- "/scratch/midway/jdblischak/"
+#outdir <- "/scratch/midway/jdblischak/"
 ftpfile <- "../data/burridge-sra-info.txt"
 
 if (!dir.exists(outdir)) {

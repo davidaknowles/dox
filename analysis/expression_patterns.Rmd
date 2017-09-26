@@ -9,6 +9,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 require(ggplot2)
+theme_set(theme_bw(base_size = 14))
+require(tidyverse)
 require(doMC)
 registerDoMC(detectCores()-1)
 ```
@@ -16,7 +18,6 @@ registerDoMC(detectCores()-1)
 ## Load expression data
 ```{r}
 DATADIR="~/scailscratch/dox/"
-library("dplyr")
 library(data.table)
 source("../code/utils.R")
 
@@ -178,3 +179,55 @@ all_go_sub %>% filter(TermID %in% interesting_terms) %>%
    ggplot(aes(cluster, Term, fill=OR, label=label)) + geom_tile() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + scale_fill_gradient(low="white",high="black") + geom_text() + xlab("Cluster") + ylab("Gene set") # + scale_fill_gradient2(low = "white", mid = "yellow", high="red", midpoint = 2)
 ggsave("../figures/cluster_go.pdf",height=6,width=9,device=cairo_pdf)
 ```
+
+## Motifs
+
+```{r}
+all_tf=foreach(i=1:6, .combine = bind_rows) %do% {
+  homer_res_dir=paste0(gene_cluster_dir,"homer",i,"/")
+  temp=fread(paste0(homer_res_dir,"knownResults.txt"), data.table = F) 
+  colnames(temp)[6:9]=c("ntarget_w_motif","ptarget_w_motif","nback_w_motif","pback_w_motif")
+   temp %>%  mutate(cluster=i)
+} %>% mutate(ptarget_w_motif=gsub("%","",ptarget_w_motif) %>% as.numeric(), 
+                   pback_w_motif=gsub("%","",pback_w_motif) %>% as.numeric(), 
+                  OR=ptarget_w_motif / pback_w_motif,
+                  motif=str_split_fixed(`Motif Name`,"/",3)[,1]) 
+```
+
+```{r}
+#%>% filter(`q-value (Benjamini)` < 0.1)
+top_tf = all_tf %>% filter(`q-value (Benjamini)` < 0.4)  %>% group_by(cluster) %>% top_n(10, -`P-value`) %>% ungroup()
+dim(top_tf)
+interesting_tf=unique(top_tf$motif)
+plot_tf = all_tf %>% 
+  filter(motif %in% interesting_tf) %>%
+  group_by(cluster,motif) %>%
+  summarize(OR=mean(OR),q=min(`q-value (Benjamini)`),Consensus=Consensus[which.min(`q-value (Benjamini)`)]) %>%
+  ungroup() %>%
+  mutate(motif=str_split_fixed(motif,"[()]",2)[,1])
+
+tf_mat = plot_tf %>% 
+  select(cluster, OR, motif) %>% 
+  spread(cluster, OR) %>%
+  as.data.frame()
+rownames(tf_mat)=tf_mat$motif
+tf_mat$motif=NULL
+tf_mat=as.matrix(tf_mat)
+motif_hc = tf_mat %>% dist() %>% hclust() 
+plot(motif_hc)
+motif_order = motif_hc %>% as.dendrogram() %>% order.dendrogram()
+motif_names_order=rownames(tf_mat)[motif_order]
+
+consensus_ordered = plot_tf %>% group_by(motif) %>% summarise(Consensus=Consensus[which.min(q)]) %>% right_join(data.frame(motif=motif_names_order, stringsAsFactors=F),by="motif") %>% .$Consensus
+
+plot_tf %>%
+  mutate(cluster=factor(cluster,1:6,clusters),
+         motif=factor(motif,motif_names_order) %>% as.numeric) %>%
+  ggplot(aes(cluster,motif,fill=log(OR),label=ifelse(q<0.05,"**",ifelse(q<0.5,"*","")))) + geom_tile() + scale_fill_gradient2() + geom_text() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "right") + scale_y_continuous(breaks=seq_along(motif_names_order),labels=motif_names_order,sec.axis=dup_axis(name="Consensus motif",labels=consensus_ordered)) + xlab("Cluster") + ylab("Transcription factor") + coord_cartesian(ylim=c(1.5,length(motif_names_order)-0.5))
+ggsave("../figures/cluster_tf.pdf",height=6,width=8,device=cairo_pdf)
+```
+
+- ZNF143 transcription factor mediates cell survival through upregulation of the GPX1 activity in the mitochondrial respiratory dysfunction https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3542592/
+- YY1 has some involvement in DNA repair and apoptosis. http://www.genecards.org/cgi-bin/carddisp.pl?gene=YY1 Expression and regulation of Cxcl12 during oxidative stress in pancreatic beta cells. http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0059679
+- Ronin: regulation of mitochondria and oxidative stress. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4767647/
+- Mef2d myocyte enhancer factor 2. Stress response and apoptosis. http://www.genecards.org/cgi-bin/carddisp.pl?gene=MEF2D

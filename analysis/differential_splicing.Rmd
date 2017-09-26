@@ -1,0 +1,172 @@
+---
+title: "Differential splicing"
+output: html_notebook
+---
+
+```{r}
+require(ggplot2)
+theme_set(theme_bw(base_size = 14))
+require(leafcutter) # NEED TO USE MULTICLASS BRANCH
+require(tidyverse)
+require(magrittr)
+require(data.table)
+require(doMC)
+registerDoMC(7)
+require(stringr)
+counts = read.table("../data/combined_leafcutter.txt.gz", sep="\t", header=T, check.names = F)
+anno=str_split_fixed(colnames(counts), "_", 2) %>% 
+  as.data.frame(stringsAsFactors=F) %>%
+  set_colnames(c("findiv","conc"))
+```
+
+```{r eval=F}
+results = differential_splicing(counts, anno$conc, debug=F, checkpoint_dir = "~/leafcutter_ds_checkpoints")
+saveRDS(results, "../results/leafcutter_ds.rds")
+```
+
+```{r}
+results=readRDS("../results/leafcutter_ds.rds")
+cluster_table=cluster_results_table(results)
+effect_sizes=leaf_cutter_effect_sizes(results)
+```
+
+```{r}
+sum(cluster_table$p.adjust < 0.05, na.rm = T)
+mean(cluster_table$p.adjust < 0.05, na.rm = T)
+```
+
+```{r}
+exons = fread("zcat < ~/Dropbox/splicing/leafcutter/leafcutter/data/gencode.v26.exons.txt.gz", data.table = F)
+intron_meta=get_intron_meta(effect_sizes$intron) %>% 
+  mutate(intron=effect_sizes$intron) 
+clu_gene_map    = map_clusters_to_genes(intron_meta, exons) # version from utils.R
+```
+
+```{r}
+cluster_table %>% filter(p.adjust  < 0.05) %>% mutate(clu=str_split_fixed(cluster,":",2)[,2]) %>% left_join(clu_gene_map, by="clu") %>% .$gene_name %>% unique() %>% length()
+```
+
+```{r}
+intron_meta = get_intron_meta(rownames(counts)) %>% mutate(intron=rownames(counts)) 
+effect_sizes = effect_sizes %>% mutate( abs_effect=apply(effect_sizes[,1:5],1,max) - apply(effect_sizes[,1:5],1,min) )
+
+max_delta_df = effect_sizes %>% select(intron, abs_effect) %>% left_join(intron_meta %>% select(intron, chr, clu), by="intron") %>% group_by(chr,clu) %>% summarize(max_delta_psi=max(abs_effect)) %>% ungroup()  %>% mutate( cluster = paste(chr,clu,sep=":"))  
+
+joined_table = max_delta_df %>% left_join(cluster_table, by="cluster")
+```
+
+```{r}
+joined_table %>% ggplot(aes(max_delta_psi, -log10(p))) + geom_point(alpha=0.1)
+```
+
+```{r}
+joined_table %>% filter(p.adjust < 0.05, max_delta_psi > 0.25)
+```
+
+```{r}
+effect_sizes_w_p = effect_sizes %>% 
+  mutate(clu=str_split_fixed(intron,":",4)[,4]) %>%
+  left_join(cluster_table %>%  mutate(clu=str_split_fixed(cluster,":",2)[,2]), by="clu")
+
+entropies = effect_sizes_w_p %>% 
+  filter(p.adjust < 0.05) %>% 
+  select(1:5, clu, intron) %>%
+  gather(conc, psi, 1:5) %>%
+  group_by(clu, conc) %>%
+  summarize(h=-sum(psi * log(psi)))
+#  group_by(clu) %>%
+#  summarize_all(functions( -sum(. * log(.)) ))
+entropies %>% ggplot(aes(conc, h)) + geom_violin()
+
+```
+
+```{r}
+require(ClusterR)
+# note this sets the seed already
+entropies = entropies %>% group_by(clu) %>% mutate( h_norm=h/mean(h) )
+entropy_mat = entropies %>% select(conc,clu,h_norm) %>% spread(conc, h_norm) 
+rownames(entropy_mat)=entropy_mat$clu
+entropy_mat$clu=NULL
+entropy_mat=as.matrix(entropy_mat)
+km=KMeans_rcpp(entropy_mat, 9, num_init=10, initializer='kmeans++')
+
+entropies_w_assignments = entropies %>% 
+  left_join(data.frame(assignment=km$clusters, 
+                       clu=rownames(entropy_mat), stringsAsFactors=F), by="clu") 
+
+assignments = km$clusters
+sorted_table = table(assignments) %>% sort(decreasing=T) 
+cluster_order = sorted_table %>% names() %>% as.integer()
+
+concs=sort(unique(anno$conc))
+```
+
+```{r}
+entropies_w_assignments %>% ggplot(aes(factor(conc,1:5,concs), h_norm, group=clu)) + geom_line(alpha=0.1) + facet_wrap(~ factor(assignment,cluster_order,paste0(1:9," (n=",sorted_table,")")), strip.position  = "left") + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + ylab("Normalized splicing entropy") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1) )
+#ggsave("../figures/splicing_entropy.pdf",height=4,width=6,device=cairo_pdf)
+```
+
+```{r}
+exons_sub=exons %>% select(start,end,chr)
+im_joined=intron_meta %>% 
+  select(intron, chr, start, end) %>% 
+  left_join(exons_sub , by=c("chr"="chr", "start"="end")) %>% 
+  mutate(annotated=as.numeric(!is.na(start.y))) %>% 
+  select(- start.y ) %>% 
+  distinct() %>%
+  left_join(exons_sub , by=c("chr"="chr", "end"="start")) %>% 
+  mutate(annotated=annotated + as.numeric(!is.na(end.y))) %>% 
+  select(- end.y ) %>%
+  distinct()
+
+ta=table(im_joined$annotated)
+ta
+ta/sum(ta)
+```
+
+```{r}
+sig_effect_sizes=effect_sizes_w_p %>% 
+  filter(p.adjust < 0.05, abs_effect > 0.1) 
+sig_effect_sizes %>%
+  left_join(im_joined %>% select(intron,annotated), by="intron")
+```
+
+```{r}
+sig_effect_sizes_norm=sig_effect_sizes
+sig_effect_sizes_norm[,1:5]=sig_effect_sizes[,1:5] %>% t() %>% scale() %>% t()
+K=8
+km= sig_effect_sizes_norm[,1:5] %>% as.matrix() %>% KMeans_rcpp( K, num_init=10, initializer='kmeans++')
+assignments = km$clusters
+sorted_table = table(assignments) %>% sort(decreasing=T) 
+cluster_order = sorted_table %>% names() %>% as.integer()
+
+sig_effect_sizes_norm %>% select(1:5,intron) %>% gather(conc, psi, 1:5) %>%
+  ggplot(aes(factor(conc,1:5,concs), psi, group=intron)) + geom_line(alpha=0.02) + facet_wrap(~ factor(assignments,cluster_order,1:K), strip.position  = "left", nrow=K) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1) ) + xlab(NULL) + ylab(NULL)
+ggsave("../figures/PSI_clusters.pdf",height=4,width=1.6)
+```
+
+```{r}
+assignment_annotation_df = sig_effect_sizes %>% 
+  select(intron) %>% 
+  mutate(assignment=factor(assignments,cluster_order,1:K)) %>%
+  left_join(im_joined, by="intron") %>% 
+  select(assignment, annotated)
+overlap_table = assignment_annotation_df %>%
+  table() 
+overlap_table
+overlap_table %>% fisher.test(simulate.p.value=T, B=1e5)
+```
+
+```{r}
+all_v_one_p=foreach(k=1:K, .combine = c) %do% {
+  assignment_annotation_df %>% mutate(assignment=assignment==k) %>% table() %>%  fisher.test(simulate.p.value=T, B=1e5) %>% .$p.value
+}
+```
+
+```{r}
+sweep(overlap_table, 1, rowSums(overlap_table), "/")  %>% 
+  as.data.frame() %>% 
+  mutate(annotated=factor(2-as.numeric(as.character(annotated)))) %>%
+  ggplot(aes(factor(assignment,seq(K,1,by=-1)), Freq, fill=annotated)) + geom_bar(stat="identity")  + scale_fill_manual(guide=F,values=cbPalette)  + coord_flip(ylim=c(0,.2)) + ylab(NULL) + xlab(NULL) + scale_y_continuous(breaks=c(0,.1,.2)) + geom_text(data=data.frame(x=factor(1:K,seq(K,1,by=-1)), p=format(all_v_one_p,digits=2,scientific=T)), aes(x,.2,label=p), inherit.aes = F)
+ggsave("../figures/PSI_clusters_annotation_rate.pdf",height=4,width=2,device=cairo_pdf)
+```
