@@ -29,22 +29,11 @@ anno = anno %>% mutate(findiv=as.integer(findiv)) %>% left_join(troponin_df %>% 
 concs=sort(unique(anno$conc))
 ```
 
-
+This doesn't make much sense because of variation across concentrations
 ```{r}
-
 cv=cv.glmnet(t(input), anno$troponin, nfolds=7, parallel=T)
 plot(cv)
 ```
-
-```{r}
-co = coef(cv) 
-data.frame(feature=row.names(co), beta=co %>% as.numeric) %>% arrange(-abs(beta))
-```
-
-```{r}
-
-```
-This seems 59% of variance is explained?
 
 ```{r}
 per_conc_lasso = foreach(conc=concs, .combine = bind_rows) %do% {
@@ -60,13 +49,13 @@ per_conc_lasso
 ```
 
 Cauchy prior made no difference
-```{r}
+```{r eval=F}
 gcat_reg_stan=stan_model("gcat_reg.stan")
 ```
 
 ```{r, message=F, warning=F}
 gcat_stan=stan_model("gcat.stan")
-gcat_weighted_stan=stan_model("gcat_weighted.stan")
+#gcat_weighted_stan=stan_model("gcat_weighted.stan")
 ```
 
 ```{r}
@@ -80,7 +69,7 @@ prep_data=function(ge, y) {
 ```
 
 
-```{r}
+```{r eval=F}
 dat=prep_data(t(input), anno$troponin)
 o=optimizing(gcat_stan, data=dat, init=0, as_vector=F)
 o$par %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
@@ -106,10 +95,11 @@ samples=sampling(gcat_stan, data=dat, show_messages=F, verbose=F, refresh=0) %>%
 quantile(samples$pve, c(0.025,.975) )
 ```
 ```{r}
-cv=cv.glmnet(t(input), anno$trop_normed, nfolds=nrow(anno), parallel=T, keep=T)
-1. - var(anno$trop_normed - cv$fit.preval[,which.min(cv$cvm)]) / var(anno$trop_normed)
+input_normalized = t(input) %>% scale()
+cv=cv.glmnet(input_normalized, anno$trop_normed, nfolds=nrow(anno), parallel=T, keep=T)
+#1. - var(anno$trop_normed - cv$fit.preval[,which.min(cv$cvm)]) / var(anno$trop_normed)
 co = coef(cv, s="lambda.min")
-fitt = cbind(1,t(input)) %*% co %>% as.numeric()
+fitt = cbind(1,input_normalized) %*% co %>% as.numeric()
 1. - var(fitt - anno$trop_normed) / var(anno$trop_normed)
 ```
 
@@ -163,12 +153,6 @@ per_conc_gcat %>% ggplot(aes(conc, posterior_mean, ymin=posterior_mean-posterior
 ```
 
 ```{r}
-
-```
-Lol at these error bars! 
-
-
-```{r}
 gcat_constrained_stan=stan_model("gcat_constrained.stan")
 ```
 
@@ -197,12 +181,16 @@ ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>%
 ```
 
 ```{r}
+co = coef(cv, s="lambda.min")
 selected_genes = data.frame(gene=rownames(co), beta=co[,1], stringsAsFactors = F) %>% 
   filter(gene != "(Intercept)", beta != 0) %>% 
   left_join(ensg_to_hugo, by=c('gene'='ensembl')) %>%
   arrange(-abs(beta))
+
+selected_genes %>% select(gene, hugo, beta) %>% write.table("../paper/table1_lasso_troponin.txt",sep="\t",row.names=F,col.names=T,quote=F)
 selected_genes
 ```
+
 
 - HIBCH is mitochrondrial hydrolase
 
@@ -213,3 +201,124 @@ selected_genes %>% filter(beta<0) %>% select(gene) %>% write.table("troponin_pre
 rownames(input) %>% write.table("troponin_predictors_background.txt",quote=F,row.names=F,col.names=F)
 ```
 - Not finding any enrichment using `http://pantherdb.org/`
+
+```{r}
+de=foreach(conc=concs) %do% {
+  to_use=anno$conc==conc
+  trop=anno$troponin[to_use]
+  suppressWarnings(
+  { p=  foreach(i=1:nrow(input), .combine = c) %dopar% {
+    cor.test(input[i,to_use] %>% as.numeric(),trop,method="spearman")$p.value
+  } } )
+  p
+} %>% set_names(concs)
+```
+
+
+```{r}
+foreach(p=de, .combine = c) %do% {
+  q=p.adjust(p, method="BH")
+  sum(q<0.05)
+}
+```
+
+```{r}
+foreach(pname=names(de), .combine = bind_rows) %do% {
+  q=p.adjust(de[[pname]], method="BH")
+  #if (sum(q<0.05)==0) return(NULL)
+  foreach(p2name=names(de), .combine = bind_rows) %do% {
+    data.frame(reprate=mean(de[[p2name]][q<0.05] < 0.05), # %>% qvalue::pi0est() %>% .$pi0
+               discovery=pname, 
+               rep=p2name, 
+               stringsAsFactors = F)
+  }
+} %>% mutate(reprate=ifelse(is.na(reprate),NA,reprate)) %>%
+  ggplot(aes(rep, factor(discovery,rev(concs)), fill=reprate, label=format(reprate,digits=2))) + geom_tile() + geom_text() + scale_fill_gradient(limits=c(0,1), low="blue", high="white", guide="none") + ylab("Discovery concentration (q<0.05)") + xlab("Replication concentration (p<0.05)")
+```
+
+```{r}
+de_volcano=foreach(conc=concs, .combine = bind_rows) %do% {
+  to_use=anno$conc==conc
+  trop=anno$troponin[to_use] %>% scale() 
+  suppressWarnings(
+  { foreach(i=1:nrow(input), .combine = bind_rows) %dopar% {
+    y=input[i,to_use] %>% as.numeric()
+    l=lm(y ~ trop)
+    data.frame(gene=i,
+               spearman_p=cor.test(y,trop,method="spearman")$p.value,
+               lm_p=summary(l)$coefficients[2,4],
+               lm_beta=coef(l)[2])
+  } } ) %>% mutate(conc=conc)
+}
+```
+
+```{r}
+require(ldbod)
+get_lof=function(x,y,k=15) {
+  cbind(x,y) %>% ldbod(k=k) %>% .$lof
+}
+de_volcano = de_volcano %>% 
+  mutate(x=lm_beta, y=-log10(spearman_p)) %>% 
+  group_by(conc) %>% 
+  mutate(lof=get_lof(x,y))
+```
+
+```{r}
+fidelity=100
+require(ggrepel)
+#de_volcano = de_volcano %>% mutate(q=p.adjust(spearman_p, method='BH'))
+de_volcano = de_volcano %>% group_by(conc) %>% mutate(q=p.adjust(spearman_p, method='BH')) %>% ungroup()
+de_volcano = de_volcano %>% mutate(gene_name=rownames(input)[gene]) %>% 
+  left_join(ensg_to_hugo, by=c("gene_name"="ensembl"))
+# ifelse(rank(-lof)<20,hugo,NA)
+to_label=de_volcano %>% filter(q<0.01) %>% group_by(conc) %>% slice(c(which.min(spearman_p),which.min(lm_beta),which.max(lm_beta))) %>% .$hugo %>% unique()
+to_label = setdiff(to_label, "SMCO1")
+de_volcano %>%
+  mutate(lof=ifelse(q<0.05, lof, -Inf),
+         x=lm_beta, 
+         y=-log10(spearman_p), 
+         x_r=round(x*20), 
+         y_r=round(y*20)) %>%
+  group_by(x_r, y_r, conc) %>% 
+  slice(which.max(y)) %>%
+  ungroup() %>%
+  #ggplot(aes(x, y, col=q<0.05, label=ifelse( (hugo %in% to_label) & (q<0.05), hugo, NA))) + 
+  ggplot(aes(x, y, col=q<0.05, label=NA)) + 
+  geom_point() + 
+  geom_text_repel(col="black",
+                  arrow = arrow(length = unit(0.02, "npc")),
+                  box.padding = unit(0.5, "lines"))+ 
+  facet_wrap(~conc) +  
+  xlab("Effect of normalized troponin on log2(cpm)") + 
+  ylab(expression(-log[10](italic(p)))) + 
+  scale_color_manual(values=cbPalette[c(4,1)]) + 
+  coord_cartesian(xlim=c(-2,2), ylim=c(0,10)) + 
+  theme(
+   strip.background = element_blank(),
+    strip.text.x = element_blank()
+  ) + 
+  geom_text(data=data.frame(conc=concs), aes(-2,10,label=conc),hjust = 0, inherit.aes = F)
+ggsave('../figures/troponin_de_.pdf', height=4, width=7, device=cairo_pdf)
+```
+
+```{r}
+for_sigma = de_volcano %>% select(gene, conc, lm_p, lm_beta) %>% mutate(z=qnorm(lm_p/2), se=abs(lm_beta / z))
+betas = for_sigma  %>% select(gene,conc,lm_beta) %>% spread(conc, lm_beta) %>% mutate(gene=NULL) %>% as.matrix()
+ses = for_sigma  %>% select(gene,conc,se) %>% spread(conc, se) %>% mutate(gene=NULL) %>% as.matrix()
+sigma_mom = t(betas) %*% betas - diag(colSums(ses ^ 2))
+for_norm=sqrt(diag(sigma_mom))
+sigma_mom %>% sweep(1,for_norm,"/") %>% sweep(2,for_norm,"/")
+```
+
+```{r}
+sigma_stan=stan_model("sigma.stan")
+o=optimizing(sigma_stan, data=list(P=5, N=nrow(betas), betas=betas, se2=ses^2), as_vector=F)
+sigma_ml = o$par %>% matrix(ncol=5)
+for_norm=sqrt(diag(sigma_ml))
+sigma_ml %>% sweep(1,for_norm,"/") %>% sweep(2,for_norm,"/")
+```
+
+```{r}
+z= for_sigma  %>% select(gene,conc,se) %>% spread(conc, se) %>% mutate(gene=NULL) %>% as.matrix()
+```
+
