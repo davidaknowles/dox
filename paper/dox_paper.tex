@@ -29,12 +29,14 @@
 
 \vspace{1cm}
 
-\noindent{\normalsize David A Knowles$^{1,2,3,*}$, Courtney Burrows$^{*}$, John Blischak$^{*}$, Jonathan K Pritchard$^{1,7,8}$, Yoav Gilad\\
+\noindent{\normalsize David A Knowles$^{1,2,3,*}$, Courtney Burrows$^{4,*}$, John Blischak$^{4}$, Kristen M. Patterson$^{4}$, Carole Ober$^{4}$, Jonathan K Pritchard$^{1,5,6}$, Yoav Gilad$^{4,7}$\\
 \footnotesize{$^{1}$ Department of Genetics, Stanford University, Stanford, CA}\\
 \footnotesize{$^{2}$ Department of Computer Science, Stanford University, Stanford, CA}\\
 \footnotesize{$^{3}$ Department of Radiology, Stanford University, Stanford, CA}\\
-\footnotesize{$^{7}$ Department of Biology, Stanford University, Stanford, CA}\\
-\footnotesize{$^{8}$ Howard Hughes Medical Institute, Stanford University, CA.}\\
+\footnotesize{$^{4}$ Department of Human Genetics, University of Chicago, Chicago, IL}\\
+\footnotesize{$^{5}$ Department of Biology, Stanford University, Stanford, CA}\\
+\footnotesize{$^{6}$ Howard Hughes Medical Institute, Stanford University, CA.}\\
+\footnotesize{$^{7}$ Department of Medicine, University of Chicago, Chicago, IL}\\
 \footnotesize{* These authors contributed equally to this work.}\\
 
 \section*{Introduction}
@@ -159,19 +161,32 @@ We additionally assessed whether there was detectable enrichment of low GWAS $p$
 
 \subsection*{iPSC reprogramming and cardiomyocyte differentiation} 
 
+We reprogrammed the 45 LCLs to iPSCs using episomal plasmid vectors,
+which avoids integrating additional transgenes \cite{Okita2011}. We
+chacterized the iPSC lines using the embryoid body assay, karyotyping,
+and the PluriTest \cite{Muller2011} classifier. Next we differentiated
+the iPSCs to cardiomyocytes \cite{Lian2013, Burridge2014} and assayed
+purity by performing flow cytometry for cardiac Troponin T.
+
 \subsection*{Doxorubicin exposure}
+
+We incubated the cardiomyocytes in 0, 0.625, 1.25, 2.5, or 5 $\mu$M
+doxorubicin. After 24 hours, we measured cardiac Troponin T using an
+Elisa and extracted RNA for sequencing.
 
 \subsection*{RNA-sequencing}
 
-\begin{itemize}
-\item 50bp single end on HiSeq 4000 [two rounds]
-\item QC using fastqc and multi\_qc. 
-\item Confirmed sample identity using exonic SNPs. 
-\end{itemize}
+We prepared libraries using the [insert Illumina kit name] and
+generated 50 bp single-end reads on a HiSeq 4000 at the University of
+Chicago Functional Genomics Facility. The reads were 50 bp single
+end. We confirmed sequencing quality using FastQC and MultiQC
+\cite{Ewels2016}.  We confirmed sample identity by 1) comparing
+allelic counts of exonic SNPs to the known genotypes and 2) running
+verifyBamID \cite{Jun2012}.
 
 \subsection*{Expression quantification}
 
-We aligned RNA-seq reads using STAR version 2.5.2a to GRCh38/GENCODE release 24. We counted reads using featureCounts and calculated counts per million reads (cpm) using `cpm` from the `edgeR` R package (version 3.18.1). We discarded samples with $<10^9$ reads and genes with median $\log_2(cpm)$ less than $0$. 
+We aligned RNA-seq reads using STAR version 2.5.2a \cite{Dobin2013} to GRCh38/GENCODE release 24. We counted reads using featureCounts \cite{Liao2014} and calculated counts per million reads (cpm) using `cpm` from the `edgeR` R package (version 3.18.1) \cite{Robinson2010}. We discarded samples with $<10^9$ reads and genes with median $\log_2(cpm)$ less than $0$.
 
 \subsection*{Differential expression analysis} 
 
