@@ -14,7 +14,8 @@
 \usepackage{color,soul}
 %\usepackage{natbib}
 \usepackage{titlesec}
-\bibliographystyle{naturemag_noURL}
+%\bibliographystyle{naturemag_noURL}
+\bibliographystyle{naturemag}
 \usepackage[super]{natbib}
 \setcitestyle{citesep={,}}
 \titleformat*{\section}{\large\bfseries}
@@ -24,7 +25,7 @@
 
 \begin{document}
 
-{\Large Determining the genetic basis of anthracycline-cardiotoxicity by response eQTL mapping in induced cardiomyocytes}\newline
+{\Large Determining the genetic basis of anthracycline-cardiotoxicity by molecular response QTL mapping in induced cardiomyocytes}\newline
 
 \vspace{1cm}
 
@@ -41,7 +42,7 @@
 Anthracyclines, including the prototypical doxorubicin, continue to be used as chemotherapeutic agents treating a wide range of cancers, particularly leukemia, lymphoma, multiple myeloma, breast cancer, and sarcoma. 
 A well-known side-effect of doxorubicin treatment is anthracycline-induced cardiotoxicity (ACT). 
 For some patients ACT manifests as an asymptomatic reduction in cardiac function, as measured by left ventricular ejection fraction (LVEF), but in more extreme cases ACT can lead to congestive heart failure (CHF). 
-The risk of CHF is dosage-dependent: the earliest study estimated 3\% of patients at 400 mg/m2, 7\% of patients at 550 mg/m2, and 18\% of patients at 700 mg/m2 develop CHF\citep{Swain2003}, where a more recent study puts these numbers at 5\%, 26\% and 48\% respectively. 
+The risk of CHF is dosage-dependent: the earliest study estimated 3\% of patients at 400 mg/m2, 7\% of patients at 550 mg/m2, and 18\% of patients at 700 mg/m2 develop CHF\cite{Swain2003}, where a more recent study puts these numbers at 5\%, 26\% and 48\% respectively. 
 ACT prevalence rates in pediatric patients are notably higher \cite{todo}
 Perhaps most daunting for patients is that CHF can occur years after treatment. 
 Reduced LVEF shows a similar dosage-dependent pattern, but is not fully predictive of CHF. 
@@ -50,20 +51,18 @@ Various candidate gene studies have attempted to find genetic determinants of AC
 Two ACT genome-wide association studies (GWAS) have been published. 
 While neither found genome-wide significant associations using their discovery cohorts, both found one variant that they were able to replicate in independent cohorts. 
 
-Using a Canadian European discovery cohort of 280 pediatric patients, \citet{Aminkeng2015} found a nonsynonymous coding variant, rs2229774 in RARG (retinoic acid receptor $\gamma$), which replicated in both a European ($p=0.004$) and non-European cohort ($p=1 \times 10^{-4}$). 
-\citet{Aminkeng2015} demonstrated RARG mutants have reduced retinoic acid response element (RAREs) activity and reduced suppression of \emph{Top2b}, which has been proposed as a mediator of ACT. 
+A nonsynonymous coding variant, rs2229774, in RARG (retinoic acid receptor $\gamma$) was associated with pediatric ACT using a Canadian European discovery cohort of 280 patients\cite{Aminkeng2015}, and replicated in both a European ($p=0.004$) and non-European cohort ($p=1 \times 10^{-4}$). 
+RARG negative cell lines have reduced retinoic acid response element (RAREs) activity and reduced suppression of \emph{Top2b}\cite{Aminkeng2015}, which has been proposed as a mediator of ACT. 
 
 % 794 + 51
-\citet{Schneider2016} performed a GWAS in 845 patients with European-ancestry from a large adjuvant breast cancer clinical trial, 51 of whom developed CHF. 
-While no variants reached genome-wide significance levels, rs28714259 ($p=9 \times 10^{-6}$ in discovery cohort) replicated in two further cohorts ($p=0.04, 0.018$). 
+A GWAS in 845 patients with European-ancestry from a large adjuvant breast cancer clinical trial, 51 of whom developed CHF, found no variants at genome-wide significance levels\cite{Schneider2016} , but rs28714259 ($p=9 \times 10^{-6}$ in discovery cohort) replicated in two further cohorts ($p=0.04, 0.018$). 
 rs28714259 falls in a glucocorticoid receptor protein binding peak, which may play a role in cardiac development. 
 
-TODO: talk about Burridge paper\citep{Burridge2016}
+An exciting approach to studying human disease is to use induced pluripotent stem cell (iPSC)-derived cells as model systems for disease. Work by us and others has demonstrated that iPSCs and derived cell-types are powerful model systems for understanding cell-type specific genetic regulation of transcription \citep{Thomas2015,Burrows2016,Banovich2017,hipsci}, but it remains to be shown whether these systems can be used to model specific disease settings. Encouragingly, the response of iPSC-derived cardiomyocytes (ICs) to doxorubicin was recently extensively characterized\cite{Burridge2016}. ICs derived from four individuals who developed ACT after doxorubicin treatment (``DOXTOX'' group) and four who did not (``DOX'' group), showed clear differences in viability (via apoptosis), metabolism, DNA damage, oxidative stress and mitochondrial function when exposed to doxorubicin, suggesting that ICs recapitulate \emph{in vivo} differences between individuals. Gene expression response differences between the DOX and DOXTOX groups were demonstrated using RNA-sequencing, but the sample size was too small (3 DOX vs. 3 DOXTOX) to attempt mapping of genetic variants that might explain the observed functional differences. 
 
-TODO: say something about iPSC lines as model systems. \citep{Thomas2015,Burrows2016}
+Here we use a panel of iPSC-derived cardiomyocytes derived from 45 individuals, exposed to four different concentrations of doxorubicin, to map the genetic basis of sensitivity to doxorubicin. We find hundreds of genetics variants that modulate transcriptomic response to doxorubicin, including 46 that act on alternative splicing. We show that the transcriptomic response is predictive of cardiac troponin response in these cell-lines. These variants show significant enrichment in lower GWAS $p$-values. 
 
 \section*{Results}
-
 
 \begin{figure}
 \begin{center}
@@ -81,7 +80,7 @@ TODO: ?
 
 \subsection*{Measuring transcriptomic response to doxorubicin exposure}
 
-We exposed all 45 cardiomyocyte lines to doxorubicin at 4 different concentrations for 24 hours, after which cells were processed for RNA-sequencing. We obtained sufficient read depth (10M exonic reads) for downstream analysis for 217 of the $5 \times 45 = 225$ individual-concentration pairs, and confirmed sample identity by calling exonic SNPs. We observed a strong response to doxorubicin across all concentrations, with 98\% (12038 / 12317) of quantifiable genes (5\% FDR) showing differential expression across concentrations. Principal component analysis (PCA, Figure 1b) confirms that the main variation in the data is driven by doxorubicin concentration and that the effect of concentration on expression is nonlinear. For some individuals the $1.25\mu M$ sample is closer to $0.625 \mu M$, whereas for others it is closer to $2.5\mu M$, suggesting there is systematic variation in how different individuals respond to doxorubicin exposure. Since the majority of genes appear responsive to doxorubicin we clustered genes into six distinct response patterns using a mixture model approach (Figure 1c, see Methods). From largest to smallest, these clusters represent genes that are 1) down regulated 2) initial up, then further down-regulated 3) up-regulated 4) transiently down regulated 5) transiently up-regulated 6) down-regulated then partially recover. Gene set enrichments (Supplementary Figure~\ref{fig:go}) for the up-regulated cluster include metabolic, mitochrondrial and extracellular processes, as well as known doxorubicin response genes in breast cancer cell lines \cite{graessmann2007chemotherapy}. The down-regulated cluster shares genes with those down-regulated in response to UV light, which, like doxorubicin, causes DNA-damage. Targets of p53, a transcription factor that responds to DNA damage, are overrepresented in clusters 2 and 5; these clusters involve up-regulation at low concentrations ($0.625\mu M$) but down-regulation at higher concentrations. Promoter motif enrichment (Supplementary Figure~\ref{fig:tf}) 
+We exposed all 45 cardiomyocyte lines to doxorubicin at 4 different concentrations for 24 hours, after which cells were processed for RNA-sequencing. We obtained sufficient read depth (10M exonic reads) for downstream analysis for 217 of the $5 \times 45 = 225$ individual-concentration pairs, and confirmed sample identity by calling exonic SNPs. We observed a strong response to doxorubicin across all concentrations, with 98\% (12038 / 12317) of quantifiable genes (5\% FDR) showing differential expression across concentrations. Our data shows excellent concordance with an existing smaller RNA-seq dataset\cite{Burridge2016} (Supplementary Figure \ref{fig:burridge}). Principal component analysis (PCA, Figure 1b) confirms that the main variation in the data is driven by doxorubicin concentration and that the effect of concentration on expression is nonlinear. For some individuals the $1.25\mu M$ sample is closer to $0.625 \mu M$, whereas for others it is closer to $2.5\mu M$, suggesting there is systematic variation in how different individuals respond to doxorubicin exposure. Since the majority of genes appear responsive to doxorubicin we clustered genes into six distinct response patterns using a mixture model approach (Figure 1c, see Methods). From largest to smallest, these clusters represent genes that are 1) down regulated 2) initial up, then further down-regulated 3) up-regulated 4) transiently down regulated 5) transiently up-regulated 6) down-regulated then partially recover. Gene set enrichments (Supplementary Figure~\ref{fig:go}) for the up-regulated cluster include metabolic, mitochrondrial and extracellular processes, as well as known doxorubicin response genes in breast cancer cell lines \cite{graessmann2007chemotherapy}. The down-regulated cluster shares genes with those down-regulated in response to UV light, which, like doxorubicin, causes DNA-damage. Targets of p53, a transcription factor that responds to DNA damage, are overrepresented in clusters 2 and 5; these clusters involve up-regulation at low concentrations ($0.625\mu M$) but down-regulation at higher concentrations. Promoter motif enrichment (Supplementary Figure~\ref{fig:tf}) 
 
 \subsection*{Mapping variants modulating doxorubicin response}
 
