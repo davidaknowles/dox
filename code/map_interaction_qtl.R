@@ -36,13 +36,14 @@ map_interaction_qtl = function(input, genotype, geneloc, snploc, anno, sample_ke
   
   panama_test=stan_model("panama_test.stan")
 
-  errorhandling=if (interactive()) 'stop' else 'remove'
+  #  errorhandling=if (interactive()) 'stop' else 'remove'
+  errorhandling="stop"
   print(errorhandling)
   #stopifnot(FALSE)
   
-  zz <- file( "/dev/null", open = "wt")
-  sink(zz)
-  sink(zz, type = "message")
+  #zz <- file( "/dev/null", open = "wt")
+  #sink(zz)
+  #sink(zz, type = "message")
   
   all_results = foreach(gene=genes, .errorhandling=errorhandling, .combine = bind_rows) %do% {
     
@@ -130,8 +131,8 @@ map_interaction_qtl = function(input, genotype, geneloc, snploc, anno, sample_ke
     gene_results
   }
   
-  sink(type="message")
-  sink()
+  #sink(type="message")
+  #sink()
   
   all_results
 }
