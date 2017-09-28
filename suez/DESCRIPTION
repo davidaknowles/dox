@@ -1,0 +1,15 @@
+Package: suez
+Type: Package
+Title: Molecular response QTL mapping
+Version: 0.1
+Date: 2017-09-28
+Author: David A. Knowles
+Maintainer: David A. Knowles <knowles84@gmail.com>
+Description: Extends the PANAMA (e)QTL mapping approach to handle repeat measurements and multiple conditions
+License: GPL (>=3)
+Depends: R (>= 3.0.2), Rcpp (>= 0.12.12), methods
+Imports: rstan (>= 2.16.2), rstantools (>= 1.3.0),
+	 dplyr,
+	 magrittr
+LinkingTo: StanHeaders (>= 2.16.0.1), rstan (>= 2.16.2), BH (>= 1.65.0.1), Rcpp (>= 0.12.12), RcppEigen (>= 0.3.3.3.0)
+RoxygenNote: 6.0.1

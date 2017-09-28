@@ -5,8 +5,9 @@ library(data.table)
 source("utils.R")
 
 require(rstan)
-source("map_interaction_qtl.R")
 source("load_data.R")
+
+require(suez)
 
 geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
 
@@ -43,7 +44,9 @@ dir.create(resdir)
 checkpoint_dir=paste0(resdir,chrom,"_checkpoint/")
 dir.create(checkpoint_dir)
 
-results = map_interaction_qtl(input, genotype, geneloc, snploc, anno, sample_kernel, normalization_approach, permutation_approach, cisdist, checkpoint_dir) 
+anno_for_suez=anno %>% select(individual=findiv, condition=conc)
+
+results = map_interaction_qtl(input, genotype, geneloc, snploc, anno_for_suez, sample_kernel, normalization_approach, permutation_approach, cisdist, checkpoint_dir, debug=F) 
 
 if (!interactive()){
    gz1 = gzfile(paste0(resdir,chrom,".txt.gz"),"w")

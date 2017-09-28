@@ -341,3 +341,6 @@ foreach(pname=names(de), .combine = bind_rows) %do% {
   ggplot(aes(rep, factor(discovery,rev(concs)), fill=asinh(intersect), label=format(jac,digits=2))) + geom_tile() + geom_text() + scale_fill_gradient(low="blue", high="white", guide="none") + ylab("Discovery concentration") + xlab("Replication concentration") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 ```
 
+```{r}
+interact_bf %>% left_join(de_volcano %>% group_by(gene_name) %>% summarize(de_q=min(q)) , by=c('gene'='gene_name') ) %>% mutate(reqtl=q<0.05, de=de_q<0.05) %>% select(reqtl,de) %>% table()
+```
