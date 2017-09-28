@@ -233,7 +233,8 @@ foreach(pname=names(de), .combine = bind_rows) %do% {
                stringsAsFactors = F)
   }
 } %>% mutate(reprate=ifelse(is.na(reprate),NA,reprate)) %>%
-  ggplot(aes(rep, factor(discovery,rev(concs)), fill=reprate, label=format(reprate,digits=2))) + geom_tile() + geom_text() + scale_fill_gradient(limits=c(0,1), low="blue", high="white", guide="none") + ylab("Discovery concentration (q<0.05)") + xlab("Replication concentration (p<0.05)")
+  ggplot(aes(rep, factor(discovery,rev(concs)), fill=reprate, label=format(reprate,digits=2))) + geom_tile() + geom_text() + scale_fill_gradient(limits=c(0,1), low="blue", high="white", guide="none") + ylab("Discovery concentration") + xlab("Replication concentration") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+ggsave("../figures/troponin_de_agreement.pdf",height=2.7,width=2.7,device=cairo_pdf)
 ```
 
 ```{r}
@@ -319,6 +320,24 @@ sigma_ml %>% sweep(1,for_norm,"/") %>% sweep(2,for_norm,"/")
 ```
 
 ```{r}
-z= for_sigma  %>% select(gene,conc,se) %>% spread(conc, se) %>% mutate(gene=NULL) %>% as.matrix()
+z= for_sigma  %>% select(gene,conc,z) %>% spread(conc, z) %>% mutate(gene=NULL) %>% as.matrix()
+cor(z)
+```
+
+
+```{r}
+fdr_threshold=0.05
+qs=foreach(p=de) %do% { p.adjust(p, method="BH")  } %>% set_names(names(de))
+foreach(pname=names(de), .combine = bind_rows) %do% {
+  foreach(p2name=names(de), .combine = bind_rows) %do% {
+    data.frame(intersect=sum((qs[[pname]] < fdr_threshold) & (qs[[p2name]] <fdr_threshold)), # %>% qvalue::pi0est() %>% .$pi0
+               jac=sum((qs[[pname]] < fdr_threshold) & (qs[[p2name]] <fdr_threshold)) /
+                 sum((qs[[pname]] < fdr_threshold) | (qs[[p2name]] <fdr_threshold)),
+               discovery=pname, 
+               rep=p2name, 
+               stringsAsFactors = F)
+  }
+} %>%
+  ggplot(aes(rep, factor(discovery,rev(concs)), fill=asinh(intersect), label=format(jac,digits=2))) + geom_tile() + geom_text() + scale_fill_gradient(low="blue", high="white", guide="none") + ylab("Discovery concentration") + xlab("Replication concentration") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 ```
 
