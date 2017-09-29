@@ -25,85 +25,6 @@ source("../code/load_data.R")
 ```
 
 ```{r}
-burridge=read.csv("../data/GSE76314_Burridge_NM_Processed_Data_File_log_fpkm_plus_1_.csv.gz", header=T, row.names = 1)
-```
-
-```{r}
-burridge_meta=colnames(burridge) %>% str_split_fixed("_",2) %>% as.data.frame() %>% set_colnames(c("line","conc")) %>% mutate(doxtox=grepl("CH",line))
-```
-
-```{r}
-pc_burridge=irlba(burridge %>% as.matrix(), 2)
-burridge_meta %>% mutate(pc1=pc_burridge$v[,1],pc2=pc_burridge$v[,2]) %>% ggplot(aes(pc1,pc2,col=conc,shape=doxtox)) + geom_point()
-```
-
-```{r}
-ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>% 
-  set_colnames(c("hugo","ensembl"))
-```
-
-```{r}
-our_map=data.frame(ensembl=rownames(input), stringsAsFactors = F) %>% left_join(ensg_to_hugo, by="ensembl")
-to_keep=!is.na(our_map$hugo)
-mean(to_keep)
-input_hugo=input[to_keep,] %>% set_rownames(our_map$hugo[to_keep])
-shared_genes=intersect(rownames(input_hugo),rownames(burridge))
-length(shared_genes)
-```
-
-```{r}
-combined=cbind(burridge[shared_genes,], input_hugo[shared_genes,])
-comb_meta=burridge_meta %>% 
-  mutate(conc=gsub("uM","",conc) %>% as.numeric(),
-         group=ifelse(doxtox,"DOXTOX","DOX")) %>%
-  select(conc, group) %>%
-  rbind(anno %>% select(conc) %>% mutate(group="OURS"))  
-pc_combined=irlba(combined %>% as.matrix(), 2)
-comb_meta %>% mutate(pc1=pc_combined$v[,1],pc2=pc_combined$v[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group)) + geom_point()
-```
-
-
-```{r}
-pc_burridge_shared=irlba(burridge[shared_genes,] %>% as.matrix(),2)
-project_onto_burr = t(input_hugo[shared_genes,]) %*% pc_burridge_shared$u
-combined_proj=rbind(pc_burridge_shared$v, project_onto_burr)
-comb_meta %>% mutate(pc1=combined_proj[,1],pc2=combined_proj[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group)) + geom_point()
-```
-
-## Redo with RPKM instead of CPM (doesn't help much)
-
-We're using log2(cpm+0.25) whereas Burridge gives log2(fpkm+1)
-
-```{r}
-rpkm_mat = read.table("../data/counts_log2_fpkm_plus_1.txt.gz", header=T)
-```
-
-```{r}
-our_map=data.frame(ensembl=rownames(rpkm_mat), stringsAsFactors = F) %>% left_join(ensg_to_hugo, by="ensembl")
-to_keep=!is.na(our_map$hugo)
-mean(to_keep)
-rpkm_hugo=rpkm_mat[to_keep,] %>% set_rownames(our_map$hugo[to_keep])
-shared_genes=intersect(rownames(rpkm_hugo),rownames(burridge))
-length(shared_genes)
-```
-
-```{r}
-combined=cbind(burridge[shared_genes,], rpkm_hugo[shared_genes,])
-pc_combined=irlba(combined %>% as.matrix(), 2)
-comb_meta %>% mutate(pc1=pc_combined$v[,1],pc2=pc_combined$v[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group)) + geom_point()
-```
-
-```{r}
-pc_burridge_shared=irlba(burridge[shared_genes,] %>% as.matrix(),2)
-project_onto_burr = t(rpkm_hugo[shared_genes,]) %*% pc_burridge_shared$u
-combined_proj=rbind(pc_burridge_shared$v, project_onto_burr)
-comb_meta %>% mutate(pc1=combined_proj[,1],pc2=combined_proj[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group)) + geom_point()
-```
-
-
-## Our own processing
-
-```{r}
 burridge = read.table("../data/burridge-counts.txt.gz", header=T)
 rownames(burridge)=burridge$filename
 burridge$filename=NULL
@@ -117,12 +38,8 @@ hist(input %>% as.matrix() %>% as.numeric())
 Good, look similar. 
 
 ```{r}
+require(stringr)
 burridge_meta=colnames(burridge) %>% str_split_fixed("-",2) %>% as.data.frame() %>% set_colnames(c("line","conc")) %>% mutate(doxtox=grepl("ch",line))
-
-```
-
-
-```{r}
 pc_burridge=irlba(burridge %>% as.matrix(), 2)
 burridge_meta %>% mutate(pc1=pc_burridge$v[,1],pc2=pc_burridge$v[,2]) %>% ggplot(aes(pc1,pc2,col=conc,shape=doxtox)) + geom_point()
 ```
@@ -137,5 +54,56 @@ comb_meta=burridge_meta %>%
   rbind(anno[to_use,] %>% select(conc) %>% mutate(group="Hutterites"))  
 pc_combined=irlba(combined %>% as.matrix(), 2)
 comb_meta %>% mutate(pc1=pc_combined$v[,1],pc2=pc_combined$v[,2], conc=as.factor(conc))  %>% ggplot(aes(pc1,pc2, col=conc, shape=group, size=group)) + geom_point(alpha=0.75) + scale_color_manual(values=cbPalette) + scale_size_manual(breaks=c("DOXTOX","DOX","Hutterites"), values=c(4,4,2)  ) + scale_shape_discrete(breaks=c("DOXTOX","DOX","Hutterites")) + xlab("Principal component 1") + ylab("Principal component 2")
-ggsave("../figures/burridge_comparison.pdf",height=4,width=6,device=cairo_pdf)
+#ggsave("../figures/burridge_comparison.pdf",height=4,width=6,device=cairo_pdf)
+```
+
+```{r}
+dox=burridge_meta$conc == "1um"
+g=glmnet(t(burridge[,dox]),burridge_meta$doxtox[dox],family = "binomial",alpha=0.1,lambda=.1)
+sum(coef(g)!=0)-1
+pred_doxtox=predict(g, newx=input[,anno$conc==0.625] %>% t())
+```
+
+```{r}
+troponin_df=read.table("../data/troponin-processed.txt", header=T, stringsAsFactors = F)
+troponin_df
+anno = anno %>% mutate(findiv=as.integer(findiv)) %>% left_join(troponin_df %>% select(findiv, dosage, troponin), by=c("findiv"="findiv", "conc"="dosage"))
+concs=sort(unique(anno$conc))
+```
+
+```{r}
+require(broom)
+data.frame( findiv=as.integer(rownames(pred_doxtox)), doxtox=pred_doxtox[,1]) %>% left_join(anno %>% filter(conc==5.), by="findiv") %>% do(tidy(cor.test(.$doxtox,.$troponin,method="spearman")))
+```
+
+```{r}
+p_v_lambda=foreach(lambda=10^seq(-10,2,by=1), .combine = bind_rows) %do% {
+  lasso_fit=glmnet(t(burridge[,dox]),burridge_meta$doxtox[dox],family = "binomial",alpha=1,lambda=lambda)
+  pred_doxtox = lasso_fit %>%
+  predict(newx=input[,anno$conc==0.625] %>% t())
+doxtox_pred_trop = data.frame( findiv=rownames(pred_doxtox), doxtox=pred_doxtox[,1], stringsAsFactors = F) %>% left_join(troponin_rate %>% mutate(individual=as.character(individual)), by=c("findiv"="individual")) 
+  data.frame(lambda=lambda, 
+             p_spearman=cor.test(doxtox_pred_trop$doxtox,doxtox_pred_trop$slopes,method="spearman")$p.value,
+             p_pearson=cor.test(doxtox_pred_trop$doxtox,doxtox_pred_trop$slopes,method="pearson")$p.value,
+             ngenes = sum(coef(lasso_fit) != 0)-1)
+  
+}
+p_v_lambda %>% ggplot(aes(log10(lambda),p_spearman)) + geom_point() + geom_point(aes(y=p_pearson),col="red")
+```
+
+```{r}
+
+#doxtox_pred_trop %>% ggplot(aes(doxtox, slopes)) + geom_point()
+winner = p_v_lambda %>% slice(which.min(p_spearman))
+winner
+#lambda= winner %>% .$lambda\
+lambda = 1e-5
+lasso_fit=glmnet(t(burridge[,dox]),burridge_meta$doxtox[dox],family = "binomial",alpha=1,lambda=lambda)
+pred_doxtox = lasso_fit %>%
+  predict(newx=input[,anno$conc==0.625] %>% t())
+doxtox_pred_trop = data.frame( findiv=rownames(pred_doxtox), doxtox=pred_doxtox[,1], stringsAsFactors = F) %>% left_join(troponin_rate %>% mutate(individual=as.character(individual)), by=c("findiv"="individual")) 
+doxtox_pred_trop %>% ggplot(aes(doxtox,slopes)) + geom_point(size=3) + xlab("Predicted log odds ACT") + ylab("Troponin response slope") + stat_smooth(method="lm", fullrange = T)
+cor.test(doxtox_pred_trop$doxtox,doxtox_pred_trop$slopes,method="spearman")
+cor.test(doxtox_pred_trop$doxtox,doxtox_pred_trop$slopes,method="pearson")
+ggsave("../figures/troponin_v_doxtox.pdf",height=4,width=4,device=cairo_pdf)
 ```
