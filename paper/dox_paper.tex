@@ -72,7 +72,7 @@ Here we use a panel of iPSC-derived cardiomyocytes from 45 individuals, exposed 
 \begin{figure}
 \begin{center}
     \includegraphics[width=1\textwidth]{../figures/fig1.pdf} 
-        \caption{\it{The transcriptomic response of cardiomyocytes to doxorubicin is substantial. \textbf{a.} Cardiomyocytes were derived from fibroblasts of 45 Hutterite individuals, followed by exposure to differing concentrations of doxorubicin and RNA-sequencing. \textbf{b.} PCA of gene expression levels across samples reveals that doxorubicin concentration explains more variance than inter-individual differences, and that the response is non-linear with respect to concentration. \textbf{c.} A probabilistic mixture model uncovers six distinct patters of response across genes.}}
+        \caption{\it{The transcriptomic response of cardiomyocytes to doxorubicin is substantial. \textbf{a.} Cardiomyocytes were derived from lymphoblastoid cell lines (LCLs) of 45 Hutterite individuals, followed by exposure to differing concentrations of doxorubicin and RNA-sequencing. \textbf{b.} PCA of gene expression levels across samples reveals that doxorubicin concentration explains more variance than inter-individual differences, and that the response is non-linear with respect to concentration. \textbf{c.} A probabilistic mixture model uncovers six distinct patters of response across genes.}}
     \label{fig1}
     \end{center}
 \end{figure}
@@ -164,6 +164,14 @@ We derived ICs from healthy individuals. Mapping molecular response QTLs in ICs 
 
 \subsection*{Sample collection and genotyping}
 
+Generation of lymphoblastoid cell lines (LCLs) and genome-wide genotyping of
+many individuals from a multi-generational pedigree were performed
+previously. Briefly, lymphocytes were isolated from whole blood samples using
+Ficoll-Paque and immortalized using Epstein Barr Virus \cite{Cusanovich2012,
+Cusanovich2016}. Phased genotypes were obtained by combining pedigree
+information, genotypes from SNP arrays, and genotypes from whole genome
+sequencing of related individuals \cite{Livne2015}.
+
 \subsection*{iPSC reprogramming and cardiomyocyte differentiation} 
 
 We reprogrammed the 45 LCLs to iPSCs using episomal plasmid vectors,
@@ -176,16 +184,19 @@ purity by performing flow cytometry for cardiac Troponin T.
 \subsection*{Doxorubicin exposure}
 
 We incubated the cardiomyocytes in 0, 0.625, 1.25, 2.5, or 5 $\mu$M
-doxorubicin. After 24 hours, we measured cardiac Troponin T using an
-Elisa and extracted RNA for sequencing.
+doxorubicin. After 24 hours, we collected the serum and cells from each
+condition. From the serum, we measured cardiac Troponin T levels using the
+ABNOVA Troponin I (Human) ELISA kit (cat. no. KA0233). From the cells, we
+extracted RNA for sequencing. Each treatment batch contained 1 to 4
+individuals. RNA quality was assessed with the Agilent Bioanalyzer.
 
 \subsection*{RNA-sequencing}
 
-We prepared libraries using the [insert Illumina kit name] and
+We prepared libraries using the Illumina TruSeq Library Kit and
 generated 50 bp single-end reads on a HiSeq 4000 at the University of
 Chicago Functional Genomics Facility. The reads were 50 bp single
 end. We confirmed sequencing quality using FastQC and MultiQC
-\cite{Ewels2016}.  We confirmed sample identity by 1) comparing
+\cite{Ewels2016}. We confirmed sample identity by 1) comparing
 allelic counts of exonic SNPs to the known genotypes and 2) running
 verifyBamID \cite{Jun2012}.
 
