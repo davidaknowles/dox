@@ -39,12 +39,22 @@
 \footnotesize{$^{7}$ Department of Medicine, University of Chicago, Chicago, IL}\\
 \footnotesize{* These authors contributed equally to this work.}\\
 
+\begin{abstract}
+Anthracycline-induced cardiotoxicity (ACT) is a key limiting factor in setting optimal chemotherapy regimes for cancer patients, with almost half of patients expected to develop congestive heart failure given high drug doses. 
+However, the genetic basis of sensitivity to anthracyclines such as doxorubicin remains unclear. 
+We created a panel of iPSC-derived cardiomyocytes from 45 individuals and performed RNA-seq after 24h exposure to varying levels of doxorubicin. 
+The transcriptomic response to doxorubicin is substantial, with the majority of genes being differentially expressed across concentrations and over 6000 genes showing evidence of differential splicing. 
+Moreover, we were able to detect 376 response-expression QTLs and 42 response-splicing QTLs, genetic variants that modulate the transcriptomic response to doxorubicin in terms of expression and splicing changes respectively. 
+We show that inter-individual variation in transcriptional response is predictive of damage measured using cardiac troponin, and that this in turn is associated with \emph{in vivo} ACT risk. 
+Finally, the molecular QTLs we detect are enriched in lower ACT GWAS $p$-values, further supporting the \emph{in vivo} relevance of our map of genetic regulation of cellular response to anthracyclines. 
+\end{abstract}
+
 \section*{Introduction}
 
 Anthracyclines, including the prototypical doxorubicin, continue to be used as chemotherapeutic agents treating a wide range of cancers, particularly leukemia, lymphoma, multiple myeloma, breast cancer, and sarcoma. 
 A well-known side-effect of doxorubicin treatment is anthracycline-induced cardiotoxicity (ACT). 
 For some patients ACT manifests as an asymptomatic reduction in cardiac function, as measured by left ventricular ejection fraction (LVEF), but in more extreme cases ACT can lead to congestive heart failure (CHF). 
-The risk of CHF is dosage-dependent: the earliest study estimated 3\% of patients at 400 mg/m2, 7\% of patients at 550 mg/m2, and 18\% of patients at 700 mg/m2 develop CHF\cite{Swain2003}, where a more recent study puts these numbers at 5\%, 26\% and 48\% respectively. 
+The risk of CHF is dosage-dependent: the earliest study\cite{von1979risk} estimated 3\% of patients at 400 mg/m2, 7\% of patients at 550 mg/m2, and 18\% of patients at 700 mg/m2 develop CHF, where a more recent study puts these numbers at 5\%, 26\% and 48\% respectively\cite{Swain2003}. 
 Reduced LVEF shows a similar dosage-dependent pattern, but is not fully predictive of CHF. 
 %ACT prevalence rates in pediatric patients are notably higher \cite{todo}. 
 Perhaps most daunting for patients is that CHF can occur years after treatment: out of 1,807 cancer survivors followed for 7 years in a recent survey a third died of heart diseases compared to 51\% of cancer recurrence \cite{vejpongsa2014prevention}. 
