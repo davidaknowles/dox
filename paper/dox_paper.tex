@@ -290,19 +290,22 @@ y_{:} \sim N\left(0 , \sigma_\beta^2 \frac{1}{G} \sum_g x_{:g} x_{:g}^T + \sigma
 \end{align}
 We optimize this model wrt $\sigma_\beta$ and $\sigma_\epsilon$ to obtain an estimate $\sigma_\beta^2 / (\sigma_\beta^2 + \sigma_\epsilon^2)$ of the percent variance of $y$ explained by $x$. 
 
-\subsection*{Data and code availability}
+\subsection*{Code and data availability}
 
-The RNA-seq FASTQ files and genotype files have been deposited in and are
-available from the dbGaP database \cite{Tryka2014} under dbGaP accession
-phsxxxxxx.vx.px
-(\url{https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phsxxxxxx.vx.px}).
-The following data sets are available as Supplementary Data: 1) gene-by-sample
-matrix of RNA-seq counts, 2) differential expression results, 3) classification
-of genes into response patterns, 4) eQTL mapping results, 5) splicing results,
-6) levels of cardiac Troponin and the predicted transriptomic response.  The
-summary statistics for the ACT GWAS were given to us by the authors of the study
-\cite{Schneider2016}. All the custom analysis script	s used for this project are
-available at \url{https://github.com/davidaknowles/dox}.
+All the custom analysis scripts used for this project are available at
+\url{https://github.com/davidaknowles/dox}. The following data sets are
+available as Supplementary Data: 1) gene-by-sample matrix of RNA-seq counts, 2)
+differential expression results, 3) classification of genes into response
+patterns, 4) eQTL mapping results, 5) splicing results, 6) levels of cardiac
+Troponin and the predicted transriptomic response. The RNA-seq FASTQ files will
+be added to the dbGaP database \cite{Tryka2014} under dbGaP accession phs000185
+(\url{https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs000185}).
+The genotype data files are unabled to be shared because releasing genotype data
+from a subset of individuals in the pedigree would enable the reconstruction of
+genotypes of other members of the pedigree, which would violate the original
+protocol approved by the research ethics board \cite{Livne2015}. The summary
+statistics for the ACT GWAS were given to us by the authors of the study
+\cite{Schneider2016}.
 
 \section*{Acknowledgement}
 
