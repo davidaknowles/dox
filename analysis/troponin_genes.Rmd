@@ -29,28 +29,9 @@ anno = anno %>% mutate(findiv=as.integer(findiv)) %>% left_join(troponin_df %>% 
 concs=sort(unique(anno$conc))
 ```
 
-This doesn't make much sense because of variation across concentrations
 ```{r}
-cv=cv.glmnet(t(input), anno$troponin, nfolds=7, parallel=T)
-plot(cv)
-```
-
-```{r}
-per_conc_lasso = foreach(conc=concs, .combine = bind_rows) %do% {
-  print(conc)
-  rows_to_use=anno$conc==conc
-  y= anno$troponin[rows_to_use]
-  cv=cv.glmnet(t(input)[rows_to_use,], y, nfolds=sum(rows_to_use), parallel=T, keep=T)
-  co = coef(cv, s="lambda.min") 
-  pve=1-var(cv$fit.preval[,which.min(cv$cvm)] - y) / var(y)
-  data.frame(conc=conc, n=sum(rows_to_use), pve=pve, nnz=sum(co!=0)-1)
-}
-per_conc_lasso
-```
-
-Cauchy prior made no difference
-```{r eval=F}
-gcat_reg_stan=stan_model("gcat_reg.stan")
+ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>% 
+  set_colnames(c("hugo","ensembl"))
 ```
 
 ```{r, message=F, warning=F}
@@ -66,13 +47,6 @@ prep_data=function(ge, y) {
   eigen_sample_kernel=eigen(gram_matrix)
   list(N=length(y), U_transpose_y=t(eigen_sample_kernel$vectors) %*% y %>% as.numeric, lambda=eigen_sample_kernel$values)
 }
-```
-
-
-```{r eval=F}
-dat=prep_data(t(input), anno$troponin)
-o=optimizing(gcat_stan, data=dat, init=0, as_vector=F)
-o$par %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
 ```
 
 ```{r}
@@ -173,11 +147,6 @@ pve_constained %>% quantile(useful_quantiles)
 mean(pve_constained)
 pve %>% quantile(useful_quantiles)
 mean(pve)
-```
-
-```{r}
-ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>% 
-  set_colnames(c("hugo","ensembl"))
 ```
 
 ```{r}
