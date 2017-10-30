@@ -43,31 +43,31 @@ dat_chr = dat_chr %>% mutate( pos_alt=paste(pos, alt, sep="_")  ) %>% filter( po
 
 dat_chr=dat_chr %>% mutate ( geno=phased[ cbind(as.character(pos_alt), as.character( findiv )) ] ) %>% mutate( load=as.numeric(substr(geno,1,1)) + as.numeric(substr(geno,3,3)) )
 
-pdf("../figures/160001_is_bad.pdf",height=6,width=8)
+pdf("../figures/7440_4ce2_is_bad.pdf",height=6,width=8)
 foreach(which_ind=unique(dat_chr$findiv)) %do% {
   ggplot( dat_chr %>% filter( (r+y)>10 , findiv==which_ind, !is.na(load)) , aes(y/(r+y), fill=as.factor(load) )) + facet_wrap( ~sample )  + geom_histogram(alpha=0.5, position="identity")  + scale_fill_discrete("Genotype") + xlab("Allelic ratio") + ggtitle(which_ind)
   }
 dev.off()
 
 dat_chr %>% 
-  filter( (r+y)>10 , findiv==160001 ) %>% 
-  mutate ( geno=phased[ cbind(as.character(pos_alt), "106411") ] ) %>% 
+  filter( (r+y)>10 , findiv=="7440_4ce2" ) %>% 
+  mutate ( geno=phased[ cbind(as.character(pos_alt), "3e07_41cd") ] ) %>% 
   mutate( load=as.numeric(substr(geno,1,1)) + as.numeric(substr(geno,3,3)) ) %>% 
   filter( !is.na(load)) %>% 
-  ggplot( aes(y/(r+y), fill=as.factor(load) )) + facet_wrap( ~sample )  + geom_histogram(alpha=0.5, position="identity")  + scale_fill_discrete("Genotype") + xlab("Allelic ratio") + ggtitle("160001 RNA and 106411 genotype")
+  ggplot( aes(y/(r+y), fill=as.factor(load) )) + facet_wrap( ~sample )  + geom_histogram(alpha=0.5, position="identity")  + scale_fill_discrete("Genotype") + xlab("Allelic ratio") + ggtitle("7440_4ce2 RNA and 3e07_41cd genotype")
 
 add_counts = dat_chr %>% group_by( pos_alt, ref, alt, findiv ) %>% summarize( r=sum(r), y=sum(y) )
 
 theme_set(theme_bw(base_size = 14))
 require(tidyr)
 require(magrittr)
-# 106411
+# 3e07_41cd
 comp_dat= dat_chr %>% filter( (r+y)>30 , r>2, y>2 ) %>% mutate( ar=y/(r+y) ) %>% filter( abs(ar-0.5)<0.4 ) %>% select(findiv, ar, pos_alt, cond) %>% spread( findiv, ar )
 colnames(comp_dat)=make.names(colnames(comp_dat))
-comp_dat %>% ggplot( aes(x=X106411,y=X160001) ) + geom_point(alpha=.3) + xlim(0,1) + ylim(0,1)  + facet_wrap( ~cond )
+comp_dat %>% ggplot( aes(x=X3e07_41cd,y=X7440_4ce2) ) + geom_point(alpha=.3) + xlim(0,1) + ylim(0,1)  + facet_wrap( ~cond )
 
-comp_dat %>% group_by(cond) %>% summarise(r2=cor(X111011,X160001,use="pairwise")^2,p=cor.test(X111011,X160001,use="pairwise")$p.value)
-comp_dat %>% group_by(cond) %>% summarise(r2=cor(X106411,X160001,use="pairwise")^2,p=cor.test(X106411,X160001,use="pairwise")$p.value)
+comp_dat %>% group_by(cond) %>% summarise(r2=cor(X111011,X7440_4ce2,use="pairwise")^2,p=cor.test(X111011,X7440_4ce2,use="pairwise")$p.value)
+comp_dat %>% group_by(cond) %>% summarise(r2=cor(X3e07_41cd,X7440_4ce2,use="pairwise")^2,p=cor.test(X3e07_41cd,X7440_4ce2,use="pairwise")$p.value)
 
 
 counts <- read.delim("../data/counts_log_cpm.txt.gz") 
@@ -91,16 +91,16 @@ foreach(i=1:5) %do%
 { dimnames(count_cors[[i]])=list(inds,inds) }
 
 count_cors[[1]][ lower.tri(count_cors[[1]]) ]=NA
-count_cors[[1]][ "160001", "106411" ]
+count_cors[[1]][ "7440_4ce2", "3e07_41cd" ]
 
 foreach(i=1:5) %do%
 { dimnames(count_cors[[i]])=list(inds,inds)
- mean(as.numeric(count_cors[[i]]) > count_cors[[i]][ "160001", "106411" ], na.rm=T) }
+ mean(as.numeric(count_cors[[i]]) > count_cors[[i]][ "7440_4ce2", "3e07_41cd" ], na.rm=T) }
 
 hist(as.numeric(count_cors[[1]]))
 
-ind1=160001
-ind2=106411
+ind1="7440_4ce2"
+ind2="3e07_41cd"
 require(gridExtra)
 do.call(grid.arrange,c(
 foreach(co=unique(anno$conc)) %do% {
@@ -128,10 +128,10 @@ add_counts$load=with(add_counts, hap1+hap2)
 add_counts$het=with(add_counts, (hap1+hap2)==1)
 add_counts$het=with(add_counts, (hap1+hap2)==1)
 
-ggplot( add_counts %>% filter( (r+y)>10 , findiv==160001) , aes(y/(r+y), fill=as.factor(load) ))  + geom_histogram(alpha=0.5, position="identity") + theme(legend.position = c(.8,.8)) + scale_fill_discrete("Genotype") + xlab("Allelic ratio")
+ggplot( add_counts %>% filter( (r+y)>10 , findiv=="7440_4ce2") , aes(y/(r+y), fill=as.factor(load) ))  + geom_histogram(alpha=0.5, position="identity") + theme(legend.position = c(.8,.8)) + scale_fill_discrete("Genotype") + xlab("Allelic ratio")
 
 
-problem=dat_chr %>% filter( (r+y)>10 , findiv==160001, !is.na(load) ) %>% mutate( ar=y/(r+y) ) 
+problem=dat_chr %>% filter( (r+y)>10 , findiv=="7440_4ce2", !is.na(load) ) %>% mutate( ar=y/(r+y) ) 
 samples=unique(problem$sample)
 
 d=dcast(problem, pos_alt ~ sample, value.var="ar")

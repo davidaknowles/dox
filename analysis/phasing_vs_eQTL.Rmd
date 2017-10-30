@@ -60,7 +60,7 @@ top_hits = eqtl_results %>% filter( chr==which_chr )
 if (nrow(top_hits)==0) return(NULL)
 
 dat_chr=ase_data %>% filter( chr==which_chr ) %>% 
-  left_join( sample_anno , by="cell_line" ) %>% filter( findiv != 160001  ) %>%
+  left_join( sample_anno , by="cell_line" ) %>% filter( findiv != "7440_4ce2"  ) %>%
     mutate( pos_alt=paste(pos, alt, sep="_") )
   #ase_pos=unique( dat_chr$pos )
   #length( intersect( ase_pos, phased$POS ) ) / length( ase_pos ) # 90%
