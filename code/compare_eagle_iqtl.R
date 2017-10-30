@@ -162,9 +162,9 @@ genotype=genotype[2:nrow(genotype),]
 genotype=as.matrix(genotype)
 
 sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
-class(findiv)="character"
+dbgap=sample_anno$dbgap
+names(dbgap)=sample_anno$cell_line
+class(dbgap)="character"
 stopifnot(is.character(anno$individual))
 
 genes=intersect( unique(gene_snps$gene), colnames(counts) )
@@ -202,7 +202,7 @@ res=rbindlist( foreach(top_iqtl= order(lrt_res$p)[1:100]) %dopar% {
   
   imp_geno=easy_impute(genotype[cis_snps,])
   
-  geno=imp_geno[cis_snp,findiv[rownames(dat$gene_counts)] ]
+  geno=imp_geno[cis_snp,dbgap[rownames(dat$gene_counts)] ]
 
     # matrix[N,P] x_1[T]. 
     dat$C=ncol(dat$gene_counts) # num conditions
@@ -232,7 +232,7 @@ res=rbindlist( foreach(top_iqtl= order(lrt_res$p)[1:100]) %dopar% {
     lin_data=melt_it(dat$gene_counts,"raw")
     lin_data$lib_size=melt_it(library_size_mat, "value")$value
     lin_data$count=with(lin_data, raw/lib_size)
-    lin_data$geno=geno[ findiv[ lin_data$ind ] ]
+    lin_data$geno=geno[ dbgap[ lin_data$ind ] ]
     lin_data=lin_data[!is.na(lin_data$count),]
     lin_fit=lm(count ~ treat + geno, data=lin_data)
     lin_data$fitted=fitted(lin_fit)

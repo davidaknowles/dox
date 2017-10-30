@@ -234,7 +234,7 @@ foreach(num_causal=1:3, .combine = bind_rows) %do% {
 ```{r}
 foreach(i=1:nrow(mega_sum)) %do% {
   hit=mega_sum[i,]
-  geno=genotype[ as.character(hit$cis_snp),anno$findiv]
+  geno=genotype[ as.character(hit$cis_snp),anno$dbgap]
   data.frame(y= input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste(" expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="geno") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
 } #  c(0.15,0.2)
 ```
@@ -321,7 +321,7 @@ cairo_pdf("../figures/alpk2.pdf",width=4.5,height=4,onefile=T)
 #foreach(i=1:nrow(proxy_hits)) %do% {
 #  hit=proxy_hits[i,]
 hit=proxy_hits %>% filter(hugo=="ALPK2")
-  geno=genotype[ as.character(hit$cis_snp),anno$findiv]
+  geno=genotype[ as.character(hit$cis_snp),anno$dbgap]
   gene_name=hit$hugo
   genotype_labels=c("AA","AC","CC")
   if (hit$proxy %in% gwas_temp$RSID) {
@@ -430,7 +430,7 @@ gene="ENSG00000275835" #
 cis_snp="9927950"
 
 y=input[gene,]
-geno=genotype[cis_snp,anno$findiv]
+geno=genotype[cis_snp,anno$dbgap]
 data.frame(y= input[gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("TT","TC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("TUBGCP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs11855704") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() )
 ggsave("../figures/TUBGCP5.pdf", height = 4, width=5, device = cairo_pdf)
 ```
@@ -514,7 +514,7 @@ gene="ENSG00000197506" #
 cis_snp="6972465"
 
 #y=my_qqnorm(input[gene,])
-geno=genotype[cis_snp,anno$findiv]
+geno=genotype[cis_snp,anno$dbgap]
 data.frame(y=input[gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("GG","GA","AA")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("SLC28A3 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs885004") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() )
 ggsave("../figures/SLC28A3.pdf", height = 4, width=5, device = cairo_pdf)
 ```

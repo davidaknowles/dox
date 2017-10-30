@@ -67,13 +67,13 @@ pred_doxtox=predict(g, newx=input[,anno$conc==0.625] %>% t())
 ```{r}
 troponin_df=read.table("../data/troponin-processed.txt", header=T, stringsAsFactors = F)
 troponin_df
-anno = anno %>% mutate(findiv=as.integer(findiv)) %>% left_join(troponin_df %>% select(findiv, dosage, troponin), by=c("findiv"="findiv", "conc"="dosage"))
+anno = anno %>% mutate(dbgap=as.integer(dbgap)) %>% left_join(troponin_df %>% select(dbgap, dosage, troponin), by=c("dbgap"="dbgap", "conc"="dosage"))
 concs=sort(unique(anno$conc))
 ```
 
 ```{r}
 require(broom)
-data.frame( findiv=as.integer(rownames(pred_doxtox)), doxtox=pred_doxtox[,1]) %>% left_join(anno %>% filter(conc==5.), by="findiv") %>% do(tidy(cor.test(.$doxtox,.$troponin,method="spearman")))
+data.frame( dbgap=as.integer(rownames(pred_doxtox)), doxtox=pred_doxtox[,1]) %>% left_join(anno %>% filter(conc==5.), by="dbgap") %>% do(tidy(cor.test(.$doxtox,.$troponin,method="spearman")))
 ```
 
 ```{r}
@@ -81,7 +81,7 @@ p_v_lambda=foreach(lambda=10^seq(-10,2,by=1), .combine = bind_rows) %do% {
   lasso_fit=glmnet(t(burridge[,dox]),burridge_meta$doxtox[dox],family = "binomial",alpha=1,lambda=lambda)
   pred_doxtox = lasso_fit %>%
   predict(newx=input[,anno$conc==0.625] %>% t())
-doxtox_pred_trop = data.frame( findiv=rownames(pred_doxtox), doxtox=pred_doxtox[,1], stringsAsFactors = F) %>% left_join(troponin_rate %>% mutate(individual=as.character(individual)), by=c("findiv"="individual")) 
+doxtox_pred_trop = data.frame( dbgap=rownames(pred_doxtox), doxtox=pred_doxtox[,1], stringsAsFactors = F) %>% left_join(troponin_rate %>% mutate(individual=as.character(individual)), by=c("dbgap"="individual")) 
   data.frame(lambda=lambda, 
              p_spearman=cor.test(doxtox_pred_trop$doxtox,doxtox_pred_trop$slopes,method="spearman")$p.value,
              p_pearson=cor.test(doxtox_pred_trop$doxtox,doxtox_pred_trop$slopes,method="pearson")$p.value,
@@ -101,7 +101,7 @@ lambda = 1e-5
 lasso_fit=glmnet(t(burridge[,dox]),burridge_meta$doxtox[dox],family = "binomial",alpha=1,lambda=lambda)
 pred_doxtox = lasso_fit %>%
   predict(newx=input[,anno$conc==0.625] %>% t())
-doxtox_pred_trop = data.frame( findiv=rownames(pred_doxtox), doxtox=pred_doxtox[,1], stringsAsFactors = F) %>% left_join(troponin_rate %>% mutate(individual=as.character(individual)), by=c("findiv"="individual")) 
+doxtox_pred_trop = data.frame( dbgap=rownames(pred_doxtox), doxtox=pred_doxtox[,1], stringsAsFactors = F) %>% left_join(troponin_rate %>% mutate(individual=as.character(individual)), by=c("dbgap"="individual")) 
 doxtox_pred_trop %>% ggplot(aes(doxtox,slopes)) + geom_point(size=3) + xlab("Predicted log odds ACT") + ylab("Troponin response slope") + stat_smooth(method="lm", fullrange = T)
 cor.test(doxtox_pred_trop$doxtox,doxtox_pred_trop$slopes,method="spearman")
 cor.test(doxtox_pred_trop$doxtox,doxtox_pred_trop$slopes,method="pearson")

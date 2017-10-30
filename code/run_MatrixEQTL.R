@@ -23,11 +23,11 @@ num_PCs_to_remove=as.integer(args[2])
 sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
 
 # mapping from cell-line ID to individual
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
+dbgap=sample_anno$dbgap
+names(dbgap)=sample_anno$cell_line
 stopifnot(is.character(anno$individual))
 
-colnames(input)=findiv[anno$individual]
+colnames(input)=dbgap[anno$individual]
 
 input=remove_PCs(input, num_PCs_to_remove)
 
@@ -41,7 +41,7 @@ write.table(ge_conc, file=ge_filename, sep="\t", quote=F)
 
 # Load IBD based relatedness matrix
 if (use_pedigree) {
-  errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$findiv))
+  errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$dbgap))
 }
 
 # Distance for local gene-SNP pairs

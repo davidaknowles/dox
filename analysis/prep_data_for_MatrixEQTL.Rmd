@@ -66,19 +66,19 @@ qplot(pca$v[,1],pca$v[,2],xlab="PC 1",ylab="PC 2")
 ```
 Not really any obvious structure
 
-Check there is a 1-1 mapping between cell line ID and findiv:
+Check there is a 1-1 mapping between cell line ID and dbgap:
 ```{r}
-unique(colSums(table(sample_anno[,c("cell_line","findiv")])>0)) # 1
-unique(rowSums(table(sample_anno[,c("cell_line","findiv")])>0)) # 1
+unique(colSums(table(sample_anno[,c("cell_line","dbgap")])>0)) # 1
+unique(rowSums(table(sample_anno[,c("cell_line","dbgap")])>0)) # 1
 ```
 
 ## Load covariates
 
 ```{r}
 hutt_meta=read.table("../data/dox.fam",header=F)
-colnames(hutt_meta)=c("pop","findiv","a","b","gender","c")
+colnames(hutt_meta)=c("pop","dbgap","a","b","gender","c")
 hutt_meta$gender=hutt_meta$gender-1
-hutt_meta=hutt_meta[,c("findiv","gender")]
+hutt_meta=hutt_meta[,c("dbgap","gender")]
 hutt_meta=t(hutt_meta)
 covariates_file_name=paste0(DATADIR,"covariates.txt")
 write.table(hutt_meta,covariates_file_name,col.names = F,row.names = T, quote = F, sep="\t")
@@ -86,7 +86,7 @@ write.table(hutt_meta,covariates_file_name,col.names = F,row.names = T, quote = 
 
 Also make a covariate file with top 5 genotype PCs
 ```{r}
-stopifnot(colnames(genotypes)==hutt_meta["findiv",])
+stopifnot(colnames(genotypes)==hutt_meta["dbgap",])
 colnames(pca$v)=paste0("geno_PC",1:5)
 hutt_meta_pc=rbind(hutt_meta,t(pca$v))
 write.table(hutt_meta_pc,paste0(DATADIR,"covariates_with_PC.txt"),col.names = F,row.names = T, quote = F, sep="\t")

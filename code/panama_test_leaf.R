@@ -34,7 +34,7 @@ genotype=genotype[as.character(snploc$snpid),]
 input <- read.table(paste0(DATADIR,"leafcutter_qqnorm.txt.gz"), header=T, sep="\t", check.names = F)
 anno=str_split_fixed(colnames(input), "_", 2) %>% 
   as.data.frame(stringsAsFactors=F) %>%
-  set_colnames(c("findiv","conc"))
+  set_colnames(c("dbgap","conc"))
 
 geneloc=str_split_fixed(rownames(input),":",4) %>% 
   as.data.frame(stringsAsFactors=F) %>%
@@ -43,7 +43,7 @@ geneloc=str_split_fixed(rownames(input),":",4) %>%
 
 geneloc=geneloc %>% filter(chr==chrom)
 
-sample_kernel= outer( anno$findiv, anno$findiv, "==")
+sample_kernel= outer( anno$dbgap, anno$dbgap, "==")
 
 resdir=paste0(DATADIR,"sqtl_",normalization_approach,"_",permuted,"/")
 dir.create(resdir)

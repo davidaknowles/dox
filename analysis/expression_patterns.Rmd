@@ -29,7 +29,7 @@ input=quantile_normalize(input)
 ## Run basic DE analysis
 
 ```{r}
-anno$findiv=as.character(findiv[anno$individual])
+anno$dbgap=as.character(dbgap[anno$individual])
 genes=rownames(input)
 pvalues=foreach(gene=genes, .errorhandling='pass', .combine = bind_rows) %dopar% {
   y=input[gene,]

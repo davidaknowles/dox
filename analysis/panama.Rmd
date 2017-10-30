@@ -38,14 +38,14 @@ P=20
 x_adjustable=foreach(p=1:P) %do% { svd_ge$v[,p] }
 #inner_prods=foreach(p=1:P) %do% { self_outer( svd_ge$v[,p] ) }
 
-same_ind=outer(anno$findiv, anno$findiv, "==") * 1
+same_ind=outer(anno$dbgap, anno$dbgap, "==") * 1
 same_conc=outer(anno$conc, anno$conc, "==") * 1
 errorCovariance = readRDS( "../data/error_covariance.Rds" ) 
 
 # residual after removing first P PCs
 rr = resi - svd_ge$u[,1:P] %*% diag(svd_ge$d[1:P]) %*% t(svd_ge$v[,1:P])
 
-inner_prods=list(diag(ncol(input)),errorCovariance[ anno$findiv, anno$findiv ],same_ind,same_conc)
+inner_prods=list(diag(ncol(input)),errorCovariance[ anno$dbgap, anno$dbgap ],same_ind,same_conc)
 ip_s=c( mean(rr^2), 0.01, 0.001, mean(b^2)  )
 
 #x_adjustable=matrix(0, nrow=0, ncol=ncol(input))

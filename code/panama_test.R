@@ -44,7 +44,7 @@ dir.create(resdir)
 checkpoint_dir=paste0(resdir,chrom,"_checkpoint/")
 dir.create(checkpoint_dir)
 
-anno_for_suez=anno %>% select(individual=findiv, condition=conc)
+anno_for_suez=anno %>% select(individual=dbgap, condition=conc)
 
 results = map_interaction_qtl(input, genotype, geneloc, snploc, anno_for_suez, sample_kernel, normalization_approach, permutation_approach, cisdist, checkpoint_dir, debug=F) 
 

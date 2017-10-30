@@ -27,7 +27,7 @@ source("../code/load_data.R")
 input <- read.table(paste0(DATADIR,"leafcutter_qqnorm.txt.gz"), header=T, sep="\t", check.names = F)
 anno=str_split_fixed(colnames(input), "_", 2) %>% 
   as.data.frame(stringsAsFactors=F) %>%
-  set_colnames(c("findiv","conc")) 
+  set_colnames(c("dbgap","conc")) 
 ```
 
 ```{r}
@@ -104,7 +104,7 @@ norm_dat = read.table("../data/normalized_leafcutter.txt.gz", sep="\t", header=T
 cairo_pdf("../figures/many_sqtl.pdf",height=4,width=5,onefile = T)
 foreach(i=1:30) %do% {
   hit=hits[i,]
-  geno=genotype[ as.character(hit$cis_snp), as.character(anno$findiv)]
+  geno=genotype[ as.character(hit$cis_snp), as.character(anno$dbgap)]
   data.frame(y=norm_dat[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) + ylim(0,1) + ggtitle(paste(i, hit$gene_name)) #+ ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
 } #  c(0.15,0.2)
 dev.off()
@@ -139,7 +139,7 @@ foreach( gene_interest=c( "APIP"  ) ) %do% {
    print(dim(hit))
   # hit=hits[i,] %>% inner_join(snploc, by=c(cis_snp="snpid"))
   cluster_here = intron_meta[hit$gene, "clu"]
-  geno=genotype[ as.character(hit$cis_snp), as.character(anno$findiv)]
+  geno=genotype[ as.character(hit$cis_snp), as.character(anno$dbgap)]
   to_keep = !is.na(geno)
   meta = data.frame( geno=geno, conc=as.factor(anno$conc) ) %>% 
     mutate(geno = factor(geno, 0:2, c("TT","TC","CC")) %>% droplevels(), group=interaction(conc, geno,sep="|")) %>% # switch geno/conc order
@@ -301,7 +301,7 @@ sum(ecaviar_res$CLPP)
 
 ```{r}
  hit=gene_dat %>% top_n(1,-p_joint) %>% head(1)
-  geno=genotype[ as.character(hit$cis_snp),anno$findiv]
+  geno=genotype[ as.character(hit$cis_snp),anno$dbgap]
   data.frame(y=input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() ) 
 ```
 

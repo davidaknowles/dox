@@ -27,7 +27,7 @@ close(gz)
 ```
 
 ```{r}
-anno_input = anno %>% select(sample=sample, cell_line=individual, individual=findiv,  conc=conc)
+anno_input = anno %>% select(sample=sample, cell_line=individual, individual=dbgap,  conc=conc)
 anno_input$individual[ anno_input$individual=="7440_4ce2" ]="3e07_41cd"
 anno_input %>% write.table("../supp_data/sample_table.txt", quote=F, row.names = F, col.names=T, sep="\t")
 ```
@@ -35,7 +35,7 @@ anno_input %>% write.table("../supp_data/sample_table.txt", quote=F, row.names =
 ```{r}
 lf_counts=read.table("../data/combined_leafcutter.txt.gz", stringsAsFactors = F, check.names = F )
 require(stringr)
-lf_anno=str_split_fixed(colnames(lf_counts),"_",2) %>% as.data.frame(stringsAsFactors=F) %>% set_colnames(c("findiv","conc")) %>% left_join(df, by="findiv")
+lf_anno=str_split_fixed(colnames(lf_counts),"_",2) %>% as.data.frame(stringsAsFactors=F) %>% set_colnames(c("dbgap","conc")) %>% left_join(df, by="dbgap")
 lf_anno = lf_anno %>% mutate( sample=paste(cell_line,conc,sep=":") )
 colnames(lf_counts)=lf_anno$sample
 lf_anno %>% select(sample=sample, cell_line, individual=dbgap, conc=conc) %>% write.table("../supp_data/leafcutter_samples.txt", quote=F, row.names = F, col.names=T, sep="\t")

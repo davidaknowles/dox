@@ -23,7 +23,7 @@ ase_data$cell_line=cl_cond[,1]
 ase_data$cond=cl_cond[,2]
 
 sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F) %>%
-  select( cell_line, findiv ) %>%
+  select( cell_line, dbgap ) %>%
   distinct()
 
 geneloc=read.table("../data/genelocGRCh38.txt.gz",header=T,stringsAsFactors = F)
@@ -33,7 +33,7 @@ input <- read.delim("../data/counts_log_cpm.txt.gz", check.names = F)
 # corresponds to cols of input
 anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)  %>% 
   left_join(sample_anno, by=c(individual="cell_line")) %>%
-  mutate(findiv=as.character(findiv))
+  mutate(dbgap=as.character(dbgap))
 
 snploc=read.table("../data/snploc.txt.gz",header=T,stringsAsFactors = F)
 #snploc$chrpos=with(snploc, paste(chr,pos,sep="_"))
@@ -60,7 +60,7 @@ top_hits = eqtl_results %>% filter( chr==which_chr )
 if (nrow(top_hits)==0) return(NULL)
 
 dat_chr=ase_data %>% filter( chr==which_chr ) %>% 
-  left_join( sample_anno , by="cell_line" ) %>% filter( findiv != "7440_4ce2"  ) %>%
+  left_join( sample_anno , by="cell_line" ) %>% filter( dbgap != "7440_4ce2"  ) %>%
     mutate( pos_alt=paste(pos, alt, sep="_") )
   #ase_pos=unique( dat_chr$pos )
   #length( intersect( ase_pos, phased$POS ) ) / length( ase_pos ) # 90%
@@ -73,7 +73,7 @@ rownames( phased )=phased$pos_alt
 dat_chr = dat_chr %>% 
     mutate( pos_alt=paste(pos, alt, sep="_")  ) %>% 
     filter( pos_alt %in% rownames(phased) ) %>% 
-    mutate( geno=phased[ cbind(as.character(pos_alt), as.character( findiv )) ] )
+    mutate( geno=phased[ cbind(as.character(pos_alt), as.character( dbgap )) ] )
 
  foreach(i=seq_len(nrow(top_hits)), .errorhandling = "stop") %do% {
     top_hit = top_hits[i,]
@@ -86,9 +86,9 @@ dat_chr = dat_chr %>%
     
     reg_geno = phased %>% filter( POS == top_hit$pos )
     
-    ase_dat$reg_geno=reg_geno[as.character(ase_dat$findiv)] %>% as.matrix %>% as.character
+    ase_dat$reg_geno=reg_geno[as.character(ase_dat$dbgap)] %>% as.matrix %>% as.character
     
-    ge=anno %>% mutate(geno=reg_geno[as.character(findiv)] %>% as.matrix %>% as.character, y=as.numeric(input[top_hit$gene,]))
+    ge=anno %>% mutate(geno=reg_geno[as.character(dbgap)] %>% as.matrix %>% as.character, y=as.numeric(input[top_hit$gene,]))
     ge$geno = foreach(s=strsplit(ge$geno,"|",fixed=T)) %do% { as.numeric(s) %>% sum } %>% unlist %>% factor
     
     ge_plot = ge %>% filter(!is.na(geno), conc==0.0) %>% ggplot(aes(geno, y, col=geno)) + geom_boxplot(width=0.1, outlier.shape = NA, alpha=0.5) + geom_sina() + ggtitle(paste("Gene:",top_hit$gene)) + ylab("Expression (log2 cpm)") + xlab("Genotype") + theme(legend.position = "none")
@@ -100,7 +100,7 @@ dat_chr = dat_chr %>%
       filter( cond=="0", geno %in% c("0|1","1|0") ) %>% 
       mutate( in_phase=geno == reg_geno ) %>% 
       filter( (r+y) > 0 ) %>% 
-      mutate( ind=as.factor(findiv), snp=as.factor(pos), coverage=r+y, ar = r/coverage, car=ifelse(in_phase,ar,1-ar) )
+      mutate( ind=as.factor(dbgap), snp=as.factor(pos), coverage=r+y, ar = r/coverage, car=ifelse(in_phase,ar,1-ar) )
     
    pv=to_plot %>% filter(reg_geno %in% c("0|1","1|0")) %>% with( binom.test( sum(ifelse(in_phase,r,y)), sum(coverage))) %>% .$p.value
 

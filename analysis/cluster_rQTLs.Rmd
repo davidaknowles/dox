@@ -67,7 +67,7 @@ betas=foreach(i=1:nrow(hits), .errorhandling=errorhandling, .combine = cbind) %d
   fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
   cis_snp=hit$cis_snp %>% as.character()
   
-  geno=imp_geno[cis_snp,anno$findiv]
+  geno=imp_geno[cis_snp,anno$dbgap]
 
   lrt = function(data) {
     data$U_transpose_x=t(eig_K$vectors) %*% cbind( no_geno, geno )
@@ -134,7 +134,7 @@ o=readRDS( "../mix_fit_seed15.rds")
 Get a SNP with no missingness and all three genotypes (doesn't matter which one)
 ```{r eval=F}
 one_valid_snp=which( apply(genotype[1:100,],1,max) == 2 )[1]
-geno=genotype[one_valid_snp,anno$findiv]
+geno=genotype[one_valid_snp,anno$dbgap]
 interact=model.matrix(~geno:conc,data=anno)
 interact=interact[,3:ncol(interact)]
 x=cbind( no_geno, geno, interact )
@@ -224,7 +224,7 @@ y=as.numeric( input[hit$gene,] ) %>% scale()
 ```
 
 ```{r}
-geno=genotype[ as.character(hit$cis_snp),anno$findiv]
+geno=genotype[ as.character(hit$cis_snp),anno$dbgap]
   data.frame(y=y, geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("ELP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name=hit$RSID) +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() )
 ```
 
@@ -252,7 +252,7 @@ cluster_ids= foreach(hit_i=1:nrow(hits), .combine = bind_rows) %dopar% {
   print(hit_i)
   hit=hits[hit_i,]
   y=as.numeric( input[hit$gene,] ) # %>% scale()
-  geno=genotype[ as.character(hit$cis_snp),anno$findiv]
+  geno=genotype[ as.character(hit$cis_snp),anno$dbgap]
   y=data.frame(y=y, geno=geno) %>% group_by(geno) %>% mutate(y=scale(y)) %>% ungroup() %>% .$y
   half_geno=.5 * geno[!is.na(geno)]
   y=y[!is.na(geno)]

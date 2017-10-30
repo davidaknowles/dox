@@ -147,7 +147,7 @@ volcano
 troponin <- read.delim("../data/troponin-processed.txt",
                        stringsAsFactors = FALSE)
 # Classify individuals by how large their release of cardiac troponin is.
-tr_max <- tapply(troponin$troponin, troponin$findiv, max)
+tr_max <- tapply(troponin$troponin, troponin$dbgap, max)
 tr_max_q <- quantile(tr_max, probs = c(0.25, 0.75))
 response <- tr_max
 response[tr_max <= tr_max_q[1]] <- "blue" # low
@@ -156,7 +156,7 @@ response[tr_max > tr_max_q[1] & tr_max < tr_max_q[2]] <- "black" # intermediate
 table(response)
 # title = "Cardiac troponin levels vary across individuals"
 tr_var <- ggplot(troponin, aes(x = dosage, y = troponin,
-                            color = as.factor(findiv))) +
+                            color = as.factor(dbgap))) +
   geom_point(size = rel(3)) +
   geom_line(linetype = "dashed", size = rel(1), alpha = 0.5) +
   theme(legend.position = "none") +

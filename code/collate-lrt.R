@@ -24,16 +24,16 @@ anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
 sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
 
 # mapping from cell-line ID to individual
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
+dbgap=sample_anno$dbgap
+names(dbgap)=sample_anno$cell_line
 stopifnot(is.character(anno$individual))
 
-colnames(input)=findiv[anno$individual]
+colnames(input)=dbgap[anno$individual]
 
 #input=remove_PCs(input, num_PCs_to_remove)
 input=quantile_normalize(input)
 
-anno$findiv=as.character(findiv[anno$individual])
+anno$dbgap=as.character(dbgap[anno$individual])
 
 chroms=c(paste0("chr",1:22),"chrX")
     
@@ -64,7 +64,7 @@ res=foreach(chrom=chroms, .combine = bind_rows) %do% {
     if (!is.na(bfp)) if (bfp < threshold) {
       print(gene)
       y=input[gene,]
-      geno=genotype[cis_snp,anno$findiv]
+      geno=genotype[cis_snp,anno$dbgap]
       print(data.frame(y=y, geno=as.factor(geno), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot() + ggtitle(paste("Gene:",gene,"SNP:",cis_snp)) + ylab("Expression") + xlab("Dox concentration") + theme_bw(base_size=16))
       print(c(cis_snp, gene))
     }

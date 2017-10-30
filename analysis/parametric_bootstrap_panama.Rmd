@@ -47,11 +47,11 @@ cis_snps=as.character(cis_snps)
 
   fit_no_geno=optimizing(panama_test, data, init=init, as_vector=F)
   
-  geno=imp_geno[cis_snp,anno$findiv]
+  geno=imp_geno[cis_snp,anno$dbgap]
     if (sum(imp_geno[cis_snp,]) < 5.0) return(NULL)
     #l=lm(y ~ geno + as.factor(anno$conc))
     #anno$geno=geno
-    #lme(y ~ geno + as.factor(conc), anno, ~ 1|as.factor(findiv), correlation = corSymm(, fixed=T))
+    #lme(y ~ geno + as.factor(conc), anno, ~ 1|as.factor(dbgap), correlation = corSymm(, fixed=T))
 
     lrt = function(data) {
       data$U_transpose_x=t(eig_K$vectors) %*% cbind( intercept_only, geno )

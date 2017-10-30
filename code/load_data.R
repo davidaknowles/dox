@@ -12,7 +12,7 @@ genotype$snpid=NULL
 genotype=as.matrix(genotype)
 
 if (F) {
-  errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$findiv))
+  errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$dbgap))
   saveRDS( errorCovariance, file="../data/error_covariance.Rds" )
 } else { errorCovariance = readRDS( paste0(DATADIR, "error_covariance.Rds")  ) }
 
@@ -20,14 +20,14 @@ input <- read.delim( paste0(DATADIR, "counts_log_cpm.txt.gz") )
 
 anno <- read.delim( paste0(DATADIR, "sample_annotation.txt") , stringsAsFactors = F)
 
-sample_anno=read.table( paste0(DATADIR, "annotation.txt") , header=T, stringsAsFactors = F) %>% rename(findiv=dbgap)
+sample_anno=read.table( paste0(DATADIR, "annotation.txt") , header=T, stringsAsFactors = F)
 
 # mapping from cell-line ID to individual
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
+dbgap=sample_anno$dbgap
+names(dbgap)=sample_anno$cell_line
 stopifnot(is.character(anno$individual))
 
-colnames(input)=findiv[anno$individual]
-findiv[ findiv=="7440_4ce2" ]="3e07_41cd"
+colnames(input)=dbgap[anno$individual]
+dbgap[ dbgap=="7440_4ce2" ]="3e07_41cd"
 
-anno$findiv=as.character(findiv[anno$individual])
+anno$dbgap=as.character(dbgap[anno$individual])

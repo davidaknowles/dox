@@ -15,7 +15,7 @@ genotype=genotype[2:nrow(genotype),]
 genotype=as.matrix(genotype)
 
 sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$findiv))
+errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$dbgap))
 
 geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt"),header=T,stringsAsFactors = F)
 snploc=read.table(paste0(DATADIR,"snploc.txt"),header=T,stringsAsFactors = F)
@@ -35,16 +35,16 @@ anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
 sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
 
 # mapping from cell-line ID to individual
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
+dbgap=sample_anno$dbgap
+names(dbgap)=sample_anno$cell_line
 stopifnot(is.character(anno$individual))
 
-colnames(input)=findiv[anno$individual]
+colnames(input)=dbgap[anno$individual]
 
 #input=remove_PCs(input, num_PCs_to_remove)
 input=quantile_normalize(input)
 
-anno$findiv=as.character(findiv[anno$individual])
+anno$dbgap=as.character(dbgap[anno$individual])
 
 require(rstan)
 lmm=stan_model("lmm.stan")
@@ -58,19 +58,19 @@ results=setNames( foreach(gene=genes, .errorhandling='pass') %do% {
   cis_snps=snploc[ ((geneloc[gene,"left"]-cisdist) < snploc$pos) & ((geneloc[gene,"right"]+cisdist) > snploc$pos), "snpid" ]
   cis_snps=as.character(cis_snps)
   # cis_snp=as.character(cis_snps)[1]
-  same_ind=outer(anno$findiv, anno$findiv, "==") * 1
+  same_ind=outer(anno$dbgap, anno$dbgap, "==") * 1
   same_conc=outer(anno$conc, anno$conc, "==") * 1
   N=length(y)
   
-  x_no_geno=list(diag(N),errorCovariance[ anno$findiv, anno$findiv ],same_ind,same_conc)
+  x_no_geno=list(diag(N),errorCovariance[ anno$dbgap, anno$dbgap ],same_ind,same_conc)
   data=list(N=N,x=x_no_geno,P=length(x_no_geno),y=y-mean(y))
 
   fit_no_geno=optimizing(lmm, data, as_vector=F)
   setNames( foreach(cis_snp=cis_snps, .errorhandling='pass') %dopar% {
-    geno=genotype[cis_snp,anno$findiv]
+    geno=genotype[cis_snp,anno$dbgap]
     #l=lm(y ~ geno + as.factor(anno$conc))
     #anno$geno=geno
-    #lme(y ~ geno + as.factor(conc), anno, ~ 1|as.factor(findiv), correlation = corSymm(, fixed=T))
+    #lme(y ~ geno + as.factor(conc), anno, ~ 1|as.factor(dbgap), correlation = corSymm(, fixed=T))
 
     x_geno=c( x_no_geno, list(outer(geno,geno)) )
     data=list(N=N,x=x_geno,P=length(x_geno),y=y-mean(y))

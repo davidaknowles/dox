@@ -47,13 +47,13 @@ rm(input)
 gc()
 
 find_individual=read.table("../data/annotation.txt", header=T, stringsAsFactors = F) %>%
-  select(cell_line, findiv) %>%
+  select(cell_line, dbgap) %>%
   distinct()
-find_individual$findiv[ find_individual$findiv=="7440_4ce2" ]="106411"
+find_individual$dbgap[ find_individual$dbgap=="7440_4ce2" ]="106411"
 
 anno = anno %>% left_join(find_individual, by=c(individual="cell_line"))
 
-ind_conc=anno %>% select(findiv, conc) %>% distinct()
+ind_conc=anno %>% select(dbgap, conc) %>% distinct()
 
 gz=gzfile("../data/leafcutter_anno.txt.gz","w")
 write.table(ind_conc, gz, sep="\t", quote=F, row.names = F)
@@ -65,10 +65,10 @@ ind_conc=fread("zcat < ../data/leafcutter_anno.txt.gz", data.table = F)
 dat=read.table("../data/leafcutter.txt.gz", stringsAsFactors = F, check.names = F)
 colnames(dat) = gsub(".bam", "", colnames(dat))
 dat_combined=foreach(row_i=1:nrow(ind_conc), .combine = cbind) %do% {
-   files=anno %>% filter(findiv==ind_conc$findiv[row_i], conc==ind_conc$conc[row_i]) %>% .$filename
+   files=anno %>% filter(dbgap==ind_conc$dbgap[row_i], conc==ind_conc$conc[row_i]) %>% .$filename
    rowSums( dat[, files] )
 } %>% as.data.frame() %>%
-  set_colnames(with(ind_conc, paste(findiv,conc,sep="_")))
+  set_colnames(with(ind_conc, paste(dbgap,conc,sep="_")))
 
 gz=gzfile("../data/combined_leafcutter.txt.gz", "w")
 dat_combined %>% write.table(gz, quote=F, sep="\t", col.names=T, row.names=T)

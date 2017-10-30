@@ -16,7 +16,7 @@ require(stringr)
 counts = read.table("../data/combined_leafcutter.txt.gz", sep="\t", header=T, check.names = F)
 anno=str_split_fixed(colnames(counts), "_", 2) %>% 
   as.data.frame(stringsAsFactors=F) %>%
-  set_colnames(c("findiv","conc"))
+  set_colnames(c("dbgap","conc"))
 ```
 
 ```{r eval=F}

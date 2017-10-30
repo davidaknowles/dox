@@ -46,8 +46,7 @@ theme_set(theme_bw(base_size = 14))
 Input annotation.
 
 ```{r anno}
-anno <- read.delim("../data/annotation.txt", stringsAsFactors = FALSE) %>%
-  rename(findiv=dbgap)
+anno <- read.delim("../data/annotation.txt", stringsAsFactors = FALSE)
 ```
 
 Input cardiac troponin measurements.
@@ -152,7 +151,7 @@ Merge the annotation and troponin data.
 anno <- anno %>% select(id:dosage)
 d <- merge(anno, tr_inter)
 dim(d)
-length(unique(d$findiv))
+length(unique(d$dbgap))
 ```
 
 Which individuals do not have a troponin measurement?
@@ -200,7 +199,7 @@ Merge again.
 ```{r merge-no-reps}
 d <- merge(anno, tr_inter, by = c("cell_line_norep", "dosage"))
 dim(d)
-length(unique(d$findiv))
+length(unique(d$dbgap))
 ```
 
 Both replicates of c39 were measured for troponin even though only c39.1 was sequenced.
@@ -219,7 +218,7 @@ plot(tr_39.1, tr_39.2,
 abline(rep_lm, col = "red")
 abline(0, 1, col = "blue", lty = "dashed")
 d <- d %>% filter(cell_line.y != "c39.2")
-stopifnot(table(d$findiv) == 5)
+stopifnot(table(d$dbgap) == 5)
 ```
 
 Add note that some individuals have mismatched replicates for the troponin measurement.
@@ -244,7 +243,7 @@ tr_v_dox <- ggplot(d,
 Classify individuals by how large their release of cardiac troponin is.
 
 ```{r}
-tr_max <- tapply(d$mean_inter, d$findiv, max)
+tr_max <- tapply(d$mean_inter, d$dbgap, max)
 tr_max_q <- quantile(tr_max, probs = c(0.25, 0.75))
 response <- tr_max
 response[tr_max <= tr_max_q[1]] <- "blue" # low
@@ -257,7 +256,7 @@ Variation between individuals.
 
 ```{r}
 tr_var <- ggplot(d, aes(x = dosage, y = mean_inter,
-                            color = as.factor(findiv))) +
+                            color = as.factor(dbgap))) +
   geom_point() +
   geom_line(linetype = "dashed") +
   theme(legend.position = "none") +
@@ -278,7 +277,7 @@ plot_grid(tr_v_dox, tr_var, labels = LETTERS[1:2])
 
 Most straightforward approach is just a linear model with an interaction term. This is a lot of parameters (92) for only 230 datapoints. 
 ```{r}
-d=d %>% mutate(individual=as.factor(findiv))
+d=d %>% mutate(individual=as.factor(dbgap))
 l=lm(mean_inter ~ dosage * individual, data=d)
 co=coef(l)
 intercepts=co[paste0("individual",levels(d$individual))]
@@ -300,7 +299,7 @@ troponin_rate %>% ggplot( aes(intercepts, slopes, label=levels(d$individual))) +
 
 ```{r}
 require(broom)
-d %>% group_by(findiv) %>% do(tidy(lm(mean_inter ~ dosage, data=.))) %>% filter(term=="dosage") %>% mutate(positive=estimate > 0) %>% group_by(positive) %>% summarize(num_sig=sum(p.value<0.05), num_not_sig=sum(!p.value<0.05))
+d %>% group_by(dbgap) %>% do(tidy(lm(mean_inter ~ dosage, data=.))) %>% filter(term=="dosage") %>% mutate(positive=estimate > 0) %>% group_by(positive) %>% summarize(num_sig=sum(p.value<0.05), num_not_sig=sum(!p.value<0.05))
 
 ```
 
@@ -335,11 +334,11 @@ anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
 sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
 
 # mapping from cell-line ID to individual
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
+dbgap=sample_anno$dbgap
+names(dbgap)=sample_anno$cell_line
 stopifnot(is.character(anno$individual))
 
-colnames(input)=findiv[anno$individual]
+colnames(input)=dbgap[anno$individual]
 ```
 
 ```{r}
@@ -465,10 +464,10 @@ require(scales) # trans_new() is in the scales library
 asinh_trans = function() trans_new("asinh", asinh, sinh)
 
 
-progression_rate$findiv=findiv[ progression_rate$individual ]
+progression_rate$dbgap=dbgap[ progression_rate$individual ]
 
 joined = progression_rate %>% 
-  left_join(troponin_rate %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(findiv="individual")) 
+  left_join(troponin_rate %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(dbgap="individual")) 
 
 cor.test(joined$estimate, joined$intercepts)
 cor.test(joined$estimate, joined$slopes)
@@ -483,7 +482,7 @@ What about using max troponin?
 ```{r}
 
 joined = progression_rate %>% 
-  left_join(tr_bin %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(findiv="individual"))
+  left_join(tr_bin %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(dbgap="individual"))
 cor.test(joined$estimate, joined$tr_max)
 cor.test(joined$estimate, joined$tr_max, method="spearman")
 
@@ -493,7 +492,7 @@ joined %>% ggplot(aes(estimate, tr_max, label=individual)) + geom_point(alpha=0.
 
 Just compare to lambda at 1.25 conc since this is the most variable. 
 ```{r}
-joined = pca_data %>% select( individual, conc, lambda ) %>% filter(conc==1.25) %>% mutate(findiv=findiv[ individual ]) %>%  left_join(troponin_rate %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(findiv="individual")) 
+joined = pca_data %>% select( individual, conc, lambda ) %>% filter(conc==1.25) %>% mutate(dbgap=dbgap[ individual ]) %>%  left_join(troponin_rate %>% mutate(individual=individual %>% as.character() %>% as.numeric()), by=c(dbgap="individual")) 
 cor.test(joined$lambda, joined$intercepts)
 cor.test(joined$lambda, joined$slopes)
 cor.test(joined$lambda, joined$slopes, method='spearman')
@@ -503,7 +502,7 @@ joined %>% ggplot(aes(lambda, slopes, label=individual)) + geom_point(alpha=0.1)
 ## Save data
 
 ```{r}
-d_save <- d %>% select(id, sample, cell_line.x, findiv, dosage, cell_line_norep,
+d_save <- d %>% select(id, sample, cell_line.x, dbgap, dosage, cell_line_norep,
                        experiment, mean_inter, mismatch) %>%
   rename(cell_line = cell_line.x, troponin = mean_inter) %>%
   arrange(id)

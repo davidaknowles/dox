@@ -5,7 +5,7 @@ Description of columns in `annotation.txt`:
 *  **id** - unique ID for sample. Composed of sample number, cell line, and dosage information.
 *  **sample** - sample number. Range from 1-230. Each set of 5 are the treatments for one individual, in increasing concentrations of dox.
 *  **cell_line** - the cell line number. Each cell line corresponds one individual.
-*  **findiv** - anonymized ID for matching cell_line to genotypes.
+*  **dbgap** - anonymized ID for matching cell_line to genotypes.
 *  **dosage** - the concentration of dox used in the treatment.
 *  **rin** - the RNA Integrity Number (RIN). Range from 1-10.
 *  **rna_conc** - the RNA concentration (ng/uL) after RNA extraction.

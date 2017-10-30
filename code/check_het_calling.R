@@ -56,9 +56,9 @@ genotype=genotype[2:nrow(genotype),]
 genotype=as.matrix(genotype)
 
 sample_anno=read.table("../data/annotation.txt", header=T, stringsAsFactors = F)
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
-class(findiv)="character"
+dbgap=sample_anno$dbgap
+names(dbgap)=sample_anno$cell_line
+class(dbgap)="character"
 stopifnot(is.character(anno$individual))
 
 genes=intersect( unique(gene_snps$gene), colnames(counts) )
@@ -106,7 +106,7 @@ res=rbindlist( foreach(snp_index=seq_along(genotyped[1:500])) %dopar% {
   
   het=logical(nrow(as_full))
   het[to_keep]=pr[,1]>0.95
-  data.frame(  het=het, geno=genotype[ rownames(alt)[snp_index] , findiv[ rownames(as_full) ] ] )
+  data.frame(  het=het, geno=genotype[ rownames(alt)[snp_index] , dbgap[ rownames(as_full) ] ] )
 } )
 
 setDF(res)

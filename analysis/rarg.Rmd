@@ -83,15 +83,15 @@ table(gtf_sub$rarg_motifs)
 anno <- read.delim("../data/annotation.txt", stringsAsFactors = F)
 sample_anno = read.table("../data/sample_annotation.txt", sep="\t", header=T, stringsAsFactors = F)
 
-findiv=anno$findiv
-names(findiv)=anno$cell_line
+dbgap=anno$dbgap
+names(dbgap)=anno$cell_line
 
-colnames(input)=findiv[ sample_anno$individual]
+colnames(input)=dbgap[ sample_anno$individual]
 
-sample_anno$findiv=as.character(findiv[sample_anno$individual])
+sample_anno$dbgap=as.character(dbgap[sample_anno$individual])
 
 rarg_mutants= c(107942, 108082)
-sample_anno$rarg_mut=sample_anno$findiv %in%rarg_mutants
+sample_anno$rarg_mut=sample_anno$dbgap %in%rarg_mutants
 
 pca <- prcomp(t(input[gtf_sub %>% filter(rarg_motifs > 0) %>% .$gene_id,]), scale. = TRUE)
 variances <- pca$sdev^2
@@ -99,7 +99,7 @@ explained <- variances / sum(variances)
 
 pca_data <- cbind(sample_anno, pca$x[, 1:5])
 
-ggplot(pca_data, aes(x = PC1, y = PC2, group=findiv, color=rarg_mut ,size=rarg_mut)) +
+ggplot(pca_data, aes(x = PC1, y = PC2, group=dbgap, color=rarg_mut ,size=rarg_mut)) +
   geom_text(aes(label = conc)) +
   geom_path(aes(alpha=.1)) +
   labs(x = sprintf("PC%d (%.2f%%)", 1, round(explained[1] * 100, 2)),
