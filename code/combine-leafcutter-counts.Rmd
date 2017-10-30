@@ -49,7 +49,7 @@ gc()
 find_individual=read.table("../data/annotation.txt", header=T, stringsAsFactors = F) %>%
   select(cell_line, findiv) %>%
   distinct()
-find_individual$findiv[ find_individual$findiv==160001 ]=106411
+find_individual$findiv[ find_individual$findiv=="7440_4ce2" ]="106411"
 
 anno = anno %>% left_join(find_individual, by=c(individual="cell_line"))
 

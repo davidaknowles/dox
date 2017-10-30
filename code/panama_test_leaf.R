@@ -6,7 +6,8 @@ require(magrittr)
 library(data.table)
 require(stringr)
 source("utils.R")
-source("map_interaction_qtl.R")
+
+require(suez)
 
 #  "chr5:102961229:102990272:clu_17500"
 if (interactive()) {

@@ -49,7 +49,7 @@ foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do
   #phased=phased %>% filter(CHROM=="chr22")
   
   dat_chr=dat %>% filter( chr==which_chr ) %>% 
-    left_join( sample_anno , by="cell_line" ) %>% filter( findiv != 160001  ) %>%
+    left_join( sample_anno , by="cell_line" ) %>% filter( findiv != "7440_4ce2"  ) %>%
     mutate( pos_alt=paste(pos, alt, sep="_") )
   #ase_pos=unique( dat_chr$pos )
   #length( intersect( ase_pos, phased$POS ) ) / length( ase_pos ) # 90%

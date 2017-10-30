@@ -2,16 +2,8 @@ Load data
 
 ```{r}
 source("utils.R")
-
-input <- read.delim("../data/counts_log_cpm.txt.gz")
+source("../code/load_data.R")
 input=quantile_normalize(input)
-
-anno <- read.delim("../data/sample_annotation.txt", stringsAsFactors = F)
-
-findiv=sample_anno$findiv
-names(findiv)=sample_anno$cell_line
-findiv[ findiv==160001 ]=106411
-anno$findiv=as.character(findiv[anno$individual])
 ```
 
 How many PCs cover 95% of variation? 
