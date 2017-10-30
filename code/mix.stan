@@ -1,11 +1,11 @@
 data {
-  int<lower=0> N; // samples (217)
-  int<lower=0> P;
-  int<lower=0> K; 
+  int<lower=0> N; // samples (donors)
+  int<lower=0> P; // cell types
+  int<lower=0> K; // clusters
   matrix[N,P] y;
 }
 parameters {
-  simplex[K] pik; 
+  simplex[K] pik; // prior cluster proportions
   real<lower=.1/K> sigma; 
   vector[P] means[K];
 }

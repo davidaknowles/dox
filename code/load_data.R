@@ -17,12 +17,11 @@ if (F) {
   saveRDS( errorCovariance, file="../data/error_covariance.Rds" )
 } else { errorCovariance = readRDS( paste0(DATADIR, "error_covariance.Rds")  ) }
 
-
 input <- read.delim( paste0(DATADIR, "counts_log_cpm.txt.gz") )
 
 anno <- read.delim( paste0(DATADIR, "sample_annotation.txt") , stringsAsFactors = F)
 
-sample_anno=read.table( paste0(DATADIR, "annotation.txt") , header=T, stringsAsFactors = F)
+sample_anno=read.table( paste0(DATADIR, "annotation.txt") , header=T, stringsAsFactors = F) %>% rename(findiv=dbgap)
 
 # mapping from cell-line ID to individual
 findiv=sample_anno$findiv
@@ -30,6 +29,6 @@ names(findiv)=sample_anno$cell_line
 stopifnot(is.character(anno$individual))
 
 colnames(input)=findiv[anno$individual]
-findiv[ findiv==160001 ]=106411
+findiv[ findiv=="7440_4ce2" ]="3e07_41cd"
 
 anno$findiv=as.character(findiv[anno$individual])

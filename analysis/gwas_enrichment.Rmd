@@ -32,6 +32,13 @@ eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
 #eqtl = read_qtls("../panama_qq_boot/")
 ```
 
+```{r}
+eqtl_to_save=eqtl %>% select(gene, chr, pos, RSID, p_geno, p_interact, p_joint)
+gz=gzfile(paste0(DATADIR,"eqtl.txt.gz"),"w")
+write.table(eqtl_to_save, gz, quote=F,row.names=F,col.names=T)
+close(gz)
+```
+
 ### Get RS IDs for eSNPs
 
 
@@ -424,13 +431,16 @@ cis_snp="9927950"
 
 y=input[gene,]
 geno=genotype[cis_snp,anno$findiv]
-data.frame(y= input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("AA","AC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("TUBGCP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs11855704") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() )
+data.frame(y= input[gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("TT","TC","CC")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("TUBGCP5 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs11855704") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() )
+ggsave("../figures/TUBGCP5.pdf", height = 4, width=5, device = cairo_pdf)
 ```
 
 This plot is kinda useless because I don't have the GWAS or linked SNP! 
 ```{r}
 join_all %>% filter(gene=="ENSG00000275835") %>% ggplot(aes(pos, -log10(p_interact), col="eQTL")) + geom_vline(aes(xintercept=pos),alpha=0.1) + geom_point() + geom_point(aes(pos, -log10(Pvalue), col="GWAS")) + theme_bw() + theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) # + coord_cartesian(xlim=c(58300000,58400000))
 ```
+
+
 
 ## Aminkeng GWAS
 
@@ -484,3 +494,27 @@ Nice, should have decent power.
 eqtl %>% filter(RSID=="rs7676830")
 ```
 Not even close to significant. 
+
+What about the SNP in RARG itself (has coding change)
+```{r}
+eqtl %>% filter(RSID=="rs2229774")
+```
+
+In LD with rs2229774
+```{r}
+rs2229774_proxies=read.table("../data/proxies_for_rs2229774.txt", stringsAsFactors = F, header=T)
+#rs2229774_proxies = rs2229774_proxies %>% filter(R2 > 0.2)
+rs2229774_proxies %>% inner_join(eqtl, by=c("RS_Number"="RSID"))
+```
+
+## 
+
+```{r}
+gene="ENSG00000197506" # 
+cis_snp="6972465"
+
+#y=my_qqnorm(input[gene,])
+geno=genotype[cis_snp,anno$findiv]
+data.frame(y=input[gene,] %>% as.numeric(), geno=factor(geno, 0:2, c("GG","GA","AA")), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(expression(paste("SLC28A3 expression (log"[2]," cpm)"))) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs885004") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "top", legend.background = element_blank() )
+ggsave("../figures/SLC28A3.pdf", height = 4, width=5, device = cairo_pdf)
+```

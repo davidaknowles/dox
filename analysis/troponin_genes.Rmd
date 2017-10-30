@@ -34,6 +34,12 @@ ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>%
   set_colnames(c("hugo","ensembl"))
 ```
 
+```{r}
+ensg_to_hugo_no_trop = ensg_to_hugo %>% filter(!grepl("TNNT",hugo),!grepl("TNNI",hugo))
+shared_genes=intersect(rownames(input),ensg_to_hugo_no_trop$ensembl)
+ge_no_trop=input[shared_genes,]
+```
+
 ```{r, message=F, warning=F}
 gcat_stan=stan_model("gcat.stan")
 #gcat_weighted_stan=stan_model("gcat_weighted.stan")
@@ -62,14 +68,14 @@ anno %>% ggplot(aes(x = conc, y = trop_normed, group=findiv)) +
 ```
 
 ```{r}
-dat=prep_data(t(input), anno$trop_normed)
+dat=prep_data(t(ge_no_trop), anno$trop_normed)
 o=optimizing(gcat_stan, data=dat, init=0, as_vector=F)
 o$par %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
 samples=sampling(gcat_stan, data=dat, show_messages=F, verbose=F, refresh=0) %>% rstan::extract(c("sigma2_k","sigma2")) %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
 quantile(samples$pve, c(0.025,.975) )
 ```
 ```{r}
-input_normalized = t(input) %>% scale()
+input_normalized = t(ge_no_trop) %>% scale()
 cv=cv.glmnet(input_normalized, anno$trop_normed, nfolds=nrow(anno), parallel=T, keep=T)
 #1. - var(anno$trop_normed - cv$fit.preval[,which.min(cv$cvm)]) / var(anno$trop_normed)
 co = coef(cv, s="lambda.min")

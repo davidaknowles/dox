@@ -58,7 +58,7 @@ if (normalization_approach=="qq") {
   input=(2^input) %>% t %>% scale %>% t
 }
 
-findiv[ findiv==160001 ]=106411
+findiv[ findiv=="7440_4ce2" ]="3e07_41cd"
 
 anno$findiv=as.character(findiv[anno$individual])
 
