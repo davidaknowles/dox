@@ -28,6 +28,14 @@ saveRDS(results, "../results/leafcutter_ds.rds")
 results=readRDS("../results/leafcutter_ds.rds")
 cluster_table=cluster_results_table(results)
 effect_sizes=leaf_cutter_effect_sizes(results)
+gz=gzfile("../supp_data/leafcutter_cluster_results.txt.gz", "w")
+cluster_table %>% filter(status=="Success") %>% select(cluster, p, p.adjust) %>% 
+   format(digits=5) %>% write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
+close(gz)
+gz=gzfile("../supp_data/leafcutter_intron_psi.txt.gz", "w")
+colnames(effect_sizes)[1:5]=paste0("dose",sort(unique(anno$conc)))
+effect_sizes %>% select(intron, 1:5) %>% as.data.frame() %>% format(digits=5) %>% write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
+close(gz)
 ```
 
 ```{r}

@@ -76,7 +76,6 @@ to_use=order(mixlm_fit$par$p, decreasing = T)[1:6]
 mix_means=mixlm_fit$par$betas[to_use,]
 
 assignments=apply(mixlm_fit$par$logprob, 1, which.max)
-# save(file="../data/expression_patterns.RData", mixlm_fit, assignments)
 
 plot(table(assignments))
 ```
@@ -94,8 +93,8 @@ m$pi=weights[m$mixture]
 m$mixture=as.factor(m$mixture)
 mixture_centroids = ggplot(m, aes(conc, mean, col=mixture, shape=mixture, size=pi*100)) + geom_line(alpha=.7) + geom_point() + scale_x_sqrt(breaks=concs, labels=concs, expand=c(0,0)) + theme_bw(base_size = 14) + ylab("Relative expression") + xlab("Doxorubicin concentration") + scale_size("% genes") + scale_color_manual("Cluster ID", values=cbPalette) + scale_shape("Cluster ID")
 mixture_centroids
-ggsave("../figures/mixture_centroids.svg",width=5.5,height=4)
-ggsave("../figures/mixture_centroids.pdf",width=5.5,height=4,device=cairo_pdf)
+#ggsave("../figures/mixture_centroids.svg",width=5.5,height=4)
+#ggsave("../figures/mixture_centroids.pdf",width=5.5,height=4,device=cairo_pdf)
 ```
 
 1. Down regulated
@@ -113,6 +112,8 @@ to_use=order(mixlm_fit$par$p, decreasing = T)[1:6]
 mix_means=mixlm_fit$par$betas[to_use,]
 
 assignments=apply(mixlm_fit$par$logprob[,to_use], 1, which.max)
+save(file="../data/expression_patterns.RData", mixlm_fit, assignments)
+
 
 GO_res=foreach(i=1:6) %do% {
   summary(GOtest(rownames(y), rownames(y)[assignments==i], ontology = "BP")$GO$BP, pvalue = 1e-5)
@@ -154,6 +155,7 @@ all_go_sub = all_go %>% filter(`Genes in Term` > 50 )
 interesting_terms = all_go_sub %>% group_by(cluster) %>% top_n(5, -logP) %>% .$TermID %>% unique()
 
 clusters=c("1.Down","2.Up-DOWN","3.Up","4.Down-up","5.Up-down","6.DOWN-up")
+
 
 #all_go = all_go %>% mutate(q=p.adjust(Enrichment, method="BH"))
 

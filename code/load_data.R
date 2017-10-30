@@ -1,6 +1,5 @@
 require(data.table)
 
-
 DATADIR=Sys.getenv("DOX_DATA")
 #DATADIR="~/gdrive/dox_data/"
 genotype=fread(paste0("zcat < ",DATADIR, "genotype.txt.gz"), data.table = F, header = T)

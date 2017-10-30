@@ -179,7 +179,3 @@ rownames(full_mat)=paste0("chr",gene_rows$V4)
 
 full_mat_my_qq=quantile_normalize_cols(full_mat)
 ```
-
-```{r}
-all(  )
-```

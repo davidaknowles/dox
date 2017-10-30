@@ -23,7 +23,7 @@ source("../code/load_data.R")
 ```
 
 ```{r}
-troponin_df=read.table("../data/troponin-processed.txt", header=T, stringsAsFactors = F)
+troponin_df=read.table("../data/troponin-processed.txt", header=T, stringsAsFactors = F)%>% rename(findiv=dbgap)
 troponin_df
 anno = anno %>% mutate(findiv=as.integer(findiv)) %>% left_join(troponin_df %>% select(findiv, dosage, troponin), by=c("findiv"="findiv", "conc"="dosage"))
 concs=sort(unique(anno$conc))

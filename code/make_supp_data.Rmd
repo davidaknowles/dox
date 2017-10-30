@@ -1,0 +1,133 @@
+---
+title: "Make supp data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+dir.create("../supp_data/")
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+require(data.table)
+require(foreach)
+require(dplyr)
+require(tidyr)
+require(leafcutter)
+require(magrittr)
+source("../code/utils.R")
+source("../code/load_data.R")
+```
+
+```{r}
+input <- read.table( paste0(DATADIR, "counts_log_cpm.txt.gz"), check.names = F )
+gz=gzfile("../supp_data/log2_counts_per_million.txt.gz", "w")
+write.table( format(input, digits=5), gz, quote=F, row.names = T, col.names=T, sep="\t")
+close(gz)
+```
+
+```{r}
+anno_input = anno %>% select(sample=sample, cell_line=individual, individual=findiv,  conc=conc)
+anno_input$individual[ anno_input$individual=="7440_4ce2" ]="3e07_41cd"
+anno_input %>% write.table("../supp_data/sample_table.txt", quote=F, row.names = F, col.names=T, sep="\t")
+```
+
+```{r}
+lf_counts=read.table("../data/combined_leafcutter.txt.gz", stringsAsFactors = F, check.names = F )
+require(stringr)
+lf_anno=str_split_fixed(colnames(lf_counts),"_",2) %>% as.data.frame(stringsAsFactors=F) %>% set_colnames(c("findiv","conc")) %>% left_join(df, by="findiv")
+lf_anno = lf_anno %>% mutate( sample=paste(cell_line,conc,sep=":") )
+colnames(lf_counts)=lf_anno$sample
+lf_anno %>% select(sample=sample, cell_line, individual=dbgap, conc=conc) %>% write.table("../supp_data/leafcutter_samples.txt", quote=F, row.names = F, col.names=T, sep="\t")
+
+gz=gzfile("../supp_data/leafcutter_counts.txt.gz", "w")
+write.table( lf_counts, gz, quote=F, row.names = T, col.names=T, sep="\t")
+close(gz)
+```
+
+```{r}
+temp=load("../data/expression_patterns.RData")
+temp
+```
+
+```{r}
+clusters=c("1.Down","2.Up-DOWN","3.Up","4.Down-up","5.Up-down","6.DOWN-up")
+data.frame(gene=rownames(input), cluster=factor(assignments, 1:6, clusters)) %>% write.table("../supp_data/differential_expression_clustering.txt", quote=F, row.names = F, col.names=T, sep="\t")
+```
+
+```{r}
+clusters=c("1.Down","2.Up-DOWN","3.Up","4.Down-up","5.Up-down","6.DOWN-up")
+data.frame(gene=rownames(input), cluster=factor(assignments, 1:6, clusters)) %>% write.table("../supp_data/differential_expression_clustering.txt", quote=F, row.names = F, col.names=T, sep="\t")
+```
+
+```{r}
+eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
+```
+
+```{r}
+eqtl=eqtl %>% left_join(snploc, by=c("cis_snp"="snpid"))
+gz=gzfile("../supp_data/all_eqtl.txt.gz", "w")
+eqtl %>% select(gene, chr, pos, RSID, p_geno, p_interact) %>% write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+close(gz)
+```
+
+marginal eQTLs
+```{r}
+geno_bf=eqtl %>% mutate(p=p_geno) %>% bonferroni() 
+gz=gzfile("../supp_data/significant_eqtl.txt.gz", "w")
+geno_bf %>% 
+  filter(q < 0.05) %>% 
+  left_join(snploc, by=c("cis_snp"="snpid")) %>% 
+   select(gene, chr, pos, RSID, p, q)  %>% 
+  write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+close(gz)
+```
+
+interaction QTLs
+```{r}
+interact_bf=eqtl %>% mutate(p=p_interact) %>% bonferroni
+gz=gzfile("../supp_data/significant_response_eqtl.txt.gz", "w")
+interact_bf %>%
+  filter(q < 0.05) %>% 
+  left_join(snploc, by=c("cis_snp"="snpid")) %>% 
+   select(gene, chr, pos, RSID, p, q) %>%
+  write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+close(gz)
+```
+
+
+```{r}
+sqtl = read_qtls("~/gdrive/dox_data/sqtl_none_boot/")
+```
+
+```{r}
+sqtl=sqtl %>% left_join(snploc, by=c("cis_snp"="snpid"))
+gz=gzfile("../supp_data/all_splicing_qtl.txt.gz", "w")
+sqtl %>% select(intron=gene, chr, pos, RSID, p_geno, p_interact) %>% write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+close(gz)
+```
+
+marginal sQTLs
+```{r}
+geno_bf=sqtl %>% mutate(p=p_geno) %>% bonferroni() 
+gz=gzfile("../supp_data/significant_sqtl.txt.gz", "w")
+geno_bf %>% 
+  filter(q < 0.05) %>% 
+  left_join(snploc, by=c("cis_snp"="snpid")) %>% 
+   select(intron=gene, chr, pos, RSID, p, q)  %>% 
+  write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+close(gz)
+```
+
+interaction sQTLs
+```{r}
+interact_bf=sqtl %>% mutate(p=p_interact) %>% bonferroni
+gz=gzfile("../supp_data/significant_response_sqtl.txt.gz", "w")
+interact_bf %>%
+  filter(q < 0.05) %>% 
+  left_join(snploc, by=c("cis_snp"="snpid")) %>% 
+   select(intron=gene, chr, pos, RSID, p, q) %>%
+  write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+close(gz)
+```
+

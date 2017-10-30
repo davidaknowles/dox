@@ -28,11 +28,11 @@ Do I need to take LD into account?
 
 ```{r}
 DATADIR="~/gdrive/dox_data/"
-eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
-#eqtl = read_qtls("../panama_qq_boot/")
+#eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
+eqtl = read_qtls("../panama_qq_boot/")
 ```
 
-```{r}
+```{r eval=F}
 eqtl_to_save=eqtl %>% select(gene, chr, pos, RSID, p_geno, p_interact, p_joint)
 gz=gzfile(paste0(DATADIR,"eqtl.txt.gz"),"w")
 write.table(eqtl_to_save, gz, quote=F,row.names=F,col.names=T)
