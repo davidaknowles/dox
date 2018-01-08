@@ -156,9 +156,16 @@ interesting_terms = all_go_sub %>% group_by(cluster) %>% top_n(5, -logP) %>% .$T
 
 clusters=c("1.Down","2.Up-DOWN","3.Up","4.Down-up","5.Up-down","6.DOWN-up")
 
+all_go_sub = all_go_sub %>% group_by(cluster) %>% mutate(p_adjust=p.adjust(Enrichment, method="BH")) %>% ungroup()
+```
 
-#all_go = all_go %>% mutate(q=p.adjust(Enrichment, method="BH"))
+```{r}
+gz=gzfile("../supp_data/pathway_enrich.txt.gz","w")
+all_go_sub %>% filter(p_adjust<0.05) %>% arrange(p_adjust) %>% mutate(cluster=factor(cluster, 1:6, clusters)) %>% select(cluster, TermID, Term, odds_ratio=OR, p=Enrichment, p_adjust) %>% as.data.frame() %>% format(digits=5) %>% write.table(gz, quote=F,row.names=F, col.names=T, sep="\t")
+close(gz)
+```
 
+```{r}
 all_go_sub = all_go_sub %>% mutate(OR=(`Target Genes in Term` / `Genes in Term`) / ((`Total Target Genes` - `Target Genes in Term`) / (`Total Genes` - `Genes in Term`) ) )
 
 
@@ -226,10 +233,16 @@ plot_tf %>%
   mutate(cluster=factor(cluster,1:6,clusters),
          motif=factor(motif,motif_names_order) %>% as.numeric) %>%
   ggplot(aes(cluster,motif,fill=log(OR),label=ifelse(q<0.05,"**",ifelse(q<0.5,"*","")))) + geom_tile() + scale_fill_gradient2() + geom_text() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "right") + scale_y_continuous(breaks=seq_along(motif_names_order),labels=motif_names_order,sec.axis=dup_axis(name="Consensus motif",labels=consensus_ordered)) + xlab("Cluster") + ylab("Transcription factor") + coord_cartesian(ylim=c(1.5,length(motif_names_order)-0.5))
-ggsave("../figures/cluster_tf.pdf",height=6,width=8,device=cairo_pdf)
+#ggsave("../figures/cluster_tf.pdf",height=6,width=8,device=cairo_pdf)
 ```
 
 - ZNF143 transcription factor mediates cell survival through upregulation of the GPX1 activity in the mitochondrial respiratory dysfunction https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3542592/
 - YY1 has some involvement in DNA repair and apoptosis. http://www.genecards.org/cgi-bin/carddisp.pl?gene=YY1 Expression and regulation of Cxcl12 during oxidative stress in pancreatic beta cells. http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0059679
 - Ronin: regulation of mitochondria and oxidative stress. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4767647/
 - Mef2d myocyte enhancer factor 2. Stress response and apoptosis. http://www.genecards.org/cgi-bin/carddisp.pl?gene=MEF2D
+
+```{r}
+gz=gzfile("../supp_data/motif_enrich.txt.gz","w")
+all_tf %>% filter(`q-value (Benjamini)` < 0.5) %>% arrange(`q-value (Benjamini)`) %>% mutate(cluster=factor(cluster, 1:6, clusters)) %>% select(cluster, motif_info=`Motif Name`, motif, `Consensus`, odds_ratio=OR, log_p=`Log P-value`, p_adjust=`q-value (Benjamini)`) %>% as.data.frame() %>% format(digits=5) %>% write.table(gz, quote=F,row.names=F, col.names=T, sep="\t")
+close(gz)
+```

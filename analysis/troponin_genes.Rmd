@@ -182,19 +182,23 @@ de=foreach(conc=concs) %do% {
   to_use=anno$conc==conc
   trop=anno$troponin[to_use]
   suppressWarnings(
-  { p=  foreach(i=1:nrow(input), .combine = c) %dopar% {
-    cor.test(input[i,to_use] %>% as.numeric(),trop,method="spearman")$p.value
+  { one_conc =  foreach(i=1:nrow(input), .combine = bind_rows) %dopar% {
+    ct = cor.test(input[i,to_use] %>% as.numeric(),trop,method="spearman")
+    data.frame(p=ct$p.value, rho=ct$estimate)
   } } )
-  p
+  one_conc %>% mutate(p_adjust=p.adjust(p, method="BH"))
 } %>% set_names(concs)
 ```
 
 
 ```{r}
-foreach(p=de, .combine = c) %do% {
-  q=p.adjust(p, method="BH")
-  sum(q<0.05)
-}
+foreach(p=de, .combine = c) %do% { sum(p$p_adjust<0.05) }
+```
+
+```{r}
+gz=gzfile("../supp_data/troponin_differential_genes.txt.gz", "w")
+{ foreach(conc=as.character(concs), .combine = bind_rows) %do% { de[[conc]] %>% mutate(conc=conc, gene=rownames(input)) %>% filter(p_adjust < 0.05) %>% select(conc, gene, rho, p, p_adjust) }} %>% write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
+close(gz)
 ```
 
 ```{r}

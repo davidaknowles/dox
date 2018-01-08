@@ -28,8 +28,8 @@ Do I need to take LD into account?
 
 ```{r}
 DATADIR="~/gdrive/dox_data/"
-#eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
-eqtl = read_qtls("../panama_qq_boot/")
+eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
+#eqtl = read_qtls("../panama_qq_boot/")
 ```
 
 ```{r eval=F}
@@ -152,6 +152,7 @@ enrich_results=foreach(p_eqtl = p_range, .combine = bind_rows ) %dopar% {
 enrich_results
 enrich_results %>% mutate(p_eqtl=as.factor(p_eqtl), p_gwas=as.factor(p_gwas)) %>% ggplot(aes(p_eqtl,p_gwas, fill=log(OR), label=paste( format(p,digits=1), format(OR,digits=1)))) + geom_tile() + geom_text() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + scale_fill_gradient2()
 ```
+
 
 ```{r}
 pvalue_qqplot_multi_thin(join_all %>% mutate(p=Pvalue, group=factor( (p_geno<1e-5) | (p_interact<1e-5), c(F,T), c("No eQTL","eQTL"))) %>% select(p,group), nl10_obs_p_threshold = 1) + scale_color_manual(values=cbPalette) + theme(legend.position = c(0.8,0.2),legend.title = element_blank())+ expand_limits(x=1, y=1) 

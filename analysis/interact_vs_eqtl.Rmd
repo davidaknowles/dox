@@ -20,10 +20,10 @@ source("../code/load_data.R")
 ```
 
 ```{r}
-eqtl = read_qtls("../panama_qq_boot/")
-eqtl = eqtl %>% 
-  left_join(snploc, by=c(cis_snp="snpid")) 
-#eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
+#eqtl = read_qtls("../panama_qq_boot/")
+#eqtl = eqtl %>% 
+#  left_join(snploc, by=c(cis_snp="snpid")) 
+eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
 ```
 
 How many eQTLs, pooling across concentrations. 
@@ -118,7 +118,7 @@ foreach(i=33) %do% {
     genotype_labels=c(paste0(major,major),paste0(major,minor),paste0(minor,minor))
   }
    ylabel=bquote( .(gene_name) ~ expression ~ ("log"[2]~cpm) )
-  geno=genotype[ as.character(hit$cis_snp),anno$dbgap]
+  geno=genotype[ as.character(hit$cis_snp),anno$findiv]
   data.frame(y= input[hit$gene,] %>% as.numeric(), geno=factor(geno, 0:2,genotype_labels), conc=anno$conc) %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), y, col=geno)) + geom_boxplot(outlier.shape = NA, width = 0.625, position = position_dodge(width = 0.75)) + geom_point(position = position_jitterdodge(dodge.width =  .75, jitter.width = 0.2, jitter.height = 0.), alpha=0.5, size=3) + ylab(ylabel) + xlab(expression("Doxorubicin concentration ("*mu*"M)")) + theme_bw(base_size=14) + scale_color_manual(values=cbPalette, name="rs16853200") +theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), legend.position = "right", legend.background = element_blank() ) #+
   #c(.2,.2)ggtitle(paste("Gene:",hit$gene,"SNP:",hit$cis_snp)) 
 } #  c(0.15,0.2)

@@ -67,13 +67,13 @@ pred_doxtox=predict(g, newx=input[,anno$conc==0.625] %>% t())
 ```{r}
 troponin_df=read.table("../data/troponin-processed.txt", header=T, stringsAsFactors = F)
 troponin_df
-anno = anno %>% mutate(dbgap=as.integer(dbgap)) %>% left_join(troponin_df %>% select(dbgap, dosage, troponin), by=c("dbgap"="dbgap", "conc"="dosage"))
+anno = anno  %>% left_join(troponin_df %>% select(dbgap, dosage, troponin), by=c("dbgap"="dbgap", "conc"="dosage"))
 concs=sort(unique(anno$conc))
 ```
 
 ```{r}
 require(broom)
-data.frame( dbgap=as.integer(rownames(pred_doxtox)), doxtox=pred_doxtox[,1]) %>% left_join(anno %>% filter(conc==5.), by="dbgap") %>% do(tidy(cor.test(.$doxtox,.$troponin,method="spearman")))
+data.frame( dbgap=rownames(pred_doxtox), doxtox=pred_doxtox[,1]) %>% left_join(anno %>% filter(conc==5.), by="dbgap") %>% do(tidy(cor.test(.$doxtox,.$troponin,method="spearman")))
 ```
 
 ```{r}
@@ -99,6 +99,10 @@ winner
 #lambda= winner %>% .$lambda\
 lambda = 1e-5
 lasso_fit=glmnet(t(burridge[,dox]),burridge_meta$doxtox[dox],family = "binomial",alpha=1,lambda=lambda)
+co=coef(lasso_fit) %>% as.matrix()
+co=co[co!=0,]
+co=co[2:length(co)]
+data.frame(gene=names(co), coef=co) %>% write.table("../supp_data/act_risk_predictor.txt",sep="\t",row.names=F,col.names=T,quote=F)
 pred_doxtox = lasso_fit %>%
   predict(newx=input[,anno$conc==0.625] %>% t())
 doxtox_pred_trop = data.frame( dbgap=rownames(pred_doxtox), doxtox=pred_doxtox[,1], stringsAsFactors = F) %>% left_join(troponin_rate %>% mutate(individual=as.character(individual)), by=c("dbgap"="individual")) 

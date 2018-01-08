@@ -101,8 +101,9 @@ pvalue_qqplot=function(pvalues, nl10_obs_p_threshold=0) {
 }
 
 get_qqplot_data=function(pvalues) {
-  n=length(pvalues)
-  data.frame(x=-log10(seq(1/n, 1, length.out = n)), y=-log10(sort(pvalues)) )
+  pvalues=pvalues[!is.na(pvalues)]
+  npv=length(pvalues)
+  data.frame(x=-log10(seq(1/npv, 1, length.out = npv)), y=-log10(sort(pvalues)) )
 }
 
 pvalue_qqplot=function(pvalues, nl10_obs_p_threshold=0) {

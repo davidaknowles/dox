@@ -66,32 +66,34 @@ eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+06/")
 
 ```{r}
 eqtl=eqtl %>% left_join(snploc, by=c("cis_snp"="snpid"))
+```
+```{r}
 gz=gzfile("../supp_data/all_eqtl.txt.gz", "w")
-eqtl %>% select(gene, chr, pos, RSID, p_geno, p_interact) %>% write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+eqtl %>% select(gene, chr, pos, RSID, p_geno, p_interact) %>% write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
 close(gz)
 ```
 
 marginal eQTLs
 ```{r}
 geno_bf=eqtl %>% mutate(p=p_geno) %>% bonferroni() 
-gz=gzfile("../supp_data/significant_eqtl.txt.gz", "w")
+gz=gzfile("../supp_data/S_Table_4_significant_eqtl.txt.gz", "w")
 geno_bf %>% 
   filter(q < 0.05) %>% 
   left_join(snploc, by=c("cis_snp"="snpid")) %>% 
    select(gene, chr, pos, RSID, p, q)  %>% 
-  write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+  write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
 close(gz)
 ```
 
 interaction QTLs
 ```{r}
 interact_bf=eqtl %>% mutate(p=p_interact) %>% bonferroni
-gz=gzfile("../supp_data/significant_response_eqtl.txt.gz", "w")
+gz=gzfile("../supp_data/S_Table_5_significant_response_eqtl.txt.gz", "w")
 interact_bf %>%
   filter(q < 0.05) %>% 
   left_join(snploc, by=c("cis_snp"="snpid")) %>% 
    select(gene, chr, pos, RSID, p, q) %>%
-  write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+  write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
 close(gz)
 ```
 
@@ -103,31 +105,31 @@ sqtl = read_qtls("~/gdrive/dox_data/sqtl_none_boot/")
 ```{r}
 sqtl=sqtl %>% left_join(snploc, by=c("cis_snp"="snpid"))
 gz=gzfile("../supp_data/all_splicing_qtl.txt.gz", "w")
-sqtl %>% select(intron=gene, chr, pos, RSID, p_geno, p_interact) %>% write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+sqtl %>% select(intron=gene, chr, pos, RSID, p_geno, p_interact) %>% write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
 close(gz)
 ```
 
 marginal sQTLs
 ```{r}
 geno_bf=sqtl %>% mutate(p=p_geno) %>% bonferroni() 
-gz=gzfile("../supp_data/significant_sqtl.txt.gz", "w")
+gz=gzfile("../supp_data/S_Table_8_significant_sqtl.txt.gz", "w")
 geno_bf %>% 
   filter(q < 0.05) %>% 
   left_join(snploc, by=c("cis_snp"="snpid")) %>% 
    select(intron=gene, chr, pos, RSID, p, q)  %>% 
-  write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+  write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
 close(gz)
 ```
 
 interaction sQTLs
 ```{r}
 interact_bf=sqtl %>% mutate(p=p_interact) %>% bonferroni
-gz=gzfile("../supp_data/significant_response_sqtl.txt.gz", "w")
+gz=gzfile("../supp_data/S_Table_9_significant_response_sqtl.txt.gz", "w")
 interact_bf %>%
   filter(q < 0.05) %>% 
   left_join(snploc, by=c("cis_snp"="snpid")) %>% 
    select(intron=gene, chr, pos, RSID, p, q) %>%
-  write.table( gz, quote=F, row.names = T, col.names=T, sep="\t")
+  write.table( gz, quote=F, row.names = F, col.names=T, sep="\t")
 close(gz)
 ```
 
