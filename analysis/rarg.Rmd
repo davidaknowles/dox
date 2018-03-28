@@ -29,7 +29,17 @@ rarg_hits = fread("zcat < ../data/RARG_hg38_cons.txt.gz", data.table = F) %>%
 dim(rarg_hits)
 hist(rarg_hits$score)
 hist(rarg_hits$cons,100)
-rarg_hits = rarg_hits %>% filter(cons > -log10(0.05))
+#sort(rarg_hits$cons)[ceiling(.9*nrow(rarg_hits))]
+cons_threshold=-log10(0.05)
+#cons_threshold=0
+abline(v=cons_threshold)
+sum(rarg_hits$cons > cons_threshold, na.rm = T)
+mean(rarg_hits$cons > cons_threshold, na.rm = T)
+rarg_hits = rarg_hits %>% filter(cons > cons_threshold)
+```
+
+```{r}
+#rarg_hits=read.table("../data/RXRA_chipSeq/RXRA_GM12878.narrowPeak.gz", stringsAsFactors = F, header=F) %>% select(1:3) %>% set_colnames(c("chr","start","end"))
 ```
 
 ```{r}
@@ -58,7 +68,7 @@ rarg_hits = rarg_hits %>% mutate(center = .5 * (start + end))
 cis_dist=10000
 require(RANN)
 
-gtf=foreach(chrom=intersect(gtf$chr,rarg_hits$chr), .combine = bind_rows) %do% {
+gtf=foreach(chrom=intersect(gtf$chr,rarg_hits$chr), .combine = bind_rows) %dopar% {
   gtf_here=gtf %>% filter(chr==chrom)
   rarg_here=rarg_hits %>% 
     filter(chr==chrom) %>% 
@@ -73,12 +83,20 @@ table(gtf$rarg_motifs)
 
 ```{r}
 input <- read.delim("../data/counts_log_cpm.txt.gz")
+
+if (F) {
+m=apply(input,1,mean)
+input=sweep(input,1,m,"-")
+s=apply(input,1,sd)
+input=sweep(input,1,s,"/")
+}
+
 gtf_sub = gtf %>% filter( gene_id %in% rownames(input) )
 mean( rownames(input) %in% gtf$gene_id )
 table(gtf_sub$rarg_motifs)
 ```
 
-107942 and 108082 are het for the RARG variant. 
+c43.1 and c62 are het for the RARG variant. 
 ```{r pc1-pc2-ind}
 anno <- read.delim("../data/annotation.txt", stringsAsFactors = F)
 sample_anno = read.table("../data/sample_annotation.txt", sep="\t", header=T, stringsAsFactors = F)
@@ -90,8 +108,8 @@ colnames(input)=dbgap[ sample_anno$individual]
 
 sample_anno$dbgap=as.character(dbgap[sample_anno$individual])
 
-rarg_mutants= c(107942, 108082)
-sample_anno$rarg_mut=sample_anno$dbgap %in%rarg_mutants
+rarg_mutants= c("4714_4827", "7666_460f")
+sample_anno$rarg_mut=sample_anno$dbgap %in% rarg_mutants
 
 pca <- prcomp(t(input[gtf_sub %>% filter(rarg_motifs > 0) %>% .$gene_id,]), scale. = TRUE)
 variances <- pca$sdev^2
@@ -110,14 +128,66 @@ The RARG mutants look pretty typical based on this.
 
 Get per gene-individual fold change from 0 to 0.625. Test whether these are systematically smaller for genes with RARG motifs.
 ```{r}
-
 log_cpm_0=input[,sample_anno$conc == 0]
-log_cpm_0.6=input[,sample_anno$conc == 1.25]
+log_cpm_0.6=input[,sample_anno$conc == 0.625]
 shared_indiv=intersect(colnames(log_cpm_0),colnames(log_cpm_0.6))
-fold_changes=log_cpm_0.6[,shared_indiv]-log_cpm_0[,shared_indiv]
+log_cpm_0=log_cpm_0[,shared_indiv]
+log_cpm_0.6=log_cpm_0.6[,shared_indiv]
+```
 
+```{r}
+de_p=foreach(i=seq_len(nrow(log_cpm_0)), .combine=c) %dopar% {
+  t.test(log_cpm_0[i,] %>% as.numeric(), log_cpm_0.6[i,] %>% as.numeric(), paired = T)$p.value
+}
+hist(de_p)
+```
+
+```{r}
+per_gene=foreach(i=1:nrow(input), .combine = bind_rows) %dopar% {
+  y=as.numeric(input[i,])
+  l=lmer( y ~ (1|dbgap) + conc * rarg_mut, data=sample_anno %>% mutate(conc=as.factor(conc)), REML=F )
+  l0=lmer( y ~ (1|dbgap) + conc, data=sample_anno %>% mutate(conc=as.factor(conc)), REML=F )
+  data.frame(gene_id=rownames(input)[i], pv=anova(l,l0)$`Pr(>Chisq)`[2], stringsAsFactors = F)
+}
+```
+
+```{r}
+per_gene = per_gene %>% mutate(q=p.adjust(pv, method="BH"))
+df=per_gene %>% inner_join(gtf_sub %>% select(gene_id,rarg_motifs), by=c('gene_id'))
+with(df, mean(q[rarg_motifs>0]<0.1))
+with(df, mean(q[rarg_motifs==0]<0.1))
+```
+
+```{r}
+foreach(i=which(q < 0.05)) %do% {
+  sample_anno %>% 
+    mutate(conc=as.factor(conc), cpm=as.numeric(input[i,])) %>% 
+    ggplot(aes(conc, cpm, col=rarg_mut, fill=rarg_mut)) + geom_boxplot(shape=NA, alpha=0.1) + geom_point(position = position_jitterdodge(dodge.width = 1, jitter.width = 0.3))
+}
+```
+
+```{r}
+p_adjust=p.adjust(de_p, method = "BH")
+q_thres=0.01
+fold_changes=log_cpm_0.6[p_adjust<q_thres,]-log_cpm_0[p_adjust<q_thres,]
 rarg_dat = fold_changes %>% mutate(gene=rownames(fold_changes)) %>% gather(individual, fc, colnames(fold_changes)) %>% inner_join(gtf_sub %>% select(gene_id,rarg_motifs), by=c(gene='gene_id')) %>% mutate(rarg_motifs=rarg_motifs > 0, rarg_genotype = individual %in% rarg_mutants)
 rarg_dat
+```
+
+```{r}
+my_stepfun=function(...) plot.stepfun(..., do.points = F, verticals=F)
+with(rarg_dat, { 
+  my_stepfun(fc[rarg_motifs & rarg_genotype])
+  my_stepfun(fc[rarg_motifs & !rarg_genotype], add=T, col="red")
+  my_stepfun(fc[!rarg_motifs & rarg_genotype], add=T, col="blue")
+  my_stepfun(fc[!rarg_motifs & !rarg_genotype], add=T, col="green")
+} )
+```
+
+```{r}
+for(i in 1:ncol(fold_changes)) {
+  my_stepfun(fold_changes[,i], add=i>1, col=if (colnames(fold_changes)[i] %in% rarg_mutants) "red" else "black")
+}
 ```
 
 ```{r}
@@ -127,6 +197,19 @@ l0=lmer( fc ~ rarg_motifs + rarg_genotype + (1|gene) + (1|individual), data=rarg
 anova(l,l0)
 summary(l)
 # lm( fc ~ rarg_motifs * rarg_genotype + gene, data=rarg_dat) %>% summary()
+```
+
+```{r}
+require(lme4)
+l=lmer( fc ~ rarg_motifs*rarg_genotype + (1|gene) , data=rarg_dat, REML=F )
+l0=lmer( fc ~ rarg_motifs + rarg_genotype + (1|gene) , data=rarg_dat, REML=F )
+anova(l,l0)
+summary(l)
+# lm( fc ~ rarg_motifs * rarg_genotype + gene, data=rarg_dat) %>% summary()
+a=s$coefficients[,1]
+names(a)=NULL
+temp=c("NoMotif.NoVariant"=a[1], "Motif.NoVariant"=a[1] + a[2], "NoMotif.Variant"=a[1] + a[3], "Motif.Variant"=sum(a))
+data.frame(x=factor(names(temp),names(temp)), y=temp, stringsAsFactors = F) %>% ggplot(aes(x,y)) + geom_bar(stat="identity")
 ```
 
 ```{r}
@@ -145,6 +228,7 @@ null_model=lmer( fc ~ rarg_motifs + rarg_genotype + (1|gene) + (1|individual), d
 anova(full_model,null_model)
 summary(full_model)
 ```
+
 ```{r}
 full_model=lm( fc ~ rarg_motifs*rarg_genotype, data=rarg_flip )
 null_model=lm( fc ~ rarg_motifs + rarg_genotype, data=rarg_flip )
@@ -169,4 +253,16 @@ summary(l)
 
 ```{r}
 "ENSG00000077097" %in% rownames(input)
+rarg="ENSG00000172819"
+rarg %in% rownames(input)
+```
+
+```{r}
+rarg="ENSG00000172819"
+rarg %in% rownames(input)
+
+sample_anno %>% 
+  mutate(rarg=as.numeric(input[rarg,])) %>%
+  ggplot(aes(as.factor(conc), rarg, col=rarg_mut)) + geom_point(size=3,alpha=0.5,position = position_jitterdodge(dodge.width = 1, jitter.width = 0.2))
+                    
 ```

@@ -105,6 +105,33 @@ join_all = eqtl %>% inner_join(gwas_df, by="RSID")
 p_range=outer( c(5,1), 10^-seq(1,5)) %>% as.numeric() %>% tail(-1)
 ```
 
+
+## Coloc
+
+```{r}
+to_test = join_all %>% filter( (p_interact < 1e-5 & Pvalue < 0.05) | (Pvalue < 0.001 & p_interact < 0.05 )) %>% arrange(Pvalue) # TODO fix
+dim(to_test)
+gwas_sample_size=794+51
+focal_genes=unique(to_test$gene)
+coloc_res = foreach( focal_gene = focal_genes, .combine = rbind ) %dopar% { 
+  for_coloc =  eqtl %>% filter(gene==focal_gene) %>% inner_join(gwas_df, by="RSID")
+  cis_geno = for_coloc %>% select(cis_snp) %>% left_join(genotype, by=c(cis_snp="snpid"))
+  mafs=rowMeans(cis_geno[,2:ncol(cis_geno)], na.rm=T) / 2
+  coloc.abf(dataset1=list(pvalues=for_coloc$Pvalue, N=gwas_sample_size, s=51/gwas_sample_size, type="cc"),
+                      dataset2=list(pvalues=for_coloc$p_interact, N=45, type="quant"),
+                      MAF=mafs)$summary
+}
+coloc_res = as.data.frame(coloc_res) %>% mutate(gene=focal_genes)
+#coloc_res %>% ggtern(aes(PP.H3.abf, PP.H4.abf, PP.H1.abf+PP.H2.abf+PP.H0.abf, label=gene)) + geom_point() + xlab("independent (H3)") + ylab("colocalizes (H4)" ) + zlab("Underpowered") + geom_abline(intercept = 0, slope=1) + xlim(c(0,0.2))
+coloc_res %>% ggplot(aes(PP.H3.abf, PP.H4.abf,  label=gene)) + geom_point() + xlab("independent (H3)") + ylab("colocalizes (H4)" )  + geom_abline(intercept = 0, slope=1) # + xlim(c(0,0.2))
+ggsave("../figures/coloc_cis1e6.pdf",width=5,height=4,device = cairo_pdf)
+```
+
+```{r}
+coloc_res %>% filter(PP.H0.abf < 0.1) %>% select(-nsnps, -PP.H0.abf) %>% gather(hypothesis, posterior, -gene) %>% ggplot(aes(hypothesis, gene, fill=posterior, label=format(posterior,scientific=T,digits=2))) + geom_tile() + geom_text() + scale_fill_continuous(limits=c(0,1), low="white", high="blue") + scale_x_discrete(labels=c("GWAS only", "reQTL only", "both independent", "colocalizes"))  + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1) ) # seq(0,1,by=0.2))
+# rename(`GWAS only`=`PP.H1.abf`, `reQTL only`=`PP.H2.abf`, `both independent`=`
+```
+
 What p-value threshold corresponds to 5% FDR? 
 ```{r}
 bonferroni=function(g) { g %>% group_by(gene) %>% 
