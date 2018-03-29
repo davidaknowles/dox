@@ -63,6 +63,6 @@ foreach(eqtl_name=names(eqtls), .combine = bind_rows) %do% {
     
     data.frame( geno_threshold=geno_threshold, gtex_file=gtex_file, eqtls=eqtl_name, prop_shared=nrow(eqtl_join_gtex)/nrow(eqtl), naive_rep=mean(rep_p < 0.05), naive_reverse=mean(reverse_p<0.05), p1= 1. - pi0est(rep_p)$pi0, p1_reverse=1. - pi0est(reverse_p)$pi0, stringsAsFactors = F)
     }
-} #%>% write.table(paste0(gtex_file,"_pi0.txt"), sep="\t",row.names = F, col.names = T, quote = F)
+} %>% write.table(paste0(gtex_file,"_pi0.txt"), sep="\t",row.names = F, col.names = T, quote = F)
 
 
