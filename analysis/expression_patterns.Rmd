@@ -156,19 +156,21 @@ interesting_terms = all_go_sub %>% group_by(cluster) %>% top_n(5, -logP) %>% .$T
 
 clusters=c("1.Down","2.Up-DOWN","3.Up","4.Down-up","5.Up-down","6.DOWN-up")
 
-all_go_sub = all_go_sub %>% group_by(cluster) %>% mutate(p_adjust=p.adjust(Enrichment, method="BH")) %>% ungroup()
+all_go_sub = all_go_sub %>% 
+  group_by(cluster) %>% 
+  mutate(p_adjust=p.adjust(Enrichment, method="BH")) %>% 
+  ungroup()
+
+all_go_sub = all_go_sub %>% mutate(OR=(`Target Genes in Term` / `Genes in Term`) / ((`Total Target Genes` - `Target Genes in Term`) / (`Total Genes` - `Genes in Term`) ) )
 ```
 
 ```{r}
-gz=gzfile("../supp_data/pathway_enrich.txt.gz","w")
-all_go_sub %>% filter(p_adjust<0.05) %>% arrange(p_adjust) %>% mutate(cluster=factor(cluster, 1:6, clusters)) %>% select(cluster, TermID, Term, odds_ratio=OR, p=Enrichment, p_adjust) %>% as.data.frame() %>% format(digits=5) %>% write.table(gz, quote=F,row.names=F, col.names=T, sep="\t")
+gz=gzfile("../supp_data/S_Table_2_pathway_enrich.txt.gz","w")
+all_go_sub %>% filter(p_adjust<0.05) %>% arrange(p_adjust) %>% mutate(cluster=factor(cluster, 1:6, clusters)) %>% select(Cluster=cluster, TermID, Term, Odds_ratio=OR, p=Enrichment, p_adjust, Overlap=`Target Genes in Term`, `Cluster_Size`=`Total Target Genes`, `Geneset_Size`=`Genes in Term`, `Total Genes`) %>% as.data.frame() %>% format(digits=5) %>% write.table(gz, quote=F,row.names=F, col.names=T, sep="\t")
 close(gz)
 ```
 
 ```{r}
-all_go_sub = all_go_sub %>% mutate(OR=(`Target Genes in Term` / `Genes in Term`) / ((`Total Target Genes` - `Target Genes in Term`) / (`Total Genes` - `Genes in Term`) ) )
-
-
 go_mat = all_go_sub %>% filter(TermID %in% interesting_terms) %>% select(Term, cluster, OR) %>% spread(cluster, OR) 
 rownames(go_mat) = go_mat$Term
 go_mat$Term=NULL
@@ -195,8 +197,10 @@ ggsave("../figures/cluster_go.pdf",height=6,width=9,device=cairo_pdf)
 all_tf=foreach(i=1:6, .combine = bind_rows) %do% {
   homer_res_dir=paste0(gene_cluster_dir,"homer",i,"/")
   temp=fread(paste0(homer_res_dir,"knownResults.txt"), data.table = F) 
+  cluster_size=colnames(temp)[6] %>% str_extract("[0-9]+") %>% as.numeric()
+  background_size=colnames(temp)[8] %>% str_extract("[0-9]+") %>% as.numeric()
   colnames(temp)[6:9]=c("ntarget_w_motif","ptarget_w_motif","nback_w_motif","pback_w_motif")
-   temp %>%  mutate(cluster=i)
+   temp %>%  mutate(cluster=i,  cluster_size=cluster_size, background_size=background_size)
 } %>% mutate(ptarget_w_motif=gsub("%","",ptarget_w_motif) %>% as.numeric(), 
                    pback_w_motif=gsub("%","",pback_w_motif) %>% as.numeric(), 
                   OR=ptarget_w_motif / pback_w_motif,
@@ -242,7 +246,7 @@ plot_tf %>%
 - Mef2d myocyte enhancer factor 2. Stress response and apoptosis. http://www.genecards.org/cgi-bin/carddisp.pl?gene=MEF2D
 
 ```{r}
-gz=gzfile("../supp_data/motif_enrich.txt.gz","w")
-all_tf %>% filter(`q-value (Benjamini)` < 0.5) %>% arrange(`q-value (Benjamini)`) %>% mutate(cluster=factor(cluster, 1:6, clusters)) %>% select(cluster, motif_info=`Motif Name`, motif, `Consensus`, odds_ratio=OR, log_p=`Log P-value`, p_adjust=`q-value (Benjamini)`) %>% as.data.frame() %>% format(digits=5) %>% write.table(gz, quote=F,row.names=F, col.names=T, sep="\t")
+gz=gzfile("../supp_data/S_Table_3_motif_enrich.txt.gz","w")
+all_tf %>% filter(`q-value (Benjamini)` < 0.5) %>% arrange(`q-value (Benjamini)`) %>% mutate(cluster=factor(cluster, 1:6, clusters)) %>% select(cluster, motif_info=`Motif Name`, motif, `Consensus`, odds_ratio=OR, log_p=`Log P-value`, p_adjust=`q-value (Benjamini)`, `Overlap`=ntarget_w_motif, `Background_overlap`=nback_w_motif, cluster_size, background_size) %>% as.data.frame() %>% format(digits=5) %>% write.table(gz, quote=F,row.names=F, col.names=T, sep="\t")
 close(gz)
 ```
