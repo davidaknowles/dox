@@ -133,19 +133,19 @@ foreach(i=1:6) %do% {
 }
 ```
 
-Ran HOMER on dag-ws-4
+Ran HOMER externally
 
 ```{r}
 
 all_go=foreach(i=1:6, .combine = bind_rows) %do% {
-homer_res_dir=paste0(gene_cluster_dir,"homer",i,"/")
+  print(i)
+  homer_res_dir=paste0(gene_cluster_dir,"homer",i,"/")
   all_txt=list.files(homer_res_dir, glob2rx("*.txt"))
   to_load=setdiff( all_txt, c("knownResults.txt","motifFindingParameters.txt","targetIDs.ug.txt"))
   foreach(fn=to_load, .combine = bind_rows) %do% {
     fread(paste0("cut -f1-9 ",homer_res_dir,fn), data.table = F) %>% mutate(source=fn, TermID=as.character(TermID))
   } %>% mutate(cluster=i)
 }
-
 
 all_go = all_go %>% filter(`Genes in Term` < 2000 )
 ```

@@ -58,40 +58,9 @@ hist(gtex_p_at_sig,100)
 1-qvalue(gtex_p_at_sig)$pi0
 ```
 
-## GWAS enrichment in GTEX
-
 ```{r}
-head(gtex_tis$heart)
-gwas_df = fread("zcat < ../data/schneider_gwas_clean.txt.gz", data.table = F)
-```
-
-```{r}
-join_all = gtex_tis$heart %>% inner_join(gwas_df, by="RSID")
-p_range=outer( c(5,1), 10^-seq(1,5)) %>% as.numeric() %>% tail(-1)
-```
-
-```{r}
-gtex_sig = gtex_tis$heart %>% rename(gene=gene_id, cis_snp=variant_id) %>% mutate(p=pval_nominal) %>% bonferroni()
-sum(gtex_sig$q < 0.05)
-gtex_sig_threshold=max(gtex_sig %>% filter(q<.05) %>% .$p)
-gtex_sig_threshold
-```
-```{r}
-enrich_results=foreach(p_eqtl = p_range, .combine = bind_rows ) %dopar% {
-  foreach(p_gwas = p_range, .combine = bind_rows ) %do% {
-    gwas_hits = join_all$Pvalue < p_gwas
-    #eqtl_hits = join_all$p_joint < p_eqtl
-    #eqtl_hits = (join_all$p_geno < p_eqtl) | (join_all$p_interact < p_eqtl)
-    eqtl_hits = join_all$pval_nominal < p_eqtl
-    ft  = fisher.test( gwas_hits, eqtl_hits, alternative="greater" )
-    data.frame( p_eqtl = p_eqtl, p_gwas=p_gwas, n_eqtl=sum(eqtl_hits), gwas_hits=sum(gwas_hits),  overlap=sum(gwas_hits & eqtl_hits), OR=ft$estimate, p = ft$p.value)
-  }
-}
-enrich_results
-enrich_results %>% mutate(p_eqtl=as.factor(p_eqtl), p_gwas=as.factor(p_gwas)) %>% ggplot(aes(p_eqtl,p_gwas, fill=log(OR), label=paste( format(p,digits=1), format(OR,digits=1)))) + geom_tile() + geom_text() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + scale_fill_gradient2()
-```
-
-```{r}
-pvalue_qqplot_multi_thin(join_all %>% mutate(p=Pvalue, group=factor( pval_nominal < 1e-5, c(F,T), c("No eQTL","eQTL"))) %>% select(p,group), nl10_obs_p_threshold = 1) + scale_color_manual(values=cbPalette) + theme(legend.position = c(0.8,0.2),legend.title = element_blank())+ expand_limits(x=1, y=1) 
+gtex_p1= read.table("../data/gtex_p1.txt.gz", header=T, stringsAsFactors = F) %>% mutate(tissue=str_split_fixed(gtex_file, "/", 9)[,9], tissue= str_split_fixed(tissue, pattern="[.]", n=4)[,1]) 
+tissue_order=gtex_p1 %>% filter(eqtls=="my_eqtl") %>% arrange(p1) %>% .$tissue
+gtex_p1 %>% mutate(tissue=factor(tissue, tissue_order)) %>% ggplot(aes(tissue, p1, fill=eqtls)) + geom_bar(stat="identity", position="dodge") + coord_flip()
 ```
 
