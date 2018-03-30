@@ -2,7 +2,7 @@ require(data.table)
 
 DATADIR=Sys.getenv("DOX_DATA")
 #DATADIR="~/gdrive/dox_data/"
-genotype=fread(paste0("zcat < ",DATADIR, "genotype.txt.gz"), data.table = F, header = T)
+genotype=read.table(paste0(DATADIR, "genotype_dbgap.txt.gz"), stringsAsFactors = F, sep="\t", header = T, check.names = F)
 
 snploc=fread(paste0("zcat < ",DATADIR, "snploc_w_rsid.txt.gz"),data.table = F) 
 
