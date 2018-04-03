@@ -1,15 +1,12 @@
 require(data.table)
 
-DATADIR=Sys.getenv("DOX_DATA")
+#DATADIR=Sys.getenv("DOX_DATA")
 #DATADIR="~/gdrive/dox_data/"
+DATADIR="/scratch/users/dak33/data/dox_data/"
 genotype=read.table(paste0(DATADIR, "genotype_dbgap.txt.gz"), stringsAsFactors = F, sep="\t", header = T, check.names = F)
+genotype=as.matrix(genotype)
 
 snploc=fread(paste0("zcat < ",DATADIR, "snploc_w_rsid.txt.gz"),data.table = F) 
-
-rownames(genotype)=genotype$snpid
-genotype$snpid=NULL
-
-genotype=as.matrix(genotype)
 
 if (F) {
   errorCovariance=get_relatedness("../data/addSNP.coef.3671", unique(sample_anno$dbgap))
