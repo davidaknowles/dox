@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 require(data.table)
 require(ggplot2)
-theme_set(theme_bw(base_size = 15))
+theme_set(theme_bw(base_size = 14))
 ```
 
 ```{r}
@@ -59,8 +59,27 @@ hist(gtex_p_at_sig,100)
 ```
 
 ```{r}
-gtex_p1= read.table("../data/gtex_p1.txt.gz", header=T, stringsAsFactors = F) %>% mutate(tissue=str_split_fixed(gtex_file, "/", 9)[,9], tissue= str_split_fixed(tissue, pattern="[.]", n=4)[,1]) 
-tissue_order=gtex_p1 %>% filter(eqtls=="my_eqtl") %>% arrange(p1) %>% .$tissue
-gtex_p1 %>% mutate(tissue=factor(tissue, tissue_order)) %>% ggplot(aes(tissue, p1, fill=eqtls)) + geom_bar(stat="identity", position="dodge") + coord_flip()
+gtex_p1= read.table("../data/gtex_p1.txt.gz", header=T, stringsAsFactors = F) %>% mutate(tissue=str_split_fixed(gtex_file, "/", 9)[,9], tissue= str_split_fixed(tissue, pattern="[.]", n=4)[,1]) %>% select(-gtex_file)
+gtex_p1 %>% group_by(geno_threshold,eqtls) %>% arrange(p1) %>% summarise(rank=mean(c(which(tissue=="Heart_Left_Ventricle"), which(tissue=="Heart_Atrial_Appendage")))) %>% ungroup() %>% arrange(geno_threshold)
+gtex_p1 %>% group_by(geno_threshold,eqtls) %>% arrange(p1) %>% summarise(rank=which(tissue=="Heart_Atrial_Appendage")) %>% ungroup() %>% arrange(geno_threshold)
+# Heart_Left_Ventricle
+gtex_p1 %>% group_by(geno_threshold,eqtls) %>% arrange(p1) %>% summarise(rank=which(tissue=="Muscle_Skeletal")) %>% ungroup() %>% arrange(geno_threshold)
+```
+
+
+```{r}
+geno_thres=5e-05
+tissue_order=gtex_p1 %>% filter(geno_threshold==geno_thres,eqtls=="my_eqtl") %>% arrange(p1) %>% .$tissue
+gtex_p1 %>% filter(geno_threshold==geno_thres) %>% mutate(tissue=factor(tissue, tissue_order)) %>% ggplot(aes(tissue, p1, fill=eqtls)) + geom_bar(stat="identity", position="dodge") + coord_flip()
+```
+
+```{r}
+subset=c("Vagina", "Uterus", "Brain_Amygdala", "Brain_Hypothalamus", "Ovary", "Liver", "Prostate", "Spleen", "Artery_Coronary", "Breast_Mammary_Tissue", "Testis", "Whole_Blood", "Colon", "Pancreas", "Stomach", "Brain_Cerebellum", "Muscle_Skeletal", "Lung", "Heart_Left_Ventricle", "Heart_Atrial_Appendage", "Cells_EBV-transformed_lymphocytes")
+labels=tissue_order
+labels[labels=="Cells_EBV-transformed_lymphocytes"]="LCL"
+labels=gsub("_"," ",labels)
+labels=gsub(" Tissue","",labels)
+gtex_p1 %>% filter(geno_threshold==geno_thres, tissue %in% subset, eqtls=="my_eqtl")  %>% mutate(tissue=factor(tissue, tissue_order,labels = labels)) %>% ggplot(aes(tissue, p1)) + geom_bar(stat="identity", position="dodge") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab("Storey's pi1") + xlab(NULL) + ylim(0,1) + coord_flip()
+ggsave("../figures/gtex_rep.pdf", width=3.5, height=3.5)
 ```
 

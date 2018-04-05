@@ -9,13 +9,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 require(rstan)
+require(data.table)
 library(tidyverse)
 require(dplyr)
 require(magrittr)
 require(ggplot2)
 require(glmnet)
 require(doMC)
-registerDoMC(7)
+registerDoMC(3)
 
 source("../code/utils.R")
 
@@ -38,6 +39,7 @@ ensg_to_hugo=fread("zcat < ../data/ensg_to_hugo.txt.gz", data.table = F) %>%
 ensg_to_hugo_no_trop = ensg_to_hugo %>% filter(!grepl("TNNT",hugo),!grepl("TNNI",hugo))
 shared_genes=intersect(rownames(input),ensg_to_hugo_no_trop$ensembl)
 ge_no_trop=input[shared_genes,]
+dim(ge_no_trop)
 ```
 
 ```{r, message=F, warning=F}
@@ -68,19 +70,20 @@ anno %>% ggplot(aes(x = conc, y = trop_normed, group=dbgap)) +
 ```
 
 ```{r}
-dat=prep_data(t(ge_no_trop), anno$trop_normed)
+dat=prep_data(t(ge_no_trop), as.numeric(anno$trop_normed))
 o=optimizing(gcat_stan, data=dat, init=0, as_vector=F)
 o$par %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
 samples=sampling(gcat_stan, data=dat, show_messages=F, verbose=F, refresh=0) %>% rstan::extract(c("sigma2_k","sigma2")) %>% as.data.frame() %>% mutate(pve=sigma2_k / (sigma2_k + sigma2))
 quantile(samples$pve, c(0.025,.975) )
 ```
+
 ```{r}
 input_normalized = t(ge_no_trop) %>% scale()
 cv=cv.glmnet(input_normalized, anno$trop_normed, nfolds=nrow(anno), parallel=T, keep=T)
 #1. - var(anno$trop_normed - cv$fit.preval[,which.min(cv$cvm)]) / var(anno$trop_normed)
 co = coef(cv, s="lambda.min")
 fitt = cbind(1,input_normalized) %*% co %>% as.numeric()
-1. - var(fitt - anno$trop_normed) / var(anno$trop_normed)
+1. - var(fitt - as.numeric(anno$trop_normed)) / var( as.numeric(anno$trop_normed) )
 ```
 
 ```{r}

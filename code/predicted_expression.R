@@ -1,4 +1,6 @@
+require(magrittr) 
 
+require(glmnet)
 library("dplyr")
 library("tidyr")
 library(data.table)
@@ -8,31 +10,28 @@ source("load_data.R")
 
 geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
 
+cisdist=1e5
+normalization_approach="log"
+
 if (interactive()) {
-  chrom="chr15"
-  normalization_approach="qq"
-  cisdist=1e5
-  # registerDoMC(16)
+  chrom="chr8"
 } else {
   ca=commandArgs(trailingOnly = T)
-  chrom=ca[2]
-  permutation_approach=ca[3]
-  normalization_approach=ca[1]
-  cisdist=as.numeric(ca[4])
+  chrom=ca[1]
   registerDoMC(16)
 }
 
 geneloc=geneloc[geneloc$chr==chrom,]
 snploc=snploc[snploc$chr==chrom,]
 
-if (interactive()) {
-   geneloc=head(geneloc,2)
-}
+# if (interactive()) {
+#    geneloc=head(geneloc,2)
+# }
 
-stopifnot(all(as.character(snploc$snpid) %in% rownames(genotype) ))
-genotype=genotype[as.character(snploc$snpid),]
+# stopifnot(all(as.character(snploc$snpid) %in% rownames(genotype) ))
+# genotype=genotype[as.character(snploc$snpid),]
 
-resdir=paste0(DATADIR,"predicted_expression/")
+resdir=paste0(DATADIR,"predicted_expression_",normalization_approach,"/")
 dir.create(resdir)
 
 #' Simple SVD based imputation of missing genotypes
@@ -79,7 +78,9 @@ quantile_normalize=function(input) {
   apply(input, 1, qqnorm_no_plot) %>% t()
 }
 
-input=quantile_normalize(input)
+if (normalization_approach=="qq") {
+  input=quantile_normalize(input)
+}
 
 genes=intersect(rownames(input),geneloc$geneid)
 rownames(geneloc)=geneloc$geneid
@@ -95,15 +96,16 @@ res=foreach(gene=genes) %dopar% {
     as.character()
   cat(gene,length(cis_snps)," cis snps\n")
   
+  cis_snps=intersect(rownames(genotype), cis_snps)
+  
   if (length(cis_snps)==0) return(NULL)
   
   y=input[gene,] %>% as.numeric
-  y=y-mean(y)
+  # y=y-mean(y)
   
-  cis_snps=intersect(rownames(genotype), cis_snps)
   imp_geno=easy_impute(genotype[cis_snps,,drop=F])
   
-  x=imp_geno[,anno$dbgap] %>% t() %>% as.data.frame() %>% cbind(conc=factor(anno$conc))
+  x=imp_geno[,anno$dbgap,drop=F] %>% t() %>% as.data.frame() %>% cbind(conc=factor(anno$conc))
   x=model.matrix( ~ .*conc, data=x )
   
   cv=cv.glmnet(x, y, alpha=0.5, keep=T)

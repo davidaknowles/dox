@@ -1,10 +1,12 @@
 #!/bin/bash
-#SBATCH --cpus-per-task=16
-#SBATCH --time=8:00:00
+#SBATCH --cpus-per-task=20
+#SBATCH --time=16:00:00
+#SBATCH --mem=64000
 #SBATCH -p normal,pritch,owners
-#SBATCH --qos=normal
 
 ml load R
 
 #srun Rscript panama_test_leaf.R $1 $2 $3
-srun Rscript panama_test.R $1 $2 $3 $4
+#srun Rscript panama_test.R $1 $2 $3 $4
+
+srun Rscript eagle1.R $1
