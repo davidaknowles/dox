@@ -26,7 +26,7 @@ rownames(geneloc)=geneloc$geneid
 
 bb_stan=stan_model("bb.stan")
 
-anno_findiv=read.table("../data/annotation_findiv.txt", header=T, stringsAsFactors = F) %>% 
+anno_findiv=read.table(paste0(DATADIR,"annotation_findiv.txt"), header=T, stringsAsFactors = F) %>% 
   select(cell_line, findiv) %>%
   distinct() %>% 
   left_join(sample_anno %>%
@@ -136,7 +136,7 @@ foreach(gene=unique(geneloc$geneid), .errorhandling = "remove", .combine = bind_
      df=ncol(x_full) - ncol(x_null)
      #lrt=2.0*(fit_full$value - fit_null$value)
      # nlog10p=-pchisq(lrt, df, lower.tail = F, log.p = T)/log(10)
-     data.frame(gene=gene, snp=snp_pos, df=df, l0=fit_0, l1=fit_null, l2=fit_full)
+     data.frame(snp=snp_pos, df=df, l0=fit_0, l1=fit_null, l2=fit_full)
   }
   
   if (!is.null(checkpoint_dir)){
@@ -145,6 +145,6 @@ foreach(gene=unique(geneloc$geneid), .errorhandling = "remove", .combine = bind_
     gene_results %>% format(digits=5) %>% write.table(checkpoint_file, quote = F, row.names = F, col.names = T, sep="\t")
     close(checkpoint_file)
   }
-  gene_results
   
+  gene_results %>% mutate(gene=gene)
 }

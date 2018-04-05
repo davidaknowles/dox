@@ -8,7 +8,7 @@ require(rstan)
 
 theme_bw(base_size = 14)
 
-dat=fread("zcat < ../data/ase.txt.gz", data.table=F) %>%
+dat=fread("zcat < ,/ase.txt.gz", data.table=F) %>%
   mutate(snp=paste(chr,pos,sep=":"))  %>% 
   separate(sample, c("cell_line","cond"), sep="_")
 
@@ -41,7 +41,7 @@ foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do
   
   if (nrow(top_hits)==0) return(NULL)
   
-  phased=fread(paste0("zcat < ../data/phased_genotypes/dox-hg38-",which_chr,".vcf.gz"), data.table=F, skip = "#CHROM", header=T)
+  phased=fread(paste0("zcat < ", DATADIR,"phased_genotypes/dox-hg38-",which_chr,".vcf.gz"), data.table=F, skip = "#CHROM", header=T)
   #phased=fread("zcat < ../data/dox-hg38.vcf.gz", data.table=F, skip = "#CHROM", header=T)
   
   colnames(phased)[1]="CHROM"

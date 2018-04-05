@@ -6,8 +6,8 @@ genotype=read.table(paste0(DATADIR, "genotype_dbgap.txt.gz"), stringsAsFactors =
 
 snploc=fread(paste0("zcat < ",DATADIR, "snploc_w_rsid.txt.gz"),data.table = F) 
 
-rownames(genotype)=genotype$snpid
-genotype$snpid=NULL
+#rownames(genotype)=genotype$snpid
+#genotype$snpid=NULL
 
 genotype=as.matrix(genotype)
 
