@@ -1,0 +1,60 @@
+---
+title: "eQTL vs response eQTL"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ggplot2)
+theme_set(theme_bw(base_size = 14))
+require(data.table)
+require(foreach)
+require(tidyverse)
+require(magrittr)
+
+require(leafcutter)
+cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
+
+source("../code/utils.R")
+source("../code/load_data.R")
+```
+
+```{r}
+res_dir="/scratch/users/dak33/data/dox_data/eagle1/"
+ase_qtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
+  cat(".")
+  if (fn=="chrX.txt.gz") return(NULL)
+  fread(paste0("zcat < ",res_dir,fn), data.table=F)
+}
+
+ase_qtl = ase_qtl %>% mutate( p_geno=lrt_pvalue(l1-l0,df=1),
+                 p_interact=lrt_pvalue(l2-l1,df=df), 
+                 p_joint=lrt_pvalue(l2-l0,df=df+1) ) %>%
+  select(-starts_with("l"))
+
+re_ase_qtl = ase_qtl %>% rename(p=p_interact, cis_snp=snp) %>% filter(!is.na(p)) %>% bonferroni() %>% ungroup()
+
+sum(reQTL$q < 0.05)
+````
+
+```{r}
+eqtl = read_qtls(paste0(DATADIR,"panama_qq_boot_1e+05/"))
+```
+
+```{r}
+geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
+
+ase_qtl = ase_qtl %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
+
+ase_qtl = ase_qtl %>% inner_join( snploc, by=c("chr", snp="pos"))
+
+joined = ase_qtl %>% inner_join(eqtl, by=c("gene","snpid"="cis_snp"), suffix=c("_ase","_te"))
+
+cor.test( -log10(joined$p_interact_ase), -log10(joined$p_interact_te), use="pairwise" )
+
+require(qvalue)
+( joined %>% filter(p_interact_ase < 1e-10) %>% .$p_interact_te %>% pi0est() )$pi0
+( joined %>% .$p_interact_te %>% pi0est() )$pi0
+
+
+```
