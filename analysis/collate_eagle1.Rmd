@@ -53,8 +53,8 @@ joined = ase_qtl %>% inner_join(eqtl, by=c("gene","snpid"="cis_snp"), suffix=c("
 cor.test( -log10(joined$p_interact_ase), -log10(joined$p_interact_te), use="pairwise" )
 
 require(qvalue)
-( joined %>% filter(p_interact_ase < 1e-10) %>% .$p_interact_te %>% pi0est() )$pi0
+( joined %>% filter(p_interact_ase < 1e-29) %>% .$p_interact_te %>% pi0est() )$pi0
 ( joined %>% .$p_interact_te %>% pi0est() )$pi0
 
-
+joined %>% filter( p_interact_ase < 1e-20 | p_interact_te < 1e-10 ) %>% ggplot(aes(-log10(p_interact_ase), -log10(p_interact_te))) + geom_point()
 ```
