@@ -8,23 +8,27 @@ require(rstan)
 
 theme_bw(base_size = 14)
 
-dat=fread("zcat < ,/ase.txt.gz", data.table=F) %>%
+dat=fread(paste0("zcat < ",DATADIR,"/ase.txt.gz"), data.table=F) %>%
   mutate(snp=paste(chr,pos,sep=":"))  %>% 
   separate(sample, c("cell_line","cond"), sep="_")
 
-geneloc=read.table("~/gdrive/dox_data/genelocGRCh38.txt.gz",header=T,stringsAsFactors = F)
-rownames(geneloc)=geneloc$geneid
+geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)  %>% 
+  filter(chr==which_chr)
 
 bb_stan=stan_model("bb.stan")
 
-eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+05/")  %>%
-  mutate(p=p_interact) %>%
-  bonferroni() %>% 
-  left_join(snploc, by=c(cis_snp="snpid")) 
+# eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+05/")  %>%
+#   mutate(p=p_interact) %>%
+#   bonferroni() %>% 
+#   left_join(snploc, by=c(cis_snp="snpid")) 
+
+eqtl = 
 
 shape_values = c(0:9, letters, LETTERS)
 
-anno_findiv=read.table("../data/annotation_findiv.txt", header=T, stringsAsFactors = F) %>% 
+cell_line_to_dbgap = sample_anno %>% select(cell_line, dbgap) %>% distinct()
+
+anno_findiv=read.table(paste0(DATADIR,"annotation_findiv.txt"), header=T, stringsAsFactors = F) %>% 
   select(cell_line, findiv) %>%
   distinct() %>% 
   left_join(sample_anno %>%
@@ -32,6 +36,10 @@ anno_findiv=read.table("../data/annotation_findiv.txt", header=T, stringsAsFacto
               distinct(), 
             by="cell_line") %>%
   mutate(findiv=as.character(findiv))
+
+phased_types=c("0|0","0|1","1|0","1|1")
+phased_hets=c("0|1","1|0")
+
 
 pdf("../figures/ai_support_panama.pdf",width=12,height=6)
 foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do% {
@@ -48,7 +56,7 @@ foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do
   #phased=phased %>% filter(CHROM=="chr22")
   
   dat_chr=dat %>% filter( chr==which_chr ) %>% 
-    left_join( sample_anno , by="cell_line" ) %>% filter( dbgap != "7440_4ce2"  ) %>%
+    left_join( cell_line_to_dbgap , by="cell_line" ) %>% filter( dbgap != "7440_4ce2"  ) %>%
     mutate( pos_alt=paste(pos, alt, sep="_") )
   #ase_pos=unique( dat_chr$pos )
   #length( intersect( ase_pos, phased$POS ) ) / length( ase_pos ) # 90%
@@ -102,8 +110,6 @@ foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do
     ge_plot = ge %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), 2^(y), col=geno)) + geom_boxplot() + ggtitle(paste("Gene:",top_hit$gene,"SNP:",top_hit$RSID)) + ylab("Expression (cpm)") + xlab("Dox concentration") + expand_limits(y = 0) 
     #ggsave("../figures/example_ai_vs_lrt.pdf",height=5,width=5)
     
-    phased_types=c("0|0","0|1","1|0","1|1")
-    phased_hets=c("0|1","1|0")
     to_plot = ase_dat %>%
       filter( geno %in% phased_hets, reg_geno %in% phased_types ) %>% 
       # filter( geno %in% phased_hets, reg_geno %in% phased_hets ) %>% 
