@@ -20,7 +20,7 @@ source("../code/load_data.R")
 ```
 
 ```{r}
-res_dir="/scratch/users/dak33/data/dox_data/eagle1/"
+res_dir=paste0(DATADIR,"eagle1/")
 ase_qtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
   cat(".")
   if (fn=="chrX.txt.gz") return(NULL)
@@ -32,10 +32,16 @@ ase_qtl = ase_qtl %>% mutate( p_geno=lrt_pvalue(l1-l0,df=1),
                  p_joint=lrt_pvalue(l2-l0,df=df+1) ) %>%
   select(-starts_with("l"))
 
-re_ase_qtl = ase_qtl %>% rename(p=p_interact, cis_snp=snp) %>% filter(!is.na(p)) %>% bonferroni() %>% ungroup()
+# why do we lose so many here? 
+# ase_qtl = ase_qtl %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene") %>% 
+#  inner_join( snploc, by=c("chr", snp="pos"))
 
-sum(reQTL$q < 0.05)
-````
+re_ase_qtl = ase_qtl %>% rename(p=p_interact, cis_snp=snp) %>% filter(!is.na(p)) %>% bonferroni() %>% ungroup() %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
+
+top_hit = re_ase_qtl %>% top_n(1, -p) %>% rename(pos=cis_snp)
+
+sum(re_ase_qtl$q < 0.05)
+```
 
 ```{r}
 eqtl = read_qtls(paste0(DATADIR,"panama_qq_boot_1e+05/"))
@@ -44,9 +50,7 @@ eqtl = read_qtls(paste0(DATADIR,"panama_qq_boot_1e+05/"))
 ```{r}
 geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
 
-ase_qtl = ase_qtl %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
-
-ase_qtl = ase_qtl %>% inner_join( snploc, by=c("chr", snp="pos"))
+ase_qtl = ase_qt
 
 joined = ase_qtl %>% inner_join(eqtl, by=c("gene","snpid"="cis_snp"), suffix=c("_ase","_te"))
 
@@ -56,5 +60,14 @@ require(qvalue)
 ( joined %>% filter(p_interact_ase < 1e-29) %>% .$p_interact_te %>% pi0est() )$pi0
 ( joined %>% .$p_interact_te %>% pi0est() )$pi0
 
+<<<<<<< HEAD
 joined %>% filter( p_interact_ase < 1e-20 | p_interact_te < 1e-10 ) %>% ggplot(aes(-log10(p_interact_ase), -log10(p_interact_te))) + geom_point()
+=======
+
+```
+
+```{r}
+top_hit = re_ase_qtl %>% top_n(1,-p)
+
+>>>>>>> 0cfd6f149706986796467d14e4c66133b5ae4dc0
 ```

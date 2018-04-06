@@ -109,6 +109,7 @@ p_range=outer( c(5,1), 10^-seq(1,5)) %>% as.numeric() %>% tail(-1)
 ## Coloc
 
 ```{r}
+require(coloc)
 to_test = join_all %>% filter( (p_interact < 1e-5 & Pvalue < 0.05) | (Pvalue < 0.001 & p_interact < 0.05 )) %>% arrange(Pvalue) # TODO fix
 dim(to_test)
 gwas_sample_size=794+51
