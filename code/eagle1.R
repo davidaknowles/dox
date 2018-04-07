@@ -112,8 +112,8 @@ allres=foreach(gene=unique(geneloc$geneid), .errorhandling = "stop", .combine = 
     
     if (nrow(ase_temp) < 10) return(NULL)
     if (length(unique(ase_temp$cond)) <= 1) return(NULL) # only data for one 
-    num_het_reg=sum(ase_temp$het_x != 0)
-    if (num_het_reg < 10) return(NULL) # no heterozygous regulatory SNPs
+    num_het_snps=sum(ase_temp$het_x != 0)
+    if (num_het_snps < 10) return(NULL) # no heterozygous regulatory SNPs
     
     x_full = if (length(unique(ase_temp$het_x)) > 1) model.matrix( ~ het_x + cond:het_x, data=ase_temp ) else model.matrix( ~ cond, data=ase_temp ) # testing the exonic SNP itself
     
