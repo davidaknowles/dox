@@ -87,7 +87,7 @@ allres=foreach(gene=unique(geneloc$geneid), .errorhandling = "stop", .combine = 
   
   allelic_count_total=sum(ase_dat$y+ase_dat$r)
   cat("Allelic total count ", allelic_count_total, "\n")
-  if (allelic_count_total < 5000) return(NULL)
+  if (allelic_count_total < 500) return(NULL)
   if (nrow(ase_dat) < 20) return(NULL)
   
   cis_snps=phased %>% 
@@ -112,7 +112,8 @@ allres=foreach(gene=unique(geneloc$geneid), .errorhandling = "stop", .combine = 
     
     if (nrow(ase_temp) < 10) return(NULL)
     if (length(unique(ase_temp$cond)) <= 1) return(NULL) # only data for one 
-    if (sum(ase_temp$het_x != 0) < 10) return(NULL) # no heterozygous regulatory SNPs
+    num_het_reg=sum(ase_temp$het_x != 0)
+    if (num_het_reg < 10) return(NULL) # no heterozygous regulatory SNPs
     
     x_full = if (length(unique(ase_temp$het_x)) > 1) model.matrix( ~ het_x + cond:het_x, data=ase_temp ) else model.matrix( ~ cond, data=ase_temp ) # testing the exonic SNP itself
     
@@ -136,7 +137,8 @@ allres=foreach(gene=unique(geneloc$geneid), .errorhandling = "stop", .combine = 
     df=ncol(x_full) - ncol(x_null)
     # lrt=2.0*(fit_full$value - fit_null$value)
     # nlog10p=-pchisq(lrt, df, lower.tail = F, log.p = T)/log(10)
-    data.frame(snp=snp_pos, df=df, l0=fit_0, l1=fit_null, l2=fit_full, stringsAsFactors=F)
+    num_het_ind=length(unique(ase_temp %>% filter(het_x != 0) %>% .$dbgap))
+    data.frame(total_count=sum(ase_temp$y+ase_temp$r), num_het_snps=num_het_snps, num_het_ind=num_het_ind, snp=snp_pos, df=df, l0=fit_0, l_geno=fit_null, l_interact=fit_full, stringsAsFactors=F)
   }
   
   if (!is.null(checkpoint_dir)){
