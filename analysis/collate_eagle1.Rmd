@@ -17,53 +17,227 @@ cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9", 
 
 source("../code/utils.R")
 source("../code/load_data.R")
+
+
+geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
+
 ```
 
 ```{r}
-res_dir=paste0(DATADIR,"eagle1/")
-ase_qtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
-  cat(".")
-  if (fn=="chrX.txt.gz") return(NULL)
-  fread(paste0("zcat < ",res_dir,fn), data.table=F)
+eagle_results_dir = paste0(DATADIR,"eagle1_1e+06/")
+te_results_dir=paste0(DATADIR,"panama_qq_boot_1e+06/")
+
+ase_qtl=load_qtls(eagle_results_dir)  %>% 
+  mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
+          p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
+          p_joint=lrt_pvalue(l_interact-l0,df=df+1)) %>%
+  select(-starts_with("l"))
+
+eqtl = read_qtls(te_results_dir)
+```
+
+## Investigate thresholds
+
+```{r}
+lm_p = lm(y ~ log(total_count) + log(num_het_snps) + log(num_het_ind), data=ase_qtl %>% mutate(y=p_interact < 1e-4) )
+
+num_sig_func=function( log_tc_thres, log_thres_num_het_snps, log_thres_num_het_ind) {
+  ase_qtl %>% rename(p=p_interact, cis_snp=snp) %>% filter(!is.na(p), total_count >= exp(log_tc_thres), num_het_snps >= exp(log_thres_num_het_snps), num_het_ind >= exp(log_thres_num_het_ind))  %>% bonferroni() %>% ungroup() %$% sum(q < 0.05, na.rm=T)
 }
 
-ase_qtl = ase_qtl %>% mutate( p_geno=lrt_pvalue(l1-l0,df=1),
-                 p_interact=lrt_pvalue(l2-l1,df=df), 
-                 p_joint=lrt_pvalue(l2-l0,df=df+1) ) %>%
-  select(-starts_with("l"))
+num_sig_func_ = function( log_tc_thres, log_thres_num_het_snps, log_thres_num_het_ind) { 
+  list(Score=num_sig_func(log_tc_thres, log_thres_num_het_snps, log_thres_num_het_ind), Pred=0.) }
+
+require(rBayesianOptimization)
+OPT_Res <- BayesianOptimization(num_sig_func,
+                                bounds = list(log_tc_thres=c(5,10), 
+                                              log_thres_num_het_snps=c(2,5), 
+                                              log_thres_num_het_ind=c(-1,2.5)), 
+                                init_points = 5, 
+                                n_iter = 10)
+```
+
+```{r}
+vary_tc= foreach(tc_thres=2^seq(8,15), .combine = bind_rows) %dopar% {
+  data.frame(tc_thres=tc_thres, num_sig=num_sig_func(log(tc_thres), -Inf, -Inf) )  }
+
+vary_tc %>% ggplot(aes(tc_thres, num_sig)) + geom_point() + scale_x_log10( breaks=vary_tc$tc_thres)
+```
+
+```{r}
+vary_tc= foreach(ns_thres=2^seq(1,8), .combine = bind_rows) %dopar% {
+  data.frame(ns_thres=ns_thres, num_sig=num_sig_func(log(2000), log(ns_thres), -Inf) )  }
+
+vary_tc %>% ggplot(aes(ns_thres, num_sig)) + geom_point() + scale_x_log10( breaks=vary_tc$ns_thres)
+```
+
+```{r}
+vary_tc= foreach(ni_thres=seq(1,32), .combine = bind_rows) %dopar% {
+  data.frame(ni_thres=ni_thres, num_sig=num_sig_func(log(2000), -Inf, log(ni_thres)) )  }
+
+vary_tc %>% ggplot(aes(ni_thres, num_sig)) + geom_point() + scale_x_log10( breaks=vary_tc$ni_thres)
+```
 
 # why do we lose so many here? 
 # ase_qtl = ase_qtl %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene") %>% 
 #  inner_join( snploc, by=c("chr", snp="pos"))
 
-re_ase_qtl = ase_qtl %>% rename(p=p_interact, cis_snp=snp) %>% filter(!is.na(p)) %>% bonferroni() %>% ungroup() %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
 
-top_hit = re_ase_qtl %>% top_n(1, -p) %>% rename(pos=cis_snp)
-
+```{r}
+re_ase_qtl = ase_qtl %>% rename(p=p_interact, cis_snp=snp) %>% filter(!is.na(p), total_count > 2000) %>% bonferroni() %>% ungroup() %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
 sum(re_ase_qtl$q < 0.05)
+
+e_ase_qtl =  ase_qtl %>% rename(p=p_geno, cis_snp=snp) %>% filter(!is.na(p)) %>% bonferroni() %>% ungroup() %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
+sum(e_ase_qtl$q < 1e-6)
 ```
 
-```{r}
-eqtl = read_qtls(paste0(DATADIR,"panama_qq_boot_1e+05/"))
-```
+
+## Inner join doesn't have much overlap
 
 ```{r}
-geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFactors = F)
-
-ase_qtl = ase_qt
-
-joined = ase_qtl %>% inner_join(eqtl, by=c("gene","snpid"="cis_snp"), suffix=c("_ase","_te"))
+joined = ase_qtl %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene") %>% 
+ inner_join( snploc, by=c("chr", snp="pos")) %>% inner_join(eqtl, by=c("gene","snpid"="cis_snp"), suffix=c("_ase","_te"))
 
 cor.test( -log10(joined$p_interact_ase), -log10(joined$p_interact_te), use="pairwise" )
+cor.test( -log10(joined$p_geno_ase), -log10(joined$p_geno_te), use="pairwise" )
 
 require(qvalue)
-( joined %>% filter(p_interact_ase < 1e-10) %>% .$p_interact_te %>% pi0est() )$pi0
-( joined %>% .$p_interact_te %>% pi0est() )$pi0
-
-
+foreach(pt=10^-seq(0,10), .combine = bind_rows) %do% { data.frame(pt=pt, p1=1 - ( joined %>% filter(p_interact_ase <= pt) %>% .$p_interact_te %>% pi0est() )$pi0 ) } %>% ggplot(aes(-log10(pt),p1)) + geom_point() + geom_line()
 ```
 
 ```{r}
-top_hit = re_ase_qtl %>% top_n(1,-p)
+joined %>% filter(p_interact_te < 1e-3 | p_interact_ase < 1e-3) %>% ggplot(aes(-log10(p_interact_ase),-log10(p_interact_te))) + geom_point(alpha=0.1)
+```
 
+```{r}
+joined %>% filter(p_geno_te < 1e-5 | p_geno_ase < 1e-10) %>% ggplot(aes(-log10(p_geno_ase),-log10(p_geno_te))) + geom_point(alpha=0.1)
+```
+
+
+```{r}
+joined_ase_reQTL = joined  %>% rename(p=p_interact_ase, cis_snp=snpid) %>% filter(!is.na(p)) %>% bonferroni() %>% ungroup() %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
+sum(joined_ase_reQTL$q < 0.05)
+
+joined_te_reQTL = joined  %>% rename(p=p_interact_te, cis_snp=snpid) %>% filter(!is.na(p)) %>% bonferroni() %>% ungroup() %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
+sum(joined_te_reQTL$q < 0.05)
+
+joined = joined %>% mutate(p_interact_meta = pchisq( -2*( log(p_interact_te) + log(p_interact_ase) ), df=4, lower.tail = F))
+joined_meta_reQTL = joined  %>% rename(p=p_interact_meta, cis_snp=snpid) %>% filter(!is.na(p)) %>% bonferroni() %>% ungroup() %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene")
+sum(joined_meta_reQTL$q < 0.05)
+```
+
+## How to meta-analyse? 
+
+The other way to combine would be to add the likelihood ratios. How does this compare? 
+```{r}
+
+lrt_grid=seq(0.1,100,by=0.1)
+
+foreach(degrees_of_freedom=1:5, .combine = bind_rows) %do% {
+  pv=lrt_pvalue(lrt_grid,df=degrees_of_freedom)
+  fisher_p=pchisq( -2*( log(pv) + log(pv) ), df=4, lower.tail = F)
+  meta_lrt=lrt_pvalue(lrt_grid*2,df=degrees_of_freedom)
+  data.frame(dof=degrees_of_freedom, lrt_grid=lrt_grid, fisher_p=fisher_p, meta_lrt=meta_lrt)
+} %>% ggplot(aes(lrt_grid, -log10(meta_lrt)+log10(fisher_p), col=factor(dof))) + geom_line()
+#qplot(lrt_grid,  -log10(pv)) + geom_line(aes(y=-log10(fisher_p))) + geom_line(aes(y=-log10(meta_lrt)),col="red")
+```
+
+Adding likelihood ratios has considerably better power. 
+
+## Full join: can be total expression OR ase reQTL
+
+```{r}
+
+ase_qtl=load_qtls(eagle_results_dir) %>% filter(total_count >= 2000) %>% left_join(geneloc %>% select(gene=geneid, chr), by="gene") %>% 
+ left_join( snploc, by=c("chr", snp="pos")) 
+eqtl=load_qtls(te_results_dir) %>% left_join(snploc, by=c(cis_snp="snpid")) 
+
+meta_eqtl = ase_qtl %>% full_join(eqtl, by=c("chr","gene","snpid"="cis_snp", "RSID", "snp"="pos"), suffix=c("_ase","_te"))
+
+zero_if_na=function(g) { ifelse(is.na(g),0,g) }
+
+meta_eqtl = meta_eqtl %>% mutate( halfdevi_ase = zero_if_na(l_geno_ase - l0_ase), 
+                           df_ase=ifelse(halfdevi_ase==0, 0, 1 ),
+                           halfdevi_te = zero_if_na(l_geno_te - l0_te), 
+                           df_te=ifelse(halfdevi_te==0, 0, 1 ),
+                           p_geno = lrt_pvalue(halfdevi_ase + halfdevi_te, df_ase + df_te) )
+
+meta_eqtl = meta_eqtl %>% mutate( halfdevi_ase = zero_if_na(l_interact_ase - l_geno_ase), 
+                           df_ase=ifelse(halfdevi_ase==0, 0, df ),
+                           halfdevi_te = zero_if_na(l_interact_te - l_geno_te), 
+                           df_te=ifelse(halfdevi_te==0, 0, 4 ),
+                           p_interact = lrt_pvalue(halfdevi_ase + halfdevi_te, df_ase + df_te)  ,
+                           p_interact_te = ifelse( df_te==0, NA, lrt_pvalue(halfdevi_te, df_te) ) , 
+                           p_interact_ase = ifelse( df_ase==0, NA, lrt_pvalue(halfdevi_ase, df_ase) ) )
+
+results_file= gzfile( "../supp_data/all_eqtl_w_ase.txt.gz","w")
+meta_eqtl %>% select(gene, chr, pos=snp, RSID, p_geno, p_interact) %>% format(digits=5) %>% write.table(results_file, quote = F, row.names = F, col.names = T, sep="\t")
+close(results_file)
+
+joint_eqtl = meta_eqtl %>% unite(cis_snp, chr, snp, sep="_") %>% rename(p=p_geno) %>% bonferroni() %>% ungroup() 
+sum(joint_eqtl$q < 0.05)
+
+joint_reqtl = meta_eqtl %>% unite(cis_snp, chr, snp, sep="_") %>% rename(p=p_interact) %>% bonferroni() %>% ungroup()
+sum(joint_reqtl$q < 0.05)
+
+results_file= gzfile( "../supp_data/reqtl_ase.txt.gz","w")
+joint_reqtl %>% filter(q<0.05) %>% arrange(q) %>% separate(cis_snp, c("chr","pos"), sep="_") %>% as.data.frame() %>% format(digits=5) %>% write.table(results_file, quote = F, row.names = F, col.names = T, sep="\t")
+close(results_file)
+
+meta_eqtl %>% filter(p_interact < 1e-4) %>% ggplot(aes(-log10(p_interact_te), -log10(p_interact_ase), size=-log10(p_interact), col=-log10(p_interact))) + geom_point()
+
+```
+
+## GWAS enrichment
+
+```{r}
+serie=read.csv(paste0(DATADIR,"maxdrop.r2maf.filtered.csv.gz"), stringsAsFactors = F)  %>% 
+  select(rsid, A1, A2, CHR, BP, BETA, SE, P)
+schneider = fread("zcat < ../data/schneider_gwas_clean.txt.gz", data.table = F)
+
+left_joined = left_join( serie %>% filter(!is.na(rsid)), schneider %>% filter(!is.na(RSID)), by=c("rsid"="RSID", "BP"="BP", "CHR"="Ch"))  %>% 
+  mutate(sch_beta=log(OR), sch_beta_dir=ifelse(A1==`effect allele`, sch_beta, -sch_beta)) %>% 
+  mutate(fisher_stat=-2*(log(P)+log(Pvalue)), 
+         fisher_p=ifelse( is.na(Pvalue), P, pchisq(fisher_stat, df=4, lower.tail=F) ),
+         z_sch=-sign(sch_beta_dir) * qnorm(Pvalue / 2), 
+          z_serie = BETA / SE ,
+          z_p = ifelse( is.na(Pvalue), P, pnorm(-abs( (z_sch + z_serie)/sqrt(2))) * 2), 
+          z_p_f = ifelse( is.na(Pvalue), P, pnorm(-abs( (z_sch - z_serie)/sqrt(2))) * 2) ) %>%
+    select( -fisher_stat, -z_sch, -z_serie )
+
+gwas = left_joined %>% select(RSID=rsid, chr=CHR, P=z_p_f)
+
+eq = meta_eqtl %>% mutate(chr=as.integer(substr(chr,4,6))) %>% filter(!is.na(RSID)) %>%  select(p=p_interact, RSID, chr, gene)
+```
+
+```{r}
+p_gwas=0.05
+p_eqtl=1e-5
+chroms=1:22
+
+contingency_tables=foreach(chrom=chroms) %do% { 
+  cat(".")
+  serie_chrom = gwas %>% filter(chr==chrom)
+  eq %>% filter(chr==chrom) %>% 
+    inner_join(serie_chrom, by="RSID") %>% 
+    select(-RSID) %>% 
+    distinct()  %>% 
+    transmute( gwas_hits = factor(P < p_gwas, c(F,T)), eqtl_hits = factor(p < p_eqtl, c(F,T)) ) %>% 
+    table()
+}
+cat("\n")
+cont_table=Reduce("+", contingency_tables)
+ft  =fisher.test(cont_table, alternative="greater" ) 
+str(ft) # OR = 2.22, p=6e-60 (with cisdist=1e5)
+# OR = 1.53, p=1.9e-33 when cisdist=1e6
+```
+
+```{r}
+temp = meta_eqtl %>% filter(p_interact_te < 1e-5, !is.na(p_interact_ase))
+
+agreement=foreach(th=seq(2000, 10000, by=500), .combine=bind_rows) %dopar% { 
+data.frame(th=th, pi1=1 - ( temp %>% filter(total_count > th) %>% .$p_interact_ase %>% qvalue::pi0est() )$pi0 )
+}
+
+agreement %>% ggplot(aes(th, pi1)) + geom_point() + geom_line() + ylim(0,1)
 ```

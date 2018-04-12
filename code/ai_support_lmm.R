@@ -17,12 +17,10 @@ geneloc=read.table(paste0(DATADIR,"genelocGRCh38.txt.gz"),header=T,stringsAsFact
 
 bb_stan=stan_model("bb.stan")
 
-# eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+05/")  %>%
-#   mutate(p=p_interact) %>%
-#   bonferroni() %>% 
-#   left_join(snploc, by=c(cis_snp="snpid")) 
-
-eqtl = 
+ eqtl = read_qtls("~/gdrive/dox_data/panama_qq_boot_1e+05/")  %>%
+   mutate(p=p_interact) %>%
+   bonferroni() %>% 
+   left_join(snploc, by=c(cis_snp="snpid")) 
 
 shape_values = c(0:9, letters, LETTERS)
 
@@ -41,15 +39,17 @@ phased_types=c("0|0","0|1","1|0","1|1")
 phased_hets=c("0|1","1|0")
 
 
-pdf("../figures/ai_support_panama.pdf",width=12,height=6)
+#pdf("../figures/wasp.pdf",width=8,height=6)
 foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do% {
   print(which_chr)
   
-  top_hits = eqtl %>% filter( chr==which_chr, q < 0.1 ) 
+  #top_hits = eqtl %>% filter( chr==which_chr, q < 0.1 ) 
+  top_hits = e_ase_qtl %>% filter( chr==which_chr, q < 1e-6 )  %>% rename(pos=cis_snp)
   
   if (nrow(top_hits)==0) return(NULL)
   
   phased=fread(paste0("zcat < ", DATADIR,"phased_genotypes/dox-hg38-",which_chr,".vcf.gz"), data.table=F, skip = "#CHROM", header=T)
+
   #phased=fread("zcat < ../data/dox-hg38.vcf.gz", data.table=F, skip = "#CHROM", header=T)
   
   colnames(phased)[1]="CHROM"
@@ -97,16 +97,16 @@ foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do
     
     ase_dat$reg_geno=reg_geno[as.character(ase_dat$dbgap)] %>% as.matrix %>% as.character
     
-    ge=anno %>% 
-      mutate(geno=reg_geno[as.character(dbgap)] %>% 
+    ge=anno %>%
+      mutate(geno=reg_geno[as.character(dbgap)] %>%
                as.matrix %>%
-               as.character, 
-             y=as.numeric(input[top_hit$gene,])) %>% 
-      separate(geno, c("allele1","allele2"), "[|]") %>% 
-      mutate(allele1=as.numeric(allele1), 
-             allele2=as.numeric(allele2), 
+               as.character,
+             y=as.numeric(input[top_hit$gene,])) %>%
+      separate(geno, c("allele1","allele2"), "[|]") %>%
+      mutate(allele1=as.numeric(allele1),
+             allele2=as.numeric(allele2),
              geno=factor(allele1+allele2))
-    
+
     ge_plot = ge %>% filter(!is.na(geno)) %>% ggplot(aes(as.factor(conc), 2^(y), col=geno)) + geom_boxplot() + ggtitle(paste("Gene:",top_hit$gene,"SNP:",top_hit$RSID)) + ylab("Expression (cpm)") + xlab("Dox concentration") + expand_limits(y = 0) 
     #ggsave("../figures/example_ai_vs_lrt.pdf",height=5,width=5)
     
@@ -119,30 +119,16 @@ foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do
     
     if (nrow(to_plot)==0) return(NULL)
   
-    pv=anova( lm(car ~ 1, data=to_plot, weights = sqrt(r+y)), lm(car ~ cond, data=to_plot, weights = sqrt(r+y) ) )[2,6]
+    #pv=anova( lm(car ~ 1, data=to_plot, weights = sqrt(r+y)), lm(car ~ cond, data=to_plot, weights = sqrt(r+y) ) )[2,6]
     
     levels(to_plot$snp)
-    #to_plot %>% ggplot(aes( cond,car,col=ind,size=coverage,shape=snp)) + geom_point(position = position_jitter(width = 0.3, height = 0)) + ylim(0,1) + ggtitle(paste0(top_hit$gene," p=",format(pv,digits=3))) + scale_shape_manual(values=shape_values[seq_along(levels(to_plot$snp))] )  
    
-   x_df = to_plot %>% mutate( het_x=ifelse(reg_geno %in% phased_hets, ifelse(in_phase,1,-1), 0) , cond=factor(cond))
-   x_full = model.matrix( ~ het_x + cond:het_x, data=x_df )
-   stan_dat = list(N=nrow(x_full), P=ncol(x_full), x=x_full, ys=to_plot$y, ns=to_plot$y + to_plot$r, concShape=1.001, concRate=0.001)
-   fit_full=optimizing(bb_stan, data=stan_dat)
-   
-   x_null = model.matrix( ~ het_x, data=x_df )
-   stan_dat = list(N=nrow(x_null), P=ncol(x_null), x=x_null, ys=to_plot$y, ns=to_plot$y + to_plot$r, concShape=1.001, concRate=0.001)
-   fit_null=optimizing(bb_stan, data=stan_dat)
-   
-   df=ncol(x_full) - ncol(x_null)
-   lrt=2.0*(fit_full$value - fit_null$value)
-   #-pchisq(lrt, df, lower.tail = F, log.p = T)/log(10)
-   pv=pchisq(lrt, df, lower.tail = F)
-   
-   ase_plot = 
-     to_plot %>% mutate(het=reg_geno %in% phased_hets) %>% ggplot(aes( cond,car,size=coverage,shape=snp,col=het)) + geom_point() + ylim(0,1) + ggtitle(paste0(top_hit$gene," p=",format(pv,digits=3))) + scale_shape_manual(values=shape_values[seq_along(levels(to_plot$snp))], guide=F )   + geom_line(aes(group=interaction(ind,snp)),size=1,alpha=0.5)  + xlab("Dox concentration") + ylab("Phased allelic ratio")
+  #ase_plot = 
+     to_plot %>% mutate(het=reg_geno %in% phased_hets, col=ifelse(het, dbgap, NA)) %>% arrange(-het) %>% ggplot(aes( cond,car,size=coverage,shape=snp,col=col)) + geom_point() + ylim(0,1) + ggtitle(paste0(top_hit$gene," p=",format(top_hit$p,digits=3))) + scale_shape_manual(values=shape_values[seq_along(levels(to_plot$snp))] ) + scale_color_hue(guide=F)   + geom_line(aes(group=interaction(ind,snp),alpha=factor(het,c(F,T))),size=1)  + xlab("Dox concentration") + ylab("Phased allelic ratio") + scale_alpha_discrete(guide=F, range = c(0.1,.75))
    
    print("Plotting")
-   print( grid.arrange(ge_plot, ase_plot, nrow=1 ) )
+   #print( grid.arrange(ge_plot, ase_plot, nrow=1 ) )
+   print(ase_plot)
    # %>% print
     # geom_dotplot(binaxis = "y", stackdir = "center", binwidth=0.01, alpha=.5)
    NULL
@@ -154,4 +140,4 @@ foreach(which_chr=paste0("chr",1:22), .combine = c, .errorhandling = "stop") %do
   # ase_dat %>% filter( (r+y) > 20 ) %>%  mutate( ar = r/(r+y) ) %>% ggplot(aes(cond,ar,fill=as.factor(load))) + geom_boxplot()
 
 }
-dev.off()
+#dev.off()

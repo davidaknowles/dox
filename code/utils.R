@@ -2,16 +2,16 @@ require(Matrix)
 
 cbPalette <- c( "#009E73","#F0E442","#D55E00", "#999999", "#E69F00", "#56B4E9",  "#0072B2",  "#CC79A7")
 
-read_qtls = function(res_dir, df=4) {
-
-  sqtl=foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
+load_qtls = function(res_dir) {
+  foreach(fn=list.files(res_dir,glob2rx("chr*.txt.gz")), .combine = bind_rows) %do% {
     cat(".")
     if (fn=="chrX.txt.gz") return(NULL)
     fread(paste0("zcat < ",res_dir,fn), data.table=F)
   }
-  
-  df=4
-  sqtl %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
+}
+
+read_qtls = function(res_dir, df=4) {
+    load_qtls(res_dir) %>% mutate( p_geno=lrt_pvalue(l_geno-l0,df=1),
                         p_interact=lrt_pvalue(l_interact-l_geno,df=df), 
                         p_joint=lrt_pvalue(l_interact-l0,df=df+1),
                         p_boot=lrt_pvalue(l_boot_interact - l_boot_geno, df ) ) %>%

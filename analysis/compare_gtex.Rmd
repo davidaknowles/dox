@@ -8,6 +8,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+require(tidyverse)
+require(stringr)
+require(magrittr)
 require(data.table)
 require(ggplot2)
 theme_set(theme_bw(base_size = 14))
@@ -74,12 +77,13 @@ gtex_p1 %>% filter(geno_threshold==geno_thres) %>% mutate(tissue=factor(tissue, 
 ```
 
 ```{r}
-subset=c("Vagina", "Uterus", "Brain_Amygdala", "Brain_Hypothalamus", "Ovary", "Liver", "Prostate", "Spleen", "Artery_Coronary", "Breast_Mammary_Tissue", "Testis", "Whole_Blood", "Colon", "Pancreas", "Stomach", "Brain_Cerebellum", "Muscle_Skeletal", "Lung", "Heart_Left_Ventricle", "Heart_Atrial_Appendage", "Cells_EBV-transformed_lymphocytes")
+#subset=c("Vagina", "Uterus", "Brain_Amygdala", "Brain_Hypothalamus", "Ovary", "Liver", "Prostate", "Spleen", "Artery_Coronary", "Breast_Mammary_Tissue", "Testis", "Whole_Blood", "Colon", "Pancreas", "Stomach", "Brain_Cerebellum", "Muscle_Skeletal", "Lung", "Heart_Left_Ventricle", "Heart_Atrial_Appendage", "Cells_EBV-transformed_lymphocytes")
+subset=unique(gtex_p1$tissue)
 labels=tissue_order
 labels[labels=="Cells_EBV-transformed_lymphocytes"]="LCL"
 labels=gsub("_"," ",labels)
 labels=gsub(" Tissue","",labels)
-gtex_p1 %>% filter(geno_threshold==geno_thres, tissue %in% subset, eqtls=="my_eqtl")  %>% mutate(tissue=factor(tissue, tissue_order,labels = labels)) %>% ggplot(aes(tissue, p1)) + geom_bar(stat="identity", position="dodge") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab("Storey's pi1") + xlab(NULL) + ylim(0,1) + coord_flip()
-ggsave("../figures/gtex_rep.pdf", width=3.5, height=3.5)
+gtex_p1 %>% filter(geno_threshold==geno_thres, tissue %in% subset, eqtls=="my_eqtl")  %>% mutate(heart=tissue %in% c("Heart_Left_Ventricle", "Heart_Atrial_Appendage"), tissue=factor(tissue, tissue_order,labels = labels)) %>% ggplot(aes(tissue, p1, fill=heart)) + geom_bar(stat="identity", position="dodge") + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab("Storey's pi1") + xlab(NULL) + ylim(0,1) + coord_flip()
+#ggsave("../figures/gtex_rep.pdf", width=3.5, height=3.5)
 ```
 

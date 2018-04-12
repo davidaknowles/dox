@@ -39,6 +39,8 @@ is_predictable_q=p.adjust(is_predictable, method="BH")
 pred_exp = pred_exp[is_predictable_q < 0.01, ]
 ```
 
+## Principle curves approach
+
 ```{r}
 pca <- prcomp(t(pred_exp), scale. = TRUE)
 variances <- pca$sdev^2
@@ -101,12 +103,15 @@ joined %>% ggplot(aes(estimate, slopes, label=individual)) + geom_point(alpha=0.
 #ggsave("../figures/troponin_vs_transcriptome.pdf",height = 4,width=4,device=cairo_pdf)
 ```
 
+## Compare to troponin
 
 ```{r}
 troponin_df=read.table("../data/troponin-processed.txt", header=T, stringsAsFactors = F)
 troponin_df
 anno = anno %>% left_join(troponin_df %>% select(dbgap, dosage, troponin), by=c("dbgap"="dbgap", "conc"="dosage"))
 ```
+
+### DE doesn't find much
 
 ```{r}
 de=foreach(conc=concs) %do% {
@@ -146,7 +151,11 @@ shared_genes=intersect(rownames(pred_exp),ensg_to_hugo_no_trop$ensembl)
 ge_no_trop=pred_exp[shared_genes,]
 dim(ge_no_trop)
 ```
+
+### Lasso does well
+
 ```{r}
+require(glmnet)
 anno=anno %>% group_by(conc) %>% mutate(trop_normed=scale(troponin)) %>% ungroup()
 input_normalized = t(ge_no_trop) %>% scale()
 cv=cv.glmnet(input_normalized, anno$trop_normed, nfolds=nrow(anno), parallel=T, keep=T)
@@ -154,6 +163,13 @@ cv=cv.glmnet(input_normalized, anno$trop_normed, nfolds=nrow(anno), parallel=T, 
 co = coef(cv, s="lambda.min")
 fitt = cbind(1,input_normalized) %*% co %>% as.numeric()
 1. - var(fitt - as.numeric(anno$trop_normed)) / var( as.numeric(anno$trop_normed) ) # 89%
+```
+
+```{r}
+co_vec=co[,1]
+co_vec=co_vec[co_vec !=0 ]
+
+data.frame(gene=names(co_vec), beta=co_vec, stringsAsFactors = F) %>% filter(gene!="(Intercept)") %>% left_join(ensg_to_hugo, by=c("gene"="ensembl")) %>% select(gene,hugo,beta) %>% arrange(-abs(beta)) %>% write.table("../supp_data/mr_lasso_troponin.txt",  quote = FALSE, sep = "\t", row.names = FALSE, col.names=T) 
 ```
 
 
