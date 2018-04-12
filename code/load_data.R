@@ -1,8 +1,8 @@
 require(data.table)
 
-DATADIR=Sys.getenv("DOX_DATA")
+#DATADIR=Sys.getenv("DOX_DATA")
 #DATADIR="~/gdrive/dox_data/"
-#DATADIR="/scratch/users/dak33/data/dox_data/"
+DATADIR="/scratch/users/dak33/data/dox_data/"
 genotype=read.table(paste0(DATADIR, "genotype_dbgap.txt.gz"), stringsAsFactors = F, sep="\t", header = T, check.names = F)
 genotype=as.matrix(genotype)
 
