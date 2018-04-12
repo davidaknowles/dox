@@ -8,10 +8,10 @@ require(rstan)
 require(doMC)
 registerDoMC(20)
 
-cisdist=1e5
+cisdist=1e6
 
 if (interactive()) {
-  which_chr="chr22"
+  which_chr="chr3"
 } else {
   which_chr=commandArgs(trailingOnly = T)[1]
 }
@@ -68,12 +68,12 @@ dat_chr = dat_chr %>%
   filter( pos_alt %in% rownames(phased) ) %>% 
   mutate( geno=phased[ cbind(as.character(pos_alt), as.character( dbgap )) ] )
 
-outputdir=paste0(DATADIR,"/eagle1/")
+outputdir=paste0(DATADIR,"/eagle1_",cisdist,"/")
 dir.create( outputdir, showWarnings = F )
 checkpoint_dir=paste0(outputdir,which_chr,"/")
 dir.create(checkpoint_dir, recursive = T, showWarnings = F)
 
-allres=foreach(gene=unique(geneloc$geneid), .errorhandling = "stop", .combine = bind_rows) %do% {
+allres=foreach(gene=unique(geneloc$geneid), .errorhandling = "stop", .combine = bind_rows) %dopar% {
   print(gene)
   if (!is.null(checkpoint_dir)){
     check_fn=paste0(checkpoint_dir,gene,".txt.gz")
@@ -87,14 +87,14 @@ allres=foreach(gene=unique(geneloc$geneid), .errorhandling = "stop", .combine = 
   
   allelic_count_total=sum(ase_dat$y+ase_dat$r)
   cat("Allelic total count ", allelic_count_total, "\n")
-  if (allelic_count_total < 500) return(NULL)
-  if (nrow(ase_dat) < 20) return(NULL)
+  if (allelic_count_total < 2000) return(NULL)
+  if (nrow(ase_dat) < 10) return(NULL)
   
   cis_snps=phased %>% 
     filter( (geneloc[gene,"left"]-cisdist) < POS, 
             (geneloc[gene,"right"]+cisdist) > POS ) %>% .$POS
   
-  gene_results = foreach(snp_pos=cis_snps, .errorhandling = "remove",  .combine = bind_rows) %dopar% {
+  gene_results = foreach(snp_pos=cis_snps, .errorhandling = if (interactive()) "stop" else "remove",  .combine = bind_rows) %do% {
     print(snp_pos)
     reg_geno = (phased %>% filter( POS == snp_pos ))[,11:ncol(phased)] %>% as.matrix()
     

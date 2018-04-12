@@ -185,6 +185,11 @@ joint_reqtl %>% filter(q<0.05) %>% arrange(q) %>% separate(cis_snp, c("chr","pos
 close(results_file)
 
 meta_eqtl %>% filter(p_interact < 1e-4) %>% ggplot(aes(-log10(p_interact_te), -log10(p_interact_ase), size=-log10(p_interact), col=-log10(p_interact))) + geom_point()
+require(qvalue)
+( joined %>% filter(p_interact_ase < 1e-29) %>% .$p_interact_te %>% pi0est() )$pi0
+( joined %>% .$p_interact_te %>% pi0est() )$pi0
+
+joined %>% filter( p_interact_ase < 1e-20 | p_interact_te < 1e-10 ) %>% ggplot(aes(-log10(p_interact_ase), -log10(p_interact_te))) + geom_point()
 
 ```
 

@@ -2,7 +2,7 @@
 #SBATCH --cpus-per-task=20
 #SBATCH --time=16:00:00
 #SBATCH --mem=64000
-#SBATCH -p normal,pritch,owners
+#SBATCH -p normal,pritch
 
 ml load R
 
