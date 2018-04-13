@@ -1,0 +1,10 @@
+This directory contains the Supplementary Material for our study "Determining the genetic basis of anthracycline-cardiotoxicity by molecular response QTL mapping in induced cardiomyocytes", including larger files not in the official Supplement. These are: 
+- log2_counts_per_million.txt.gz: gene expression quantification for 217 samples with >10M exonic reads in our dataset. 
+- sample_table.txt: the rows of this table correspond to the columns of log2_counts_per_million.txt.gz
+- leafcutter_counts.txt.gz: LeafCutter alternative splicing quantification on all samples. 
+- leafcutter_samples.txt: the rows of this table correspond to the columns of leafcutter_counts.txt.gz
+- all_eqtl.txt.gz: all tested SNP-gene pairs using total expression model (suez) only. p_geno is the p-value for a marginal effect eQTL, p_interact for a response-eQTL. 
+- all_eqtl_w_ase.txt.gz: all tested SNP-gene pairs using allele specific expression as well as total expression. p_geno is the p-value for a marginal effect eQTL, p_interact for a response-eQTL. 
+- all_splicing_qtl.txt.gz all tested SNP-intron pairs. Columns are analogous to all_eqtl.txt.gz. 
+- rarg_trans_eqtl.txt.gz: trans eQTL for the rs2229774 non-synonymous variant in RARG. p_geno: marginal effect eQTL p-value. p_interact: response eQTL p-value. Columns starting "q_" correspond to Benjamini-Hochberg adjusted p-values.  
+- embryoid_staing.pdf: iPSC quality control. This represents a superset of the lines differentiated into cardiomyocytes. 

@@ -67,6 +67,7 @@ gtex_p1 %>% group_by(geno_threshold,eqtls) %>% arrange(p1) %>% summarise(rank=me
 gtex_p1 %>% group_by(geno_threshold,eqtls) %>% arrange(p1) %>% summarise(rank=which(tissue=="Heart_Atrial_Appendage")) %>% ungroup() %>% arrange(geno_threshold)
 # Heart_Left_Ventricle
 gtex_p1 %>% group_by(geno_threshold,eqtls) %>% arrange(p1) %>% summarise(rank=which(tissue=="Muscle_Skeletal")) %>% ungroup() %>% arrange(geno_threshold)
+gtex_p1 %>% select(eqtls, p1_reverse, tissue) %>% distinct() %>% group_by(eqtls) %>% arrange(-p1_reverse) %>% summarise(Heart_Left_Ventricle=which(tissue=="Heart_Left_Ventricle"), Heart_Atrial_Appendage=which(tissue=="Heart_Atrial_Appendage")) %>% ungroup() 
 ```
 
 
