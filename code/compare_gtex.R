@@ -42,15 +42,16 @@ gtex_eqtls = fread(paste0("zcat < ",gtex_file), data.table = F) %>%
 #DATADIR="~/gdrive/dox_data/"
 #DATADIR=paste0(gdrive_location,"dox_data/")
 
+
 eqtls=list( my_eqtl = read_qtls(paste0(DATADIR,"/panama_qq_boot_1e+05/"))  %>% 
               left_join(snploc, by=c(cis_snp="snpid")) ,
   matrix_eqtl = fread(paste0("zcat < ",DATADIR,"/results0_PC10.txt.gz"), data.table = F) %>% 
     select(-FDR) %>% left_join(snploc %>% select(-pos), by=c("SNP"="snpid")) %>% 
     select(-SNP, -beta, -`t-stat`) %>% 
-    rename(p_geno=`p-value`)
+    rename(p_geno=`p-value`),
+  ase_eqtl = fread(paste0("zcat <",DATADIR,"all_eqtl_w_ase.txt.gz"), data.table = F)  %>%
+    filter(!is.na(RSID))
 )
-
-
 
 foreach(eqtl_name=names(eqtls), .combine = bind_rows) %do% {
   eqtl=eqtls[[eqtl_name]]
@@ -62,7 +63,9 @@ foreach(eqtl_name=names(eqtls), .combine = bind_rows) %do% {
     reverse_p = eqtl_join_gtex %>% filter(pval_nominal < 1e-3) %>% .$p_geno
     
     data.frame( geno_threshold=geno_threshold, gtex_file=gtex_file, eqtls=eqtl_name, prop_shared=nrow(eqtl_join_gtex)/nrow(eqtl), naive_rep=mean(rep_p < 0.05), naive_reverse=mean(reverse_p<0.05), p1= 1. - pi0est(rep_p)$pi0, p1_reverse=1. - pi0est(reverse_p)$pi0, stringsAsFactors = F)
-    }
+  }
+  
+  
 } %>% write.table(paste0(gtex_file,"_pi0.txt"), sep="\t",row.names = F, col.names = T, quote = F)
 
 
