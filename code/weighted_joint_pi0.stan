@@ -14,11 +14,11 @@ model {
   for(i in 1:N) {
     for(j in 1:N) {
       vector[4] temp;
-      temp = log(pi0);
-      temp[1] += beta_lpdf(pvalues[i] | 1, 1) +  beta_lpdf(pvalues[j] | 1, 1); 
-      temp[2] += beta_lpdf(pvalues[i] | alpha[1], beta[1]) +  beta_lpdf(pvalues[j] | 1,1); 
-      temp[3] += beta_lpdf(pvalues[i] | 1, 1) +  beta_lpdf(pvalues[j] | alpha[2], beta[2]); 
-      temp[4] += beta_lpdf(pvalues[i] | alpha[1], beta[1]) +  beta_lpdf(pvalues[j] | alpha[2], beta[2]); 
+      //temp = log(pi0);
+      temp[1] = log(pi0[1]) + beta_lpdf(pvalues[i] | 1, 1) +  beta_lpdf(pvalues[j] | 1, 1); 
+      temp[2] = log(pi0[2]) + beta_lpdf(pvalues[i] | alpha[1], beta[1]) +  beta_lpdf(pvalues[j] | 1,1); 
+      temp[3] = log(pi0[3]) + beta_lpdf(pvalues[i] | 1, 1) +  beta_lpdf(pvalues[j] | alpha[2], beta[2]); 
+      temp[4] = log(pi0[4]) + beta_lpdf(pvalues[i] | alpha[1], beta[1]) +  beta_lpdf(pvalues[j] | alpha[2], beta[2]); 
       target += weights[i,j] * log_sum_exp(temp);
     }
   }

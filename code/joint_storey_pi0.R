@@ -2,6 +2,7 @@ my_pi0est = function (p,
           lambda = seq(0.05, 0.95, 0.05), 
           smooth.df = 3) 
 {
+  if (length(p)==0) return(list(pi0=NA, pi0.lambda = NA*lambda, lambda = lambda))
   p <- p[!is.na(p)]
   lambda <- sort(lambda)
   ll <- length(lambda)
@@ -61,7 +62,7 @@ joint_pi0_estimator=function(pvalues, breaks=seq(0,1,by=0.01), restarts=5) {
   pi0_init=c(init[[1]]$pi0*init[[2]]$pi0, (1-init[[1]]$pi0)*init[[2]]$pi0, init[[1]]$pi0*(1-init[[2]]$pi0), (1-init[[1]]$pi0)*(1-init[[2]]$pi0))
   
   N=length(breaks)-1
-  h=temp %$% gplots::hist2d(pvalues[,1], pvalues[,2], N)
+  h=gplots::hist2d(pvalues[,1], pvalues[,2], N)
   alpha=foreach(ini=init, .combine=c) %do% { ini$alpha }
   beta=foreach(ini=init, .combine=c) %do% { ini$beta }
   
