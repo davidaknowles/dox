@@ -24,6 +24,8 @@
 \captionsetup[table]{justification=raggedright,singlelinecheck=false}
 \usepackage{textcomp}
 
+\usepackage{morefloats}
+
 \date{}
 
 \newcommand{\tempbold}[1]{\textbf{#1}}
@@ -101,7 +103,7 @@ We generated iPSC-derived cardiomyocytes (ICs) for 45 Hutterite individuals (Fig
     \end{center}
 \end{figure}
 
-We next sought to map single nucleotide polymorphisms (SNPs) that modulate the observed inter-individual transcriptomic response to doxorubicin, leveraging available genetic variation across the 45 individuals\cite{Livne2015}. We developed a linear mixed model approach, called \texttt{suez}, that extends the PANAMA framework\citep{Fusi2012} to account for relatedness amongst individuals, repeat measurements, multiple conditions and latent confounding. Testing SNPs within 1Mb of the transcription start site (TSS), 518 genes have a variant with a detectable marginal effect on expression (5\% FDR, Supplementary Table \ref{tab:sig_eqtl}). Reassuringly, these expression quantitative trait loci (eQTLs) show strong replication (Storey's $\pi_1=0.80$) in GTEx heart tissue, and do so more strongly than in GTEx brain ($\pi_1=0.69$) or lymphoblastoid cell line ($\pi_1=0.72$) data (Figure 2a). Remarkably, even with our moderate number of individuals, we are able to detect many response-eQTLs (reQTLs), i.e. variants that modulate (directly or indirectly) transcriptomic response to doxorubicin. We found reQTLs for 376 genes at a nominal 5\% FDR (Supplementary Table \ref{tab:sig_reqtl}), which we estimate using a parametric bootstrap corresponds to a true FDR of $8.5\%$ (Figure 2b). \tempbold{We explored leveraging allele specific expression (ASE) extending our previous work\cite{Knowles2017-yp,Van_de_Geijn2015-nm}. We fit a beta-binomial generalized linear model (GLM) where the response variable corresponds to alternative vs reference read counts and covariates correspond to heterozygosity of the test regulatory eSNP. We found it impractical to directly relate effect sizes in the total expression and ASE models so we instead combined likelihood ratios from the beta-binomial GLM and \texttt{suez} likelihood into a single test statistic. This approach yielded 447 reQTLs at 5\% FDR (Supplementary Table \ref{tab:sig_ase_reqtl}), an increase of 19\% over using total expression alone. We hypothesize that this relatively modest increase in power is due to a) \texttt{suez} already being reasonably well powered in this direct perturbation setting and b) the somewhat low sequencing depth of our samples.}
+We next sought to map single nucleotide polymorphisms (SNPs) that modulate the observed inter-individual transcriptomic response to doxorubicin, leveraging available genetic variation across the 45 individuals\cite{Livne2015}. We developed a linear mixed model approach, called \texttt{suez}, that extends the PANAMA framework\citep{Fusi2012} to account for relatedness amongst individuals, repeat measurements, multiple conditions and latent confounding. Testing SNPs within 1Mb of the transcription start site (TSS), 518 genes have a variant with a detectable marginal effect on expression (5\% FDR, Supplementary Table \ref{tab:sig_eqtl}). \tempbold{Using a mutual information approach (see Methods) that controls for differential power across GTEx tissues, we find our expression quantitative trait loci (eQTLs) show stronger overlap with the two heart tissues than any other GTEx tissue (Figure 2a)}. Remarkably, even with our moderate number of individuals, we are able to detect many response-eQTLs (reQTLs), i.e. variants that modulate (directly or indirectly) transcriptomic response to doxorubicin. We found reQTLs for 376 genes at a nominal 5\% FDR (Supplementary Table \ref{tab:sig_reqtl}), which we estimate using a parametric bootstrap corresponds to a true FDR of $8.5\%$ (Figure 2b). \tempbold{We explored leveraging allele specific expression (ASE) extending our previous work\cite{Knowles2017-yp,Van_de_Geijn2015-nm}. We fit a beta-binomial generalized linear model (GLM) where the response variable corresponds to alternative vs reference read counts and covariates correspond to heterozygosity of the test regulatory eSNP. We found it impractical to directly relate effect sizes in the total expression and ASE models so we instead combined likelihood ratios from the beta-binomial GLM and \texttt{suez} likelihood into a single test statistic. This approach yielded 447 reQTLs at 5\% FDR (Supplementary Table \ref{tab:sig_ase_reqtl}), an increase of 19\% over using total expression alone. We hypothesize that this relatively modest increase in power is due to a) \texttt{suez} already being reasonably well powered in this direct perturbation setting and b) the somewhat low sequencing depth of our samples.}
 
 To characterize the detected reQTLs we assigned the response of the major and minor allele to one of the six clusters previously learned (Figure 1c), with heterozygotes expected to display the average of the two homozygous responses. 172 (46\%) of reQTLs result in a qualitatively distinct response as determined by the two alleles being assigned to different clusters. The most common transition, occurring for 33 reQTLs, is that the major allele is associated with simple down-regulation (cluster 1) in response to doxorubicin, whereas the minor allele shows up-regulation at low concentration followed by down-regulation at higher concentration (cluster 2). 
 
@@ -153,7 +155,7 @@ Using previously published data\cite{Burridge2016}, we built a predictive model 
 
 \begin{figure}
 \begin{center}
-    \includegraphics[width=1\textwidth]{../figures/fig5_gwas.pdf}     \caption{\it{Cardiomyocyte molecular QTLs are enriched in the largest available ACT GWAS\cite{Schneider2016}. \textbf{a.} rs4058287 has a GWAS $p$-value of $9.68\times 10^{-6}$ and is a nominally significant eQTL ($p=0.0016$) for \emph{ALPK2}, which is down-regulated in response to doxorubicin. \textbf{b.} SNPs that have either a marginal or response eQTL with $p<10^{-5}$ are enriched in GWAS variants with $p<0.05$ (hypergeometric test $p=3 \times 10^{-6}$). \textbf{c.} SNPs with a marginal or response splicing QTL at $p<10^{-5}$ show modest enrichment in GWAS $p<0.005$ (hypergeometric $p=0.02$).}}
+    \includegraphics[width=1\textwidth]{../figures/fig5_gwas.pdf}     \caption{\it{Cardiomyocyte molecular QTLs are enriched in the largest available ACT GWAS\cite{Schneider2016}. \textbf{a.} rs4058287 has a GWAS $p$-value of $9.68\times 10^{-6}$ and is a nominally significant eQTL ($p=0.0016$) for \emph{ALPK2}, which is down-regulated in response to doxorubicin. \textbf{b.} SNPs that have a response eQTL with $p<10^{-5}$ are enriched in GWAS variants with $p<0.05$ (hypergeometric test $p=2 \times 10^{-37}$). \textbf{c.} SNPs with a marginal or response splicing QTL at $p<10^{-5}$ show modest enrichment in GWAS $p<0.005$ (hypergeometric $p=0.02$).}}
     \label{fig:gwas}
     \end{center}
 \end{figure}
@@ -162,7 +164,7 @@ Using previously published data\cite{Burridge2016}, we built a predictive model 
 
 To determine the disease-relevance of our molecular QTLs we obtained summary statistics for the largest ACT GWAS to date\cite{Schneider2016}. While this GWAS was not sufficiently powered to find genome-wide significant associations, 11 variants representing 9 independent loci have $p<10^{-5}$, with the most significant (rs2184559) at $p=2.8 \times 10^{-6}$. Of the 8 GWAS variants with $p<10^{-5}$ either tested in our eQTL mapping, or in high LD ($R^2 > 0.8$) with a tested SNP, 7 have a nominally significant marginal eQTL ($p<0.05$, the 8th has $p=0.07$) and four have a reQTL with $p<0.1$. The one replicated variant in this GWAS, rs28714259, was not genotyped in our data but is in high LD ($R^2=0.98$) with rs11855704 which is a nominally significant marginal eQTL for tubulin gamma complex associated protein 5 (\emph{TUBGCP5}, Supplementary Figure \ref{fig:TUBGCP5}). rs4058287 (GWAS $p$-value $9.68\times 10^{-6}$) has a marginal effect on Alpha-Protein Kinase 2 (\emph{ALPK2}, also known as ``Heart Alpha-Protein Kinase'' since it was discovered in mouse heart\cite{ryazanov1999alpha} and is expressed in few other tissues\cite{Mele2015-sc}) expression ($p=0.0016$) as well as a weak interaction effect ($p=0.06$, see Figure \ref{fig:gwas}a). Interestingly, \emph{ALPK2} has been shown to upregulate DNA repair genes and to enable caspase-3 cleavage and apoptosis in a colorectal cancer model\citep{yoshida2012alpk2}. The replicating variant from Aminkeng et al.\cite{Aminkeng2015}, rs2229774 only occurs in two individuals in our cohort (who are heterozygous) making eQTL mapping infeasible. Additionally we find a marginal effect eQTL ($p=0.0017$, Supplementary Figure \ref{fig:SLC28A3}) on SLC28A3 for rs885004, which has previously been associated with ACT in a candidate gene study\cite{Visscher2013-zs}. rs885004 is intronic, is in LD ($R^2=0.98$) with another ACT implicated variant, rs7853758\cite{Visscher2012-xl}, and falls in a DNase I hypersensitivity and H3K27ac peak \tempbold{present in numerous ENCODE cell lines (and is open in our ICs according to ATAC-seq data, see Supplementary Figure \ref{fig:rs885004}).}
 
-\tempbold{To determine whether our molecular QTLs are more useful than published QTLs for interpreting ACT risk variants we first sought to obtain the best powered GWAS data possible. Since the Schneider et al. GWAS was overall underpowered, we obtained additional ACT GWAS summary statistics from a more recent study\cite{Serie2017} and performed a meta-analysis with Schneider et al. We used this data to assess whether there was detectable enrichment of low GWAS $p$-values for our regulatory QTLs. When considering eQTL with nominal $p < 10^{-5}$ (corresponding approximately to 5\% FDR) we found no enrichment for GWAS $p<0.05$ for three GTEx tissues (heart, brain and lymphoblastoid cell lines --- LCLs), our marginal effect eQTLs or baseline (no doxorubicin) only eQTLs (Supplementary Figure \ref{fig:meta_enrichment}). However, considering SNPs that are either main effect or response eQTL we see significant enrichment (one-sided hypergeometric $p=6 \times 10^{-20}$, OR=$1.40$). Similarly for ``combined'' eQTL where we explicitly test for any effect of genotype  (main or interaction effect, see Methods) we see enrichment ($p=5 \times 10^{-12}$, OR=$1.29$). Furthermore, focusing on response eQTL we see a stronger enrichment ($p=2 \times 10^{-37}$, OR=$1.95$, Figure \ref{fig:gwas}b), suggesting that the enrichment in combined eQTL is driven by this signal. Response eQTL mapped using allelic-specific expression as well as total expression show the strongest enrichment ($p=6 \times 10^{-60}$, OR=$2.22$). When considering splicing QTLs (Supplementary Figure \ref{fig:sQTL_meta_enrichment}) we found no enrichment for marginal sQTLs mapped in LCLs\cite{li2016rna}. Interestingly, in contrast to the total expression QTLs we found a significant enrichment ($p=4 \times 10^{-17}$, OR=$1.36$, Figure \ref{fig:gwas}c) for marginal sQTLs although the enrichment in response sQTLs was still higher in absolute terms ($p=2 \times 10^{-5}$, OR=$1.57$). These findings are indicative that molecular response QTL mapping is beneficial for understanding the molecular basis of environmentally-dependent human disease.}
+\tempbold{To determine whether our molecular QTLs are more useful than published QTLs for interpreting ACT risk variants we first sought to obtain the best powered GWAS data possible. Since the Schneider et al. GWAS was overall underpowered, we obtained additional ACT GWAS summary statistics from a more recent study\cite{Serie2017} and performed a meta-analysis with Schneider et al. We used this data to assess whether there was detectable enrichment of low GWAS $p$-values for our regulatory QTLs. When considering eQTL with nominal $p < 10^{-5}$ (corresponding approximately to 5\% FDR) we found no enrichment for GWAS $p<0.05$ for three GTEx tissues (heart, brain and lymphoblastoid cell lines --- LCLs), our marginal effect eQTLs or baseline (no doxorubicin) only eQTLs (Supplementary Figure \ref{fig:meta_enrichment}). However, considering SNPs that are either main effect or response eQTL we see significant enrichment (one-sided hypergeometric $p=6 \times 10^{-20}$, OR=$1.40$). Similarly for ``combined'' eQTL where we explicitly test for any effect of genotype  (main or interaction effect, see Methods) we see enrichment ($p=5 \times 10^{-12}$, OR=$1.29$). Furthermore, focusing on response eQTL we see a stronger enrichment ($p=2 \times 10^{-37}$, OR=$1.95$, Figure \ref{fig:gwas}b), suggesting that the enrichment in combined eQTL is driven by this signal. Response eQTLs mapped using allelic-specific expression as well as total expression show the strongest enrichment ($p=6 \times 10^{-60}$, OR=$2.22$). When considering splicing QTLs (Supplementary Figure \ref{fig:sQTL_meta_enrichment}) we found no enrichment for marginal sQTLs mapped in LCLs\cite{li2016rna}. Interestingly, in contrast to the total expression QTLs we found a significant enrichment ($p=4 \times 10^{-17}$, OR=$1.36$, Figure \ref{fig:gwas}c) for IC marginal sQTLs although the enrichment in response sQTLs was still higher in absolute terms ($p=2 \times 10^{-5}$, OR=$1.57$). These findings are indicative that molecular response QTL mapping has potential for understanding the molecular basis of environmentally-dependent human disease.}
 
 \tempbold{Finally, we attempted colocalization analysis for our response eQTLs and meta-analyzed GWAS using \emph{coloc} \cite{Giambartolomei2014-ux}, a Bayesian method based on summary statistics. For each region (gene in our case) \emph{coloc} infers a posterior probability for each of five possibilities: (H0) no association, (H1) association for the eQTL only, (H2) association for the GWAS only, (H3) independent variants, or (H4) colocalization to one variant. Out of 43 genes with a SNP with a reQTL at $p<10^{-5}$ and GWAS SNP at $p<0.05$ \emph{coloc} gave maximum posterior probability to the null hypothesis (H0, no association) for 32 genes, association only for reQTL (H1) for 9, and colocalization (H4) for one gene, \emph{NOL10} (posterior probability of colocalization $0.54$, Supplementary Figure \ref{fig:coloc}, Supplementary Table \ref{tab:coloc}). While these results suggest our data is not sufficiently well-powered for colocalization analysis, we note that the posterior probability of colocalization (H4) is higher than that for independent signal (H3) in 40/43 tested genes.}
 
@@ -184,9 +186,9 @@ We observed a statistical enrichment of expression and (to a lesser extent) spli
 
 We derived ICs from healthy individuals so we do not known which individuals would develop ACT if they required anthracycline treatment. Mapping molecular response QTLs in larger panels of ICs from patients treated with anthracyclines who do or do not develop ACT symptoms would allow stronger conclusions to be drawn about the contribution of the detected (r)eQTLs to disease etiology. 
 
-\tempbold{We used a panel of Hutterites individual since this homogeneous population offers unique advantages for mapping genetic traits: exposure to a fairly uniform environment and less variable genetic background, despite still representing much of European diversity\cite{Newman2004-ms}. We acknowledge however that the genetic basis of ACT susceptibility is clearly complex and some relevant genetic variation may not be well represented in this cohort.}
+\tempbold{We used a panel of Hutterites individual since this homogeneous population offers unique advantages for mapping genetic traits: exposure to a fairly uniform environment and less variable genetic background, despite still representing much of European diversity\cite{Newman2004-ms}. However, the genetic basis of ACT susceptibility is clearly complex and some relevant genetic variation may not be well represented in this cohort.}
 
-Finally, an interesting observation in our study is that splicing fidelity is reduced upon doxorubicin exposure. This is not completely unexpected since a key downstream side-effect of doxorubicin is increased oxidative stress, which has been previously associated with dysregulated splicing of specific genes\cite{Disher2007,Seo2016}. Our finding that this effect is prevalent across the transcriptome poses further questions about what known effects of  doxorubicin might, in fact, be mediated by changes in splicing. 
+Finally, an interesting observation in our study is that splicing fidelity is reduced upon doxorubicin exposure. This is not completely unexpected since a key downstream side-effect of doxorubicin is increased oxidative stress, which has been previously associated with dysregulated splicing of specific genes\cite{Disher2007,Seo2016}. Our finding that this effect is prevalent across the transcriptome poses further questions about what known effects of  doxorubicin might, in fact, be mediated by changes in RNA splicing. 
 
 % Explain what response QTLs are ? what they mean, and why they are useful.
 % Explain a bit about the general idea of using response eQTL results to identify additional GWAS hits.
@@ -319,6 +321,18 @@ where there are $K$ exonic SNPs in a gene, with alternative allele counts $y_{nk
 
 \tempbold{To integrate evidence from total and allelic specific expression it is valid to add the log likelihood ratios, which can be seen as either fitting one model with likelihood terms for the two components, or as a result of $\chi^2$ random variables being closed under addition. This approach has substantially better power than applying Fisher's combined probability test to $p$-values from testing the total and allelic expression components separately.  $2\times$ the summed log likelihood ratio is asymptotically $\chi^2$  with degrees of freedom being simply the sum of the degrees of freedom of the two components (so usually $4+4=8$ in our case). In practice we only fit the total expression model if there are at least $5$ alternative alleles observed for the test regulatory SNP, and only fit the allelic component if there are at least $2000$ supporting allelic reads for the gene, so some regulatory SNPs are only tested using one component or the other . In addition, for some genes whose expression is very low for specific concentrations there may be no allelic reads for a concentration, in which case the degrees of freedom for the allelic component will be reduced since no $\beta_c$ is learned for that concentration.}
 
+\subsection*{Assessing agreement with GTEx eQTLs}
+
+\tempbold{We initially compared our eQTLs to GTEx eQTLs by estimating Storey's $\pi_1$\cite{Storey2003-nk} (using the \texttt{qvalue} R package v2.8.0) for GTEx nominal $p$-values for our significant eQTLs (at a nominal $p<10^{-5}$). While the GTEx heart tissues show higher replication than most tissues, surprising tissues ranked higher (Supplementary Figure \ref{fig:gtex_pi0}). We reasoned that differential power across the GTEx tissues due to differing sample size and noise levels confound this simple approach. We therefore used an extension of Storey's $\pi_1$ to test for overlap between two sets of $p$-values. For each GTEx tissue we fit (using LBFGS in Stan) a mixture model
+\begin{align}
+(p_{i1}, p_{i2}) \sim \pi_{00} \mathcal{U}(p_{i1}) \mathcal{U}(p_{i2}) + \pi_{10}\mathcal{B}(p_{i1}|a_1,b_1) \mathcal{U}(p_{i2})  + \pi_{01} \mathcal{U}(p_{i1}) \mathcal{B}(p_{i2}|a_2,b_2) + \pi_{11} \mathcal{B}(p_{i1}|a_1,b_1) \mathcal{B}(p_{i2}|a_2,b_2)
+\end{align}
+where $p_{ij}$ is the $p$-value for SNP-gene pair $i$ in tissue $j$, $\mathcal{U}$ is the uniform distribution on $[0,1]$ (corresponding to $p$-values coming from the null) and $\mathcal{B}$ is the beta distribution (corresponding to non-null $p$-values). $\pi_{00}, \pi_{01}, \pi_{10}, \pi_{11}$ correspond to mixture weights are estimates of the proportion of SNP-gene pairs that are a) null for both tissues, b) null for tissue 1 and non-null for tissue 2, c) non-null for tissue 1 and null for tissue 2, d) non-null for both tissues. Note that $\pi$ sums to $1$.  We constrain the hyperparameters $a_j \in [0,1]$ and $b_j \geq 1$ to encode the assumption that non-null SNP-gene pairs should have low $p$-values. Due to the large number of SNP-gene pairs tested, in practice we bin $p$-values on a regular $100\times100$ grid and use the bin counts to weight the likelihood. Finally we estimate the mutual information between the pair of tissues as: 
+\begin{align}
+MI = \sum_{k=\{0,1\}} \sum_{j=\{0,1\}} p_{kj} \log{ \frac{ p_{kj} }{ p_k p'_j } }
+\end{align}
+where $p_k = \sum_{j=\{0,1\}} p_{kj}$ and $p'_j=\sum_{k=\{0,1\}} p_{kj}$ are marginal probabilities. A strength of the approach described here is that there is no need to choose arbitrary significance thresholds.}
+
 \subsection*{Splicing analysis}
 
 We ran \texttt{LeafCutter} v0.2.6\_dev (using default settings) which allows joint differential intron excision testing across more than two conditions. For each Alternative Splicing Cluster (ASC) \texttt{LeafCutter} fits a set of $Percent Spliced In$ probability vectors $\psi_{c}$, across detected splice junctions $i$, at each concentration $c$. For ASCs determined to be significantly (5\% FDR) differential spliced across concentrations, we calculated the entropy $h_c = -\sum_i \psi_{ci} \log \psi_{ci}$ at each concentration $c$. We normalized these profiles as $\tilde{h_c} = h_c / \bar{h_c}$ and clustered these profiles, using \texttt{KMeans\_rcpp} as above. 
@@ -346,7 +360,7 @@ We optimize this model wrt $\sigma_\beta$ and $\sigma_\epsilon$ to obtain an est
 All the custom analysis scripts used for this project are available at \url{https://github.com/davidaknowles/dox}. 
 The \texttt{suez} response eQTL mapping R package is available at \url{https://github.com/davidaknowles/suez}. 
 The following data are available as Supplementary Data: 1) differential expression cluster assignments, 2) significant (5\% FDR) eQTLs and sQTLs, 3) differential splicing results, 4) levels of cardiac troponin and the predicted transcriptomic response. 
-In addition to the Supplementary Data included with this paper full results are hosted at \url{http://web.stanford.edu/~dak33/dox/} including 1) gene-by-sample matrix of RNA-seq quantification (log counts per million), 2) LeafCutter intron excision quantification 3) $p$-values for all tested eQTLs, reQTLs, sQTLs, and rsQTLs. 
+In addition to the Supplementary Data included with this paper full results are hosted at \url{http://web.stanford.edu/~dak33/dox/} including 1) gene-by-sample matrix of RNA-seq quantification (log counts per million), 2) LeafCutter intron excision quantification 3) $p$-values for all tested eQTLs, reQTLs, sQTLs, and rsQTLs, 4) RARG variant response and marginal trans-eQTLs, 5) RIN, RNA concentration and other technical covariates, 6) embryoid body imaging for all iPSC lines. 
 The RNA-seq FASTQ files will be added to the dbGaP database \cite{Tryka2014} under dbGaP accession phs000185
 (\url{https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs000185}).
 The genotype data files cannot be shared because releasing genotype data
@@ -365,6 +379,7 @@ CKB was supported by a NIH (http://www.ncats.nih.gov/ctsa) Clinical and Translat
 
 YG, CKB and CO conceived the project and provided source material.
 CKB performed the experiments with assistance from KMP.
+DJS and NN contributed GWAS data and advised on its analysis. 
 DAK developed algorithms, and analyzed the data with assistance from JDB.
 JKP, CO and YG supervised the project.
 DAK wrote the paper with input from all authors.
@@ -414,7 +429,7 @@ DAK wrote the paper with input from all authors.
 
 \begin{figure}[h]
 \begin{center}
-    \includegraphics[width=\textwidth]{../figures/purity.pdf} 
+    \includegraphics[width=.6\textwidth]{../figures/purity.pdf} 
     \caption{\it{Fluorescence activated cell sorting (FACS) purity estimates for iPSC-derived cardiomyocytes.}}
     \label{fig:purity}
     \end{center}
@@ -446,6 +461,14 @@ DAK wrote the paper with input from all authors.
 
 \begin{figure}[h]
 \begin{center}
+    \includegraphics[width=.7\textwidth]{../figures/mutual_info_gtex_full.pdf} 
+    \caption{\it{Estimates of the mutual information between whether SNP-gene pairs are associated in our data compared to all 48 GTEx tissues. Unlike a simple replication analysis our approach controls for differential power across the GTEx tissues (see Methods) and shows that our eQTLs agree most strongly with eQTLs from the two heart tissues.}}
+    \label{fig:gtex_mi}
+    \end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
     \includegraphics[width=.6\textwidth]{../figures/ABCA12.pdf} % use small or
     \caption{\it{An example response expression QTL that may act through buffering at high expression levels.}}
     \label{fig:ABCA12}
@@ -456,7 +479,7 @@ DAK wrote the paper with input from all authors.
 \begin{figure}[h]
 \begin{center}
     \includegraphics[width=\textwidth]{../figures/rarg_hits.pdf} 
-    \caption{\it{Trans-eQTLs at 5\% FDR for rs2229774, a non-synonymous coding variant in \emph{RARG} which is associated with ACT\cite{Aminkeng2015}. Only two individuals are heterozygous. $p$-values shown have been adjusted for multiple testing by Benjamini Hochberg.}}
+    \caption{\it{Trans-eQTLs (5 response and 1 marginal) at 5\% FDR for rs2229774, a non-synonymous coding variant in \emph{RARG} which is associated with ACT\cite{Aminkeng2015}. Only two individuals are heterozygous. $p$-values shown have been adjusted for multiple testing by Benjamini Hochberg.}}
     \label{fig:rarg_hits}
     \end{center}
 \end{figure}
@@ -518,6 +541,15 @@ DAK wrote the paper with input from all authors.
     \label{fig:coloc}
     \end{center}
 \end{figure}
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=.7\textwidth]{../figures/gtex_rep.pdf} 
+    \caption{\it{Storey's $\pi_1$ values to estimate the replication in GTEx tissues of SNP-gene eQTL pairs significant in our data at $p < 10^{-5}$. This analysis is confounded by variable power across the GTEx tissues, see Supplementary Figure \ref{fig:gtex_mi} for an improved approach.}}
+    \label{fig:gtex_pi0}
+    \end{center}
+\end{figure} 
+
 \setcounter{table}{0}
 \makeatletter 
 \renewcommand{\thetable}{S\@arabic\c@table}
